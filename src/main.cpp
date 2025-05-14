@@ -572,7 +572,8 @@ int main(void){ // Your existing main function starts here
             }
 
             // Turbo (Left Shift)
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+            if (sf::Keyboard
+                ::isKeyPressed(sf::Keyboard::LShift)) {
                 turbo = 2;
             } else {
                 // If Left Shift is not pressed AND joystick turbo button is also not pressed,
