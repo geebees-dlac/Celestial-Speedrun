@@ -286,9 +286,9 @@ int main(void){
     sf::Font menuFont;
     // IMPORTANT: Provide a valid path to your font file.
     // If "arial.ttf" is in the same folder as your executable:
-    if (!menuFont.loadFromFile("../assets/fonts/ttf/monaspace-neon-latin-300-normal.ttf")) {
+    if (!menuFont.loadFromFile("/assets/fonts/monaspace-neon_5.2.5/ttf/monaspace-neon-latin-300-normal.ttf")) {
         // If it's in a "fonts" subfolder: if (!menuFont.loadFromFile("fonts/arial.ttf")) {
-        std::cerr << "Error: Could not load font! Make sure 'arial.ttf' (or your chosen font) is in the correct path." << std::endl;
+        std::cerr << "Error: Could not load font! Make sure 'font.ttf' is in the correct path." << std::endl;
         return -1; // debugging purposes
     }
 
