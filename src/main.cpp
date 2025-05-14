@@ -439,7 +439,6 @@ int main(void){
             //update the position of the square according to input from joystick
             //CHECK DEAD ZONES - OTHERWISE INPUT WILL RESULT IN JITTERY MOVEMENTS WHEN NO INPUT IS PROVIDED
             //INPUT RANGES FROM -100 TO 100
-            //A 15% DEAD ZONE SEEMS TO WORK FOR ME - GIVE THAT A SHOT
             if ((speed.x > 15.f && !collisionLeft) || (speed.x < -15.f && !collisionRight)){
                 playerBody.m_position.x += turbo*speed.x*TimePerFrame.asSeconds();
             }
