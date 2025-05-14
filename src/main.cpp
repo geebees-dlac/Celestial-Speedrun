@@ -42,7 +42,7 @@ enum class bodyType {
     jumpthrough,
     falling,
     vanishing,
-    spring // Assumed from comments, not fully used in provided main's logic for player
+    spring 
 };
 
 struct platformBody {
@@ -266,7 +266,7 @@ int main(void){ // Your existing main function starts here
 
     float GRAVITY = 0.f;//variable gravity
 
-	sf::RenderWindow window(sf::VideoMode(800, 600), "Collision Detection", sf::Style::Default);
+	sf::RenderWindow window(sf::VideoMode(800, 600), "Project - T", sf::Style::Default);
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 	window.setFramerateLimit(60);
