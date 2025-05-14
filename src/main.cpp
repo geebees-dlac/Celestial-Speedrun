@@ -283,15 +283,19 @@ int main(void){
     GameState currentState = GameState::MENU;
 
     // --- Menu Resources ---
-    sf::Font menuFont;
+    // sf::Font menuFont;
     // IMPORTANT: Provide a valid path to your font file.
     // If "arial.ttf" is in the same folder as your executable:
     // good practice to put all assets with our executable so i can just do this below
-    if (!menuFont.loadFromFile("assets/fonts/monaspace-neon-latin-300-normal.ttf")) {
-        // If it's in a "fonts" subfolder: if (!menuFont.loadFromFile("fonts/arial.ttf")) {
-        std::cerr << "Error: Could not load font! Make sure 'font.ttf' is in the correct path." << std::endl;
-        return -1; // debugging purposes
-    }
+sf::Font menuFont;
+std::string fontPath = "Arial_Bold.ttf"; // Test: Font directly next to executable
+
+if (!menuFont.loadFromFile(fontPath)) {
+    std::cerr << "ur fucked '" << fontPath << "like fucked fucked'" << std::endl;
+    std::cerr << "wrong locations" << std::endl;
+    return -1;
+}
+
 
     sf::Text startButtonText;
     sf::Text settingsButtonText;
