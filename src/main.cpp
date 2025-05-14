@@ -7,7 +7,8 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-//interpol ation functions
+//another sample test ignore this line
+//interpolation functions
 namespace math {
 namespace interpolate {
     // t: current time
