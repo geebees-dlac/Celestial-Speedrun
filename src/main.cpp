@@ -534,20 +534,53 @@ int main(void){ // Your existing main function starts here
                 }
             }
             // Keyboard controls (example, can be added)
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) speed.x = -100.f;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) speed.x = 100.f;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) { // Space for Jump
-                 if (!jumped) jumpCount++;
-                 jumped = true;
-            } else {
-                 if (!sf::Joystick::isConnected(0) || !sf::Joystick::isButtonPressed(0,0)) { // only if joystick also not pressing jump
-                    jumped = false;
-                 }
+            // --- Keyboard Controls ---
+            // Horizontal Movement (A/D or Left/Right)
+            // We check if speed.x is still 0 from the reset or joystick deadzone.
+            // If joystick is already providing significant input, we might not want keyboard to override it
+            // to zero if no A/D key is pressed.
+            // However, the current logic sets speed.x and then joystick might overwrite it.
+            // Better: set speed.x based on keyboard first, then joystick can override IF active.
+            // For simplicity now: keyboard sets speed.x if it's pressed.
+
+            bool key_left_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
+            bool key_right_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+
+            if (key_left_pressed && !key_right_pressed) {
+                speed.x = -100.f; // Set to max negative speed for keyboard
+            } else if (key_right_pressed && !key_left_pressed) {
+                speed.x = 100.f;  // Set to max positive speed for keyboard
             }
-             if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) turbo = 2;
-             else if (!sf::Joystick::isConnected(0) || !sf::Joystick::isButtonPressed(0,2)) { // only if joystick also not pressing turbo
-                turbo = 1;
-             }
+            // If neither or both are pressed, speed.x remains what joystick set it to (or 0.f if joystick inactive/deadzone)
+
+            // Jumping (W or Up Arrow or Space)
+            bool key_jump_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::W) ||
+                                    sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
+                                    sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
+
+            if (key_jump_pressed) {
+                if (!jumped) { // If not already considered 'jumped' (e.g., from joystick this frame)
+                    jumpCount++;
+                }
+                jumped = true; // Mark jump button as active
+            } else {
+                // If NO jump key is pressed AND joystick jump button is also not pressed,
+                // then mark 'jumped' as false.
+                if ((!sf::Joystick::isConnected(0) || !sf::Joystick::isButtonPressed(0, 0))) {
+                    jumped = false;
+                }
+            }
+
+            // Turbo (Left Shift)
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+                turbo = 2;
+            } else {
+                // If Left Shift is not pressed AND joystick turbo button is also not pressed,
+                // then reset turbo.
+                if (!sf::Joystick::isConnected(0) || !sf::Joystick::isButtonPressed(0, 2)) {
+                    turbo = 1;
+                }
+            }
 
 
             // --- Platform Updates (before player) ---
