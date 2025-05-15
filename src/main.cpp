@@ -157,10 +157,10 @@ void collisionSystem::resolveCollisions(dynamicBody* player, platformBody* platf
         }
 
 
-        sf::FloatRect playerRect(player->m_position.x, player->m_position.y, player->m_width, player->m_height);
-        sf::FloatRect platformRect(platform->m_position.x, platform->m_position.y, platform->m_width, platform->m_height);
+        sf::FloatRect playerRect({player->m_position.x, player->m_position.y}, {player->m_width, player->m_height});
+        sf::FloatRect platformRect({platform->m_position.x, platform->m_position.y}, {platform->m_width, platform->m_height});
 
-        if (playerRect.intersects(platformRect)) {
+        if (playerRect.findIntersection(platformRect)) {
             // Default to this platform if it's the first one encountered or a bottom collision
             if (best_collided_platform_this_pass.m_type == bodyType::none) {
                 best_collided_platform_this_pass = *platform;
@@ -181,8 +181,8 @@ void collisionSystem::resolveCollisions(dynamicBody* player, platformBody* platf
                 bool resolve_as_vertical = (overlap_y < overlap_x); // Default: resolve along axis of least penetration
 
                 // Refine axis choice based on previous frame (if not overlapping before)
-                sf::FloatRect playerPrevRect(player->m_lastPosition.x, player->m_lastPosition.y, player->m_width, player->m_height);
-                if (!playerPrevRect.intersects(platformRect)) {
+                sf::FloatRect playerPrevRect({player->m_lastPosition.x, player->m_lastPosition.y}, {player->m_width, player->m_height});
+                if (!playerPrevRect.findIntersection(platformRect)) {
                     bool prev_x_overlap = (player->m_lastPosition.x + player->m_width > platform->m_position.x && 
                                          player->m_lastPosition.x < platform->m_position.x + platform->m_width);
                     bool prev_y_overlap = (player->m_lastPosition.y + player->m_height > platform->m_position.y &&
@@ -275,11 +275,11 @@ int main(void){
 
     float GRAVITY = 0.f;//variable gravity
 
-	sf::RenderWindow window(sf::VideoMode(800, 600), "Project - T", sf::Style::Default);
+	sf::RenderWindow window(sf::VideoMode({800, 600}), "Project - T", sf::Style::Default);
 	window.setKeyRepeatEnabled(false);
 	window.setVerticalSyncEnabled(true);
 	window.setFramerateLimit(60);
-	sf::Event e;
+	//sf::Event e;
 
     // --- Game State Variable ---
     GameState currentState = GameState::MENU;
@@ -290,18 +290,19 @@ int main(void){
     // If "arial.ttf" is in the same folder as your executable:
     // good practice to put all assets with our executable so i can just do this below
 sf::Font menuFont;
-std::string fontPath = "../assets/DreamLife-V1.0.0_by_MaxiGamer.ttf"; // Test: Font directly next to executable
+sf::Font defaultFont;
+std::string menuFontPath = "../assets/DreamLife-V1.0.0_by_MaxiGamer.ttf"; // Test: Font directly next to executable
+std::string defaultFontPath = "../assets/ARIALBD.TTF";
 
-if (!menuFont.loadFromFile(fontPath)) {
-    std::cerr << "ur fucked '" << fontPath << "like fucked fucked'" << std::endl;
+if (!menuFont.openFromFile(menuFontPath)) {
+    std::cerr << "ur fucked '" << menuFontPath << "like fucked fucked'" << std::endl;
     std::cerr << "wrong locations" << std::endl;
-    return -1;
+    if (!menuFont.openFromFile(defaultFontPath)) return -1;
 }
 
-
-    sf::Text startButtonText;
-    sf::Text settingsButtonText;
-    sf::Text exitButtonText;
+if (!defaultFont.openFromFile(defaultFontPath)){
+    return -1;
+}
 
     unsigned int buttonCharSize = 40;     // Character size for buttons
     float buttonSpacing = 70.f;        // Vertical spacing between buttons
@@ -318,10 +319,16 @@ if (!menuFont.loadFromFile(fontPath)) {
         text.setFillColor(sf::Color::White);
         // Set origin to the center of the text for easy centering
         sf::FloatRect textRect = text.getLocalBounds();
-        text.setOrigin(textRect.left + textRect.width / 2.0f,
-                       textRect.top + textRect.height / 2.0f);
+        text.setOrigin({textRect.position.x + textRect.size.x / 2.0f,
+                       textRect.position.y + textRect.size.y / 2.0f});
         text.setPosition(sf::Vector2f(windowWidth / 2.0f, yPos));
     };
+    
+    std::string defaultTextContent = "";
+    
+    sf::Text startButtonText(defaultFont, defaultTextContent);
+    sf::Text settingsButtonText(defaultFont, defaultTextContent);
+    sf::Text exitButtonText(defaultFont, defaultTextContent);
 
     // Setup buttons
     setupButton(startButtonText, "Start Game", firstButtonY, window.getSize().x);
@@ -335,7 +342,7 @@ if (!menuFont.loadFromFile(fontPath)) {
 
     // --- Game Loop --- //most of these cool stuff are reccomended by intelisense looks nifty
 	//set up the view
-	sf::View mainView(sf::FloatRect(0.f, 0.f, 1200.f, 800.f)); // View is larger than window, implies camera can move
+	sf::View mainView(sf::FloatRect({0.f, 0.f}, {1200.f, 800.f})); // View is larger than window, implies camera can move
 	// window.setView(mainView); //gian u gotta fix this abomination hahahahahhahah // This should be set when in PLAYING state
 
 	//instantiate the collision system object
@@ -534,15 +541,16 @@ if (!menuFont.loadFromFile(fontPath)) {
         if (currentState == GameState::MENU) {
             // --- MENU STATE ---
             window.setTitle("Project - T (Menu)"); // Set title for menu
-            sf::Event menuEvent;
-            while (window.pollEvent(menuEvent)) {
-                if (menuEvent.type == sf::Event::Closed) {
+            while (const std::optional menuEvent = window.pollEvent()) {
+                if (menuEvent->is<sf::Event::Closed>()) {
                     window.close();
                     running = false;
                 }
-                if (menuEvent.type == sf::Event::KeyPressed && menuEvent.key.code == sf::Keyboard::Escape) {
-                    window.close(); // Exit from menu with Escape
-                    running = false;
+                if (const auto* keyPressed = menuEvent->getIf<sf::Event::KeyPressed>()){
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Escape){
+                        window.close(); // Exit from menu with Escape
+                        running = false;
+                    }
                 }
 
                 // Mouse Hover Effect
@@ -553,7 +561,7 @@ if (!menuFont.loadFromFile(fontPath)) {
                 settingsButtonText.setFillColor(defaultButtonColor);
                 exitButtonText.setFillColor(defaultButtonColor); // Default for exit
 
-                bool mousePressedDown = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+                bool mousePressedDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
 
                 if (startButtonText.getGlobalBounds().contains(mousePos)) {
                     startButtonText.setFillColor(mousePressedDown ? clickedButtonColor : hoverButtonColor);
@@ -565,8 +573,8 @@ if (!menuFont.loadFromFile(fontPath)) {
 
 
                 // Mouse Button Click Release
-                if (menuEvent.type == sf::Event::MouseButtonReleased) {
-                    if (menuEvent.mouseButton.button == sf::Mouse::Left) {
+                if (menuEvent->is<sf::Event::MouseButtonReleased>()) {
+                    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
                         // Re-check hover for click action, ensures click happens on the button hovered at release
                         mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
 
@@ -603,25 +611,27 @@ if (!menuFont.loadFromFile(fontPath)) {
         } else if (currentState == GameState::PLAYING) {
             // --- PLAYING STATE ---
             // Event polling for gameplay (using 'e' from your original game loop)
-            while (window.pollEvent(e)) {
-                if (e.type == sf::Event::Closed) {
-                    window.close();
-                    running = false;
-                    break;
-                }
+            while (window.isOpen()) {
+                while (const std::optional event = window.pollEvent()) {
+                    if (event->is<sf::Event::Closed>()){
+                        window.close();
+                        running = false;
+                        break;
+                    }
 
-                if (e.type == sf::Event::KeyPressed) {
-                    switch (e.key.code) {
-                        case sf::Keyboard::Escape:
-                            currentState = GameState::MENU;
-                            // No need to reset tickClock here, as menu has its own simple loop
-                            // timeSinceLastUpdate will naturally be large when returning to PLAYING if not reset
-                            break;
-                        case sf::Keyboard::D: // 'D' for Debug
-                            debug *= -1;
-                            break;
-                        default:
-                            break;
+                    if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){
+                        switch (keyPressed->scancode) {
+                            case sf::Keyboard::Scancode::Escape:
+                                currentState = GameState::MENU;
+                                // No need to reset tickClock here, as menu has its own simple loop
+                                // timeSinceLastUpdate will naturally be large when returning to PLAYING if not reset
+                                break;
+                            case sf::Keyboard::Scancode::D: // 'D' for Debug
+                                debug *= -1;
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
                 if (!running || currentState == GameState::MENU) break;
@@ -643,8 +653,8 @@ if (!menuFont.loadFromFile(fontPath)) {
                 // --- Input Handling ---
                 speed = sf::Vector2f(0.f, 0.f); // Reset speed from input each frame
                 if (sf::Joystick::isConnected(0)) {
-                    speed = sf::Vector2f(sf::Joystick::getAxisPosition(0, sf::Joystick::X),
-                                        sf::Joystick::getAxisPosition(0, sf::Joystick::Y));
+                    speed = sf::Vector2f(sf::Joystick::getAxisPosition(0, sf::Joystick::Axis::X),
+                                        sf::Joystick::getAxisPosition(0, sf::Joystick::Axis::Y));
                     if (std::abs(speed.x) < 15.f) speed.x = 0.f;
 
                     if (sf::Joystick::isButtonPressed(0, 2)){ turbo = 2; }
@@ -656,20 +666,20 @@ if (!menuFont.loadFromFile(fontPath)) {
                     if(sf::Joystick::isButtonPressed(0,1)){ window.close(); running = false; break; }
                 }
                 // Keyboard controls
-                bool key_left_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
-                bool key_right_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+                bool key_left_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left);
+                bool key_right_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right);
 
                 if (key_left_pressed && !key_right_pressed) { speed.x = -100.f; }
                 else if (key_right_pressed && !key_left_pressed) { speed.x = 100.f; }
 
-                bool key_jump_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::W) ||
-                                        sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
-                                        sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
+                bool key_jump_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) ||
+                                        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) ||
+                                        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
 
                 if (key_jump_pressed) { if (!jumped) { jumpCount++; } jumped = true; }
                 else { if ((!sf::Joystick::isConnected(0) || !sf::Joystick::isButtonPressed(0, 0))) { jumped = false; } }
 
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) { turbo = 2; }
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift)) { turbo = 2; }
                 else { if (!sf::Joystick::isConnected(0) || !sf::Joystick::isButtonPressed(0, 2)) { turbo = 1; } }
 
 
@@ -688,7 +698,7 @@ if (!menuFont.loadFromFile(fontPath)) {
                         bool player_on_this_falling_platform = (collisionSys.getCollisionInfo().m_collisionBottom && collisionSys.getBodyInfo().m_id == bodies[i].m_id && collisionSys.getBodyInfo().m_type == phys::bodyType::falling);
                         if(player_on_this_falling_platform && !bodies[i].m_falling) { tiles[i].m_fallTime = sf::Time::Zero; bodies[i].m_falling = true; tiles[i].m_falling = false; }
                         if(bodies[i].m_falling) { tiles[i].m_fallTime += TimePerFrame; if (tiles[i].m_fallTime.asSeconds() > 0.5f) { tiles[i].m_falling = true; } }
-                        if(tiles[i].m_falling){ bodies[i].m_position = sf::Vector2f(-9999.f,-9999.f); tiles[i].move(0.f, TimePerFrame.asSeconds()*1000.f); }
+                        if(tiles[i].m_falling){ bodies[i].m_position = sf::Vector2f(-9999.f,-9999.f); tiles[i].move({0.f, TimePerFrame.asSeconds()*1000.f}); }
                     }
                 }
 
