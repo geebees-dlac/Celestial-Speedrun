@@ -1,42 +1,38 @@
-#include "tile.hpp" // Assuming Tile.hpp is the header name
-#include "PhysicsTypes.hpp" 
-Tile::Tile(const sf::Vector2f& size, const sf::Color& color) :
-    m_shape(size),
-    m_isFalling(false),
-    m_fallDelayTimer(sf::Time::Zero),
-    m_hasFallen(false),
-    m_fallSpeed(200.f) // Example fall speed
-{
+#include "Tile.hpp" // Use ""
+
+// If Tile.hpp uses namespace phys for the Tile class, then this should too
+// Assuming Tile class is global scope as per Tile.hpp provided
+
+Tile::Tile(const sf::Vector2f& size, const sf::Color& color)
+    : m_shape(size),
+      m_isFalling(false),
+      m_fallDelayTimer(sf::Time::Zero),
+      m_hasFallen(false),
+      m_fallSpeed(200.f) {
     m_shape.setFillColor(color);
-    // m_shape.setOrigin(size.x / 2.f, size.y / 2.f); // If you want origin at center
+    // For sf::Transformable part, position will be set via setPosition()
 }
 
 void Tile::update(sf::Time deltaTime) {
-    if (m_hasFallen) return; // Nothing to do if already fallen
+    if (m_hasFallen) return;
 
     if (!m_isFalling && m_fallDelayTimer > sf::Time::Zero) {
         m_fallDelayTimer -= deltaTime;
         if (m_fallDelayTimer <= sf::Time::Zero) {
             m_isFalling = true;
-            // Optional: some visual cue it's about to fall or is falling
         }
     }
 
     if (m_isFalling) {
-        move(0.f, m_fallSpeed * deltaTime.asSeconds()); // Move uses sf::Transformable's method
-        // Example: Check if fallen off screen
-        // if (getPosition().y > SOME_SCREEN_HEIGHT_LIMIT) {
-        //     m_isFalling = false;
-        //     m_hasFallen = true;
-        //     // Optional: disable it, mark for removal, etc.
-        // }
+        // sf::Transformable::move is inherited
+        this->move(0.f, m_fallSpeed * deltaTime.asSeconds());
     }
 }
 
 void Tile::startFalling(sf::Time delay) {
-    if (!m_isFalling && !m_hasFallen) { // Can only start falling if not already doing so or fallen
+    if (!m_isFalling && !m_hasFallen) {
         m_fallDelayTimer = delay;
-        if (delay <= sf::Time::Zero) { // If no delay, start falling immediately
+        if (delay <= sf::Time::Zero) {
             m_isFalling = true;
         }
     }
@@ -51,6 +47,6 @@ sf::FloatRect Tile::getLocalBounds() const {
 }
 
 void Tile::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    states.transform *= getTransform(); // Apply Tile's own transform (from sf::Transformable)
+    states.transform *= getTransform(); // Apply the Tile's own transform
     target.draw(m_shape, states);
 }

@@ -38,12 +38,10 @@ namespace phys {
         // --- Mutators (Setters) - Use with caution, prefer methods that perform actions ---
 		void setPosition(const sf::Vector2f& position);
 		void setVelocity(const sf::Vector2f& velocity);
-        void addVelocity(const sf::Vector2f& deltaVelocity); // Better than direct set for impulses
-		// setSize might be complex if it affects other things, usually set at construction
+        void addVelocity(const sf::Vector2f& deltaVelocity); 
+        void setLastPosition(const sf::Vector2f& position);
 
         // --- Collision State (if DynamicBody itself needs to track its own state) ---
-        // These would typically be set by the collision system or an update function
-        // reacting to CollisionResolutionInfo
         bool isOnGround() const { return m_onGround; }
         void setOnGround(bool onGround) { m_onGround = onGround; }
         // ... add m_hitCeiling, m_hitWallLeft, m_hitWallRight if needed for its own logic
@@ -60,13 +58,13 @@ namespace phys {
 
         // Internal state flags updated after collision resolution
         bool m_onGround = false;
-        // bool m_hitCeiling = false;
-        // bool m_hitWallLeft = false;
-        // bool m_hitWallRight = false;
+        bool m_hitCeiling = false;
+        bool m_hitWallLeft = false;
+        bool m_hitWallRight = false;
 
-        // Could have constants like maxSpeed, accelerationRate, etc.
-        // float m_maxSpeed = 200.f;
-        // float m_acceleration = 500.f;
+        // Could have constants like maxSpeed, accelerationRate, etc. will take onto changes later 
+        float m_maxSpeed = 200.f;
+        float m_acceleration = 500.f;
 	};
 
 } // namespace phys

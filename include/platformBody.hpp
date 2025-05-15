@@ -2,12 +2,8 @@
 #define PLATFORMBODY_HPP
 
 #include <SFML/System/Vector2.hpp>
-#include <SFML/Graphics/Rect.hpp> // For sf::FloatRect
+#include <SFML/Graphics/Rect.hpp> 
 #include "PhysicsTypes.hpp" 
-// Make sure your bodyType enum is accessible
-// If it's in CollisionSystem.hpp, you might need to include that or move the enum
-// to a more general "PhysicsTypes.hpp"
-#include "CollisionSystem.hpp" // Or wherever phys::bodyType is defined
 
 namespace phys {
 
@@ -18,15 +14,11 @@ namespace phys {
             const sf::Vector2f& position = {0.f, 0.f},
             float width = 32.f,
             float height = 32.f,
-            bodyType type = bodyType::platform, // Use your enum
+            bodyType type = bodyType::platform, 
             bool initiallyFalling = false,
-            const sf::Vector2f& surfaceVelocity = {0.f, 0.f} // Changed to Vector2f
+            const sf::Vector2f& surfaceVelocity = {0.f, 0.f} 
         );
 
-		// ~PlatformBody() = default; // If no custom cleanup
-
-        // Optional: Update method if platforms can move/animate on their own
-        // (e.g., moving platforms, falling platforms not handled by main dynamic sim)
         void update(float deltaTime);
 
 		// --- Accessors (Getters) ---
