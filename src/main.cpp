@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <cmath> // For M_PI, sin, pow, std::abs, std::cos
+#include <string>
+#include <filesystem>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -289,8 +291,9 @@ int main(void){
     // IMPORTANT: Provide a valid path to your font file.
     // If "arial.ttf" is in the same folder as your executable:
     // good practice to put all assets with our executable so i can just do this below
+
 sf::Font menuFont;
-std::string fontPath = "../assets/DreamLife-V1.0.0_by_MaxiGamer.ttf"; // Test: Font directly next to executable
+std::string fontPath = "assets/ARIALBD.TTF"; // Test: Font directly next to executable
 
 if (!menuFont.loadFromFile(fontPath)) {
     std::cerr << "ur fucked '" << fontPath << "like fucked fucked'" << std::endl;
@@ -632,48 +635,86 @@ if (!menuFont.loadFromFile(fontPath)) {
 
 
             // Fixed Timestep Loop
-            sf::Time elapsedTime = tickClock.restart(); // This was your original placement
+            sf::Time elapsedTime = tickClock.restart();
             timeSinceLastUpdate += elapsedTime;
+
+            // Player state variables (potentially add to playerBody struct or keep local to main loop)
+            // These will be updated based on collision results from the *previous* frame/iteration.
+            bool playerIsGrounded = collisionBottom; // Use the result from the end of the LAST fixed update
+            bool jumpButtonPressedThisFrame = false;
+            bool jumpKeyIsCurrentlyHeld = false;
+            // int currentTurbo = 1; // 'turbo' is already global, which is fine for this scope
 
             while (timeSinceLastUpdate > TimePerFrame)
             {
                 timeSinceLastUpdate -= TimePerFrame;
-                playerBody.m_lastPosition = playerBody.m_position; // Store position before updates
+                playerBody.m_lastPosition = playerBody.m_position;
 
-                // --- Input Handling ---
-                speed = sf::Vector2f(0.f, 0.f); // Reset speed from input each frame
+                // --- 1. INPUT PROCESSING ---
+                float horizontalInput = 0.f; // Normalized: -1 for left, 1 for right, 0 for none
+                jumpButtonPressedThisFrame = false; // Reset for this fixed update tick
+                jumpKeyIsCurrentlyHeld = false;   // Reset for this fixed update tick
+                turbo = 1; // Reset turbo for this fixed update tick
+
+                // Joystick Input
                 if (sf::Joystick::isConnected(0)) {
-                    speed = sf::Vector2f(sf::Joystick::getAxisPosition(0, sf::Joystick::X),
-                                        sf::Joystick::getAxisPosition(0, sf::Joystick::Y));
-                    if (std::abs(speed.x) < 15.f) speed.x = 0.f;
+                    float joyX = sf::Joystick::getAxisPosition(0, sf::Joystick::X);
+                    if (std::abs(joyX) > 15.f) { // Deadzone
+                        horizontalInput = joyX / 100.f;
+                    }
 
-                    if (sf::Joystick::isButtonPressed(0, 2)){ turbo = 2; }
-                    else { turbo = 1; }
-
-                    if(sf::Joystick::isButtonPressed(0,0)){ if (!jumped) jumpCount++; jumped = true; }
-                    else { jumped = false; }
-
-                    if(sf::Joystick::isButtonPressed(0,1)){ window.close(); running = false; break; }
+                    if (sf::Joystick::isButtonPressed(0, 0)) { // Assuming 0 is jump
+                        if (!jumped) { // 'jumped' acts as "was pressed in previous frame/state"
+                            jumpButtonPressedThisFrame = true;
+                        }
+                        jumpKeyIsCurrentlyHeld = true;
+                    }
+                    if (sf::Joystick::isButtonPressed(0, 2)) { // Assuming 2 is turbo
+                        turbo = 2;
+                    }
                 }
-                // Keyboard controls
-                bool key_left_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
-                bool key_right_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+                jumped = jumpKeyIsCurrentlyHeld; // Update 'jumped' state for next tick's "new press" detection for joystick
 
-                if (key_left_pressed && !key_right_pressed) { speed.x = -100.f; }
-                else if (key_right_pressed && !key_left_pressed) { speed.x = 100.f; }
+                // Keyboard Input (Overrides joystick if keys are pressed)
+                bool key_left = sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
+                bool key_right = sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+                bool key_jump = sf::Keyboard::isKeyPressed(sf::Keyboard::W) ||
+                                sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
+                                sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
+                bool key_turbo = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
 
-                bool key_jump_pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::W) ||
-                                        sf::Keyboard::isKeyPressed(sf::Keyboard::Up) ||
-                                        sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
+                if (key_left && !key_right) {
+                    horizontalInput = -1.f;
+                } else if (key_right && !key_left) {
+                    horizontalInput = 1.f;
+                }
+                // If joystick provided input and keyboard doesn't override, horizontalInput keeps joystick value.
+                // If neither, it remains 0.
 
-                if (key_jump_pressed) { if (!jumped) { jumpCount++; } jumped = true; }
-                else { if ((!sf::Joystick::isConnected(0) || !sf::Joystick::isButtonPressed(0, 0))) { jumped = false; } }
+                if (key_jump) {
+                    // We need a way to detect a new press for keyboard similar to joystick
+                    // Let's use the global 'jumpCount' for keyboard "new press" detection logic
+                    if (jumpCount == 0) { // If jumpCount was 0, this is a new press for keyboard
+                        jumpButtonPressedThisFrame = true;
+                    }
+                    jumpKeyIsCurrentlyHeld = true;
+                    jumpCount++; // Increment to show key is held (will be reset if not grounded or key released)
+                } else {
+                    jumpCount = 0; // Keyboard jump key released, reset its "held" counter
+                }
 
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) { turbo = 2; }
-                else { if (!sf::Joystick::isConnected(0) || !sf::Joystick::isButtonPressed(0, 2)) { turbo = 1; } }
+                // If either joystick or keyboard jump is active, overall jumpKeyIsCurrentlyHeld is true
+                if (sf::Joystick::isConnected(0) && sf::Joystick::isButtonPressed(0,0)) { // Re-check joystick jump for held state
+                     jumpKeyIsCurrentlyHeld = true;
+                }
 
 
-                // --- Platform Updates (before player) ---
+                if (key_turbo) {
+                    turbo = 2;
+                }
+                // If joystick had turbo and keyboard doesn't override, turbo keeps joystick value.
+
+                // --- Platform Updates (Unchanged) ---
                 if(duration.asSeconds() >= 4.f){ platformDir *= -1; duration = sf::Time::Zero; }
                 else { duration += TimePerFrame; }
 
@@ -685,10 +726,18 @@ if (!menuFont.loadFromFile(fontPath)) {
 
                 for(int i=0; i<NUM_PLATFORM_OBJECTS; ++i){
                     if (bodies[i].m_type == phys::bodyType::falling) {
-                        bool player_on_this_falling_platform = (collisionSys.getCollisionInfo().m_collisionBottom && collisionSys.getBodyInfo().m_id == bodies[i].m_id && collisionSys.getBodyInfo().m_type == phys::bodyType::falling);
-                        if(player_on_this_falling_platform && !bodies[i].m_falling) { tiles[i].m_fallTime = sf::Time::Zero; bodies[i].m_falling = true; tiles[i].m_falling = false; }
-                        if(bodies[i].m_falling) { tiles[i].m_fallTime += TimePerFrame; if (tiles[i].m_fallTime.asSeconds() > 0.5f) { tiles[i].m_falling = true; } }
-                        if(tiles[i].m_falling){ bodies[i].m_position = sf::Vector2f(-9999.f,-9999.f); tiles[i].move(0.f, TimePerFrame.asSeconds()*1000.f); }
+                        bool player_on_this_falling_platform = (collisionBottom && // Use updated collisionBottom
+                                                                collisionSys.getBodyInfo().m_id == bodies[i].m_id &&
+                                                                collisionSys.getBodyInfo().m_type == phys::bodyType::falling);
+                        if(player_on_this_falling_platform && !bodies[i].m_falling) {
+                            tiles[i].m_fallTime = sf::Time::Zero; bodies[i].m_falling = true; tiles[i].m_falling = false;
+                        }
+                        if(bodies[i].m_falling) {
+                            tiles[i].m_fallTime += TimePerFrame; if (tiles[i].m_fallTime.asSeconds() > 0.5f) { tiles[i].m_falling = true; }
+                        }
+                        if(tiles[i].m_falling){
+                            bodies[i].m_position = sf::Vector2f(-9999.f,-9999.f); tiles[i].move(0.f, TimePerFrame.asSeconds()*1000.f);
+                        }
                     }
                 }
 
@@ -705,53 +754,119 @@ if (!menuFont.loadFromFile(fontPath)) {
                     } else {
                         if(vanishingTime.asSeconds() < 1.f){ alpha = math::interpolate::sineEaseIn(vanishingTime.asSeconds(),0.f,255.f, 1.f); tiles[i].setFillColor(sf::Color(255,0,255,(unsigned char)alpha)); }
                         else { tiles[i].setFillColor(sf::Color(255,0,255,255)); }
-                        if (bodies[i].m_position.x < -9000.f) { bodies[i].m_position = tiles[i].getPosition(); }
+                        if (bodies[i].m_position.x < -9000.f) { bodies[i].m_position = tiles[i].getPosition(); } // Restore position when reappearing
                     }
                 }
 
+                // --- 2. PLAYER PHYSICS AND STATE UPDATE ---
+                float currentMoveSpeed = 200.f;
+                float jumpImpulse = -10.0f; // Initial jump velocity
+                float maxJumpHoldTime = 0.2f; // Seconds for variable jump height
+                float maxGravity = 20.f;
+                float gravityAcceleration = 0.8f; // This is an acceleration factor, not final G
 
-                // --- Player Logic ---
-                if (collisionBottom) { jumpCount = 0; }
+                // Horizontal Movement
+                playerBody.m_velocity.x = horizontalInput * currentMoveSpeed * turbo;
 
-                if(jumped && jumpCount > 0 && jumpTime.asSeconds() < 0.4f && collisionBottom) { canJump = true; playerBody.m_velocity.y = -10.f; jumpTime = sf::Time::Zero; jumpCount = 0; }
-                else if (jumped && canJump && jumpTime.asSeconds() < 0.2f) { playerBody.m_velocity.y = -10.f; }
-                else { canJump = false; }
-                jumpTime += TimePerFrame;
+                // Vertical Movement - Gravity
+                if (!playerIsGrounded) { // If not grounded in the PREVIOUS frame
+                    if (GRAVITY < maxGravity) GRAVITY += gravityAcceleration; // This GRAVITY seems to be a scalar for terminal velocity/strength
+                    else GRAVITY = maxGravity;
+                    playerBody.m_velocity.y += GRAVITY * TimePerFrame.asSeconds() * 20.f; // Your original gravity scaling factor
+                } else {
+                    playerBody.m_velocity.y = 0.f; // On ground, no Y velocity unless jumping
+                    GRAVITY = 0.f;                 // Reset gravity accumulation factor
+                }
 
-                float moveSpeed = 200.f;
-                if ((speed.x > 0.f && !collisionRight) || (speed.x < 0.f && !collisionLeft)){ playerBody.m_velocity.x = (speed.x / 100.f) * moveSpeed * turbo; }
-                else { playerBody.m_velocity.x = 0.f; }
+                // Vertical Movement - Jumping
+                if (jumpButtonPressedThisFrame && playerIsGrounded) {
+                    playerBody.m_velocity.y = jumpImpulse;
+                    canJump = true; // This is your existing flag for "currently in jump ascent"
+                    jumpTime = sf::Time::Zero; // Reset your existing jump hold timer
+                } else if (jumpKeyIsCurrentlyHeld && canJump) {
+                    if (jumpTime.asSeconds() < maxJumpHoldTime) {
+                        playerBody.m_velocity.y = jumpImpulse; // Maintain upward impulse
+                    } else {
+                        canJump = false; // Max hold time reached
+                    }
+                } else if (!jumpKeyIsCurrentlyHeld) {
+                    canJump = false; // Jump key released
+                }
+                jumpTime += TimePerFrame; // Always update jumpTime
 
-                if (!collisionBottom) { if (GRAVITY < 20.f) GRAVITY += 0.8f; else GRAVITY = 20.f; playerBody.m_velocity.y += GRAVITY * TimePerFrame.asSeconds() * 20.f; }
-                else { GRAVITY = 0.f; playerBody.m_velocity.y = 0.f; }
 
-                playerBody.m_position.x += playerBody.m_velocity.x * TimePerFrame.asSeconds();
-                playerBody.m_position.y += playerBody.m_velocity.y * TimePerFrame.asSeconds();
+                // --- 3. APPLY VELOCITY TO POSITION ---
+                playerBody.m_position += playerBody.m_velocity * TimePerFrame.asSeconds();
 
-                // --- Collision Resolution ---
+                // --- 4. COLLISION DETECTION AND RESOLUTION ---
+                // Reset collision system flags for this pass
                 collisionSys.setCollisionInfo(false, false, false, false);
-                for(int k=0; k<3; ++k) { collisionSys.resolveCollisions(&playerBody, bodies, NUM_PLATFORM_OBJECTS); }
+                for(int k=0; k<3; ++k) { // Multiple passes for stability
+                    collisionSys.resolveCollisions(&playerBody, bodies, NUM_PLATFORM_OBJECTS);
+                }
+
+                // Update local collision flags from the system for the NEXT iteration's logic
                 collisionTop = collisionSys.getCollisionInfo().m_collisionTop;
                 collisionBottom = collisionSys.getCollisionInfo().m_collisionBottom;
                 collisionLeft = collisionSys.getCollisionInfo().m_collisionLeft;
                 collisionRight = collisionSys.getCollisionInfo().m_collisionRight;
-                type = collisionSys.getBodyInfo().m_type;
+                type = collisionSys.getBodyInfo().m_type; // Platform type player is interacting with
 
-                // --- Post-collision adjustments based on platform type ---
+                // --- 5. POST-COLLISION ADJUSTMENTS AND SPECIAL PLATFORM INTERACTIONS ---
+                playerIsGrounded = collisionBottom; // Update for the next frame based on this frame's result
+
                 if (collisionBottom) {
-                    playerBody.m_velocity.y = 0; GRAVITY = 0.f; jumpTime = sf::Time::Zero; canJump = false;
-                    if (type == phys::bodyType::conveyorBelt) { if (collisionSys.getBodyInfo().m_id == 11) { playerBody.m_position.x += bodies[11].m_surfaceVelocity * TimePerFrame.asSeconds(); } }
-                    else if (type == phys::bodyType::moving) { playerBody.m_position.x += platformVelocity; }
+                    // If a jump wasn't just initiated and we are on the ground, ensure Y velocity is cleared
+                    // This handles cases where gravity might have pushed slightly into ground before collision response
+                    if (playerBody.m_velocity.y > 0 && !(jumpButtonPressedThisFrame)) { // Avoid zeroing out jump impulse
+                        playerBody.m_velocity.y = 0;
+                    }
+                    GRAVITY = 0.f; // Ensure GRAVITY factor is reset when grounded
+
+                    // Special platform effects (applied by directly adjusting position after main physics)
+                    if (type == phys::bodyType::conveyorBelt) {
+                        // Assuming collisionSystem has correct body info for the conveyor
+                        const auto& conveyor = collisionSys.getBodyInfo();
+                        playerBody.m_position.x += conveyor.m_surfaceVelocity * TimePerFrame.asSeconds();
+                        // Re-check collision if conveyor pushes into something else? (Advanced)
+                        // For simplicity, assume conveyor effect is small enough not to cause new penetration immediately.
+                    } else if (type == phys::bodyType::moving) {
+                        // `platformVelocity` is for your body[12]
+                        // If the player is on *that specific* moving platform:
+                        if (collisionSys.getBodyInfo().m_id == bodies[12].m_id) {
+                             playerBody.m_position.x += platformVelocity;
+                        }
+                    }
+
                 }
 
-                if(debug == 1 && (collisionTop || collisionBottom || collisionLeft || collisionRight)){
-                    std::cout<<"Collision (T/B/L/R): "<<collisionTop<<"/"<<collisionBottom<<"/"<<collisionLeft<<"/"<<collisionRight
-                             << " | Type: " << static_cast<int>(type)
-                             << " | ID: " << collisionSys.getBodyInfo().m_id
-                             << " | Player Y Vel: " << playerBody.m_velocity.y
-                             << " | GRAVITY: " << GRAVITY << std::endl;
+                if (collisionTop && playerBody.m_velocity.y < 0) {
+                    playerBody.m_velocity.y = 0; // Stop upward movement if head bonk
+                    canJump = false;             // Cancel jump hold
                 }
+
+                if ((collisionLeft && playerBody.m_velocity.x < 0) || (collisionRight && playerBody.m_velocity.x > 0)) {
+                    // Collision system should have already zeroed velocity.x if it resolved horizontal.
+                    // This is more of a sanity check or if your resolveCollisions doesn't zero velocity.
+                    // playerBody.m_velocity.x = 0;
+                }
+
+                // --- Player shape update (Unchanged) ---
                 player.setPosition(playerBody.m_position);
+
+                // --- Debug output (Your existing is fine, consider adding more like playerIsGrounded) ---
+                if(debug == 1 ){ // Simplified debug trigger
+                     std::cout << "Pos: (" << playerBody.m_position.x << "," << playerBody.m_position.y << ") "
+                               << "Vel: (" << playerBody.m_velocity.x << "," << playerBody.m_velocity.y << ") "
+                               << "Grounded: " << playerIsGrounded << " "
+                               << "JumpPressed: " << jumpButtonPressedThisFrame << " "
+                               << "JumpHeld: " << jumpKeyIsCurrentlyHeld << " "
+                               << "canJump(Hold): " << canJump << " "
+                               << "Col(T/B/L/R): "<<collisionTop<<"/"<<collisionBottom<<"/"<<collisionLeft<<"/"<<collisionRight
+                               << " Type: " << static_cast<int>(type)
+                               << " Turbo: " << turbo << std::endl;
+                }
+
             } // End of fixed timestep loop
             if (!running) break; // Break from outer while if game closed in fixed update
 
