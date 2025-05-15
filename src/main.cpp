@@ -290,7 +290,7 @@ int main(void){
     // If "arial.ttf" is in the same folder as your executable:
     // good practice to put all assets with our executable so i can just do this below
 sf::Font menuFont;
-std::string fontPath = "/assets/ARIALBD.TTF"; // Test: Font directly next to executable
+std::string fontPath = "../assets/DreamLife-V1.0.0_by_MaxiGamer.ttf"; // Test: Font directly next to executable
 
 if (!menuFont.loadFromFile(fontPath)) {
     std::cerr << "ur fucked '" << fontPath << "like fucked fucked'" << std::endl;
