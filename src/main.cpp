@@ -573,28 +573,30 @@ if (!defaultFont.openFromFile(defaultFontPath)){
 
 
                 // Mouse Button Click Release
-                if (menuEvent->is<sf::Event::MouseButtonReleased>()) {
-                    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-                        // Re-check hover for click action, ensures click happens on the button hovered at release
-                        mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
+                //if (menuEvent->is<sf::Event::MouseButtonReleased>()) {
+                //if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+                if (const auto* mouseButtonReleased = menuEvent->getIf<sf::Event::MouseButtonReleased>()){
+                    if (mouseButtonReleased->button == sf::Mouse::Button::Left){
+                    // Re-check hover for click action, ensures click happens on the button hovered at release
+                    mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
 
-                        if (startButtonText.getGlobalBounds().contains(mousePos)) {
-                            currentState = GameState::PLAYING;
-                            timeSinceLastUpdate = sf::Time::Zero;
-                            tickClock.restart();
-                            if (sf::Joystick::isConnected(0)) { // Set title based on joystick if playing
-                                sf::Joystick::Identification id = sf::Joystick::getIdentification(0);
-                                window.setTitle("Joystick Use: " + id.name);
-                            } else {
-                                window.setTitle("Project - T (Playing)");
-                            }
-                        } else if (settingsButtonText.getGlobalBounds().contains(mousePos)) {
-                            std::cout << "Settings button clicked (Placeholder)!" << std::endl;
-                        } else if (exitButtonText.getGlobalBounds().contains(mousePos)) {
-                            window.close();
-                            running = false;
+                    if (startButtonText.getGlobalBounds().contains(mousePos)) {
+                        currentState = GameState::PLAYING;
+                        timeSinceLastUpdate = sf::Time::Zero;
+                        tickClock.restart();
+                        if (sf::Joystick::isConnected(0)) { // Set title based on joystick if playing
+                            sf::Joystick::Identification id = sf::Joystick::getIdentification(0);
+                            window.setTitle("Joystick Use: " + id.name);
+                        } else {
+                            window.setTitle("Project - T (Playing)");
                         }
+                    } else if (settingsButtonText.getGlobalBounds().contains(mousePos)) {
+                        std::cout << "Settings button clicked (Placeholder)!" << std::endl;
+                    } else if (exitButtonText.getGlobalBounds().contains(mousePos)) {
+                        window.close();
+                        running = false;
                     }
+                }
                 }
             }
 
@@ -611,7 +613,7 @@ if (!defaultFont.openFromFile(defaultFontPath)){
         } else if (currentState == GameState::PLAYING) {
             // --- PLAYING STATE ---
             // Event polling for gameplay (using 'e' from your original game loop)
-            while (window.isOpen()) {
+            //while (window.isOpen()) {
                 while (const std::optional event = window.pollEvent()) {
                     if (event->is<sf::Event::Closed>()){
                         window.close();
@@ -633,9 +635,10 @@ if (!defaultFont.openFromFile(defaultFontPath)){
                                 break;
                         }
                     }
-                }
+                
                 if (!running || currentState == GameState::MENU) break;
-            }
+                }
+            //}
 
             if (!running) break;
             if (currentState == GameState::MENU) continue;
