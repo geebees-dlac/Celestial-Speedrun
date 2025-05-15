@@ -7,11 +7,9 @@
 #include <ctime>
 #include <algorithm>
 #include <limits>
-// #include <filesystem>
-
+#include <filesystem>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
-
 #include "CollisionSystem.hpp"
 #include "dynamicBody.hpp"
 #include "platformBody.hpp"
@@ -68,8 +66,19 @@ int main(void) {
     std::vector<phys::PlatformBody> bodies;
     bodies.reserve(NUM_PLATFORM_OBJECTS); 
 
-    // --- Platform Initialization - PROVIDING ALL 7 ARGUMENTS ---
+    // --- Platform Initialization - PROVIDING ALL 7 ARGUMENTS (MORE TO COME)---
     // Order: id, position, width, height, type, initiallyFalling, surfaceVelocity
+
+    // will be useful on creating the level series as we go on, and the pase section menu.
+    // for now my focus is this and the applicaacility of the sprites on the game and its possibility of it being intergrated
+    //onto the game as early as possible.
+
+    // the guide onto this is checking the bodyType enum class in the PhysicsTypes.hpp file
+    // and the platformBody.hpp file for the constructor of the PlatformBody class.
+
+    // but we can use it as a guide to create the level series as we go on, and the pase section menu.
+    // and the death effects have not been included yet nor the respawn mechanics for the player
+
      // ID 0 - Standard Platform
     bodies.emplace_back(static_cast<unsigned int>(0), sf::Vector2f(0.f, window.getSize().y - 32.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
     // ID 1 - Standard Platform
