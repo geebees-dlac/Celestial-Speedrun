@@ -61,6 +61,11 @@ int main(void) {
     setupButton(settingsButtonText, "Settings (NYI)", 300.f);
     setupButton(exitButtonText, "Exit", 350.f);
 
+    sf::Color defaultButtonColor = sf::Color::White;
+    sf::Color hoverButtonColor = sf::Color::Yellow;
+    sf::Color clickedButtonColor = sf::Color::Green;
+    sf::Color exitButtonColor = sf::Color::Red;
+
     sf::View mainView(sf::FloatRect(0.f, 0.f, 800.f, 600.f));
 
     std::vector<phys::PlatformBody> bodies;
@@ -185,7 +190,54 @@ int main(void) {
             while(window.pollEvent(menuEvent)) {
                  if (menuEvent.type == sf::Event::Closed) { running = false; window.close(); }
                  if (menuEvent.type == sf::Event::KeyPressed && menuEvent.key.code == sf::Keyboard::Escape) { running = false; window.close(); }
+                 
                  // Add your menu button logic but i put remineddedrclick based on mousePosView and menuEvent.MouseButtonReleased)
+                sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
+
+                // Reset colors
+                startButtonText.setFillColor(defaultButtonColor);
+                settingsButtonText.setFillColor(defaultButtonColor);
+                exitButtonText.setFillColor(defaultButtonColor);
+
+                bool mousePressedDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
+
+                if (startButtonText.getGlobalBounds().contains(mousePos)){
+                    startButtonText.setFillColor(mousePressedDown ? clickedButtonColor : hoverButtonColor);
+                }
+                else if (settingsButtonText.getGlobalBounds().contains(mousePos)){
+                    settingsButtonText.setFillColor(mousePressedDown ? clickedButtonColor : hoverButtonColor);
+                }
+                else if (exitButtonText.getGlobalBounds().contains(mousePos)){
+                    exitButtonText.setFillColor(mousePressedDown ? exitButtonColor : hoverButtonColor);
+                }
+
+                // Mouse button click release
+                if (menuEvent.type == sf::Event::MouseButtonReleased){
+                    if (menuEvent.mouseButton.button == sf::Mouse::Button::Left){
+                        mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
+
+                        if (startButtonText.getGlobalBounds().contains(mousePos)){
+                            currentState = GameState::PLAYING;
+                            timeSinceLastUpdate = sf::Time::Zero;
+                            tickClock.restart();
+                            if (sf::Joystick::isConnected(0)){
+                                sf::Joystick::Identification id = sf::Joystick::getIdentification(0);
+                                window.setTitle("Joystick use: "+ id.name);
+                            }
+                            else {
+                                window.setTitle("Project T (playing)");
+                            }
+                        }
+                        else if (settingsButtonText.getGlobalBounds().contains(mousePos)){
+                            std::cout << "Settings pressed" << std::endl;
+                        }
+                        else if (exitButtonText.getGlobalBounds().contains(mousePos)){
+                            window.close();
+                            running = false;
+                        }
+                    }
+                }
+
             }
             // (Menu drawing)
             window.clear(sf::Color(30,30,70));
