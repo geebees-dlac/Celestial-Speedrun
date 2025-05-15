@@ -1,6 +1,6 @@
 #include "CollisionSystem.hpp"
-#include "DynamicBody.hpp"   // For DynamicBody definition
-#include "PlatformBody.hpp"  // For PlatformBody definition
+#include "dynamicBody.hpp"   // For DynamicBody definition
+#include "platformBody.hpp"  // For PlatformBody definition
 #include <SFML/Graphics/Rect.hpp> // For sf::FloatRect, getExpandedBy
 #include <limits>       // For std::numeric_limits
 #include <algorithm>    // For std::max, std::min

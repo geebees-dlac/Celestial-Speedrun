@@ -1,8 +1,6 @@
 #include "platformBody.hpp"
 #include "PhysicsTypes.hpp" 
 
-#include "PlatformBody.hpp" // Use ""
-
 namespace phys { // Namespace
 
 PlatformBody::PlatformBody(

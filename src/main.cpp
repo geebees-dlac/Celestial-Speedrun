@@ -42,7 +42,7 @@ int main(void) {
     GameState currentState = GameState::MENU;
 
     sf::Font menuFont;
-    std::string fontPath = "assets/ARIALBD.TTF";
+    std::string fontPath = "../assets/ARIALBD.TTF";
     if (!menuFont.loadFromFile(fontPath)) {
         std::cerr << "Failed to load font: " << fontPath << std::endl;
         return -1;

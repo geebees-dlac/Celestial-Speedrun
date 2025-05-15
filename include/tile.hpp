@@ -15,17 +15,17 @@ public:
 
 
 
-    void startFalling(sf::Time delay) {
+    void startFalling(sf::Time delay);/* {
         if (!m_isFalling && !m_hasFallen) {
             m_fallDelayTimer = delay;
             if (m_fallDelayTimer <= sf::Time::Zero) { // Corrected: check m_fallDelayTimer
                 m_isFalling = true;
             }
         }
-    }
+    }*/
 
 
-    void update(sf::Time deltaTime) { // Single definition here
+    void update(sf::Time deltaTime);/* { // Single definition here
         if (m_hasFallen) return;
 
         if (!m_isFalling && m_fallDelayTimer > sf::Time::Zero) {
@@ -43,7 +43,7 @@ public:
                 // m_isFalling = false; // Optionally stop processing fall once hasFallen
             }
         }
-    }
+    }*/
 
     bool isFalling() const { return m_isFalling; }
     bool hasFallen() const { return m_hasFallen; } // Added a getter for m_hasFallen

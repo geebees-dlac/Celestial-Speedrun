@@ -34,7 +34,7 @@ namespace phys {
         bool hitWallLeft = false;
         bool hitWallRight = false;
         sf::Vector2f surfaceVelocity = {0.f, 0.f}; // e.g., from conveyor belt
-        PlatformBody* groundPlatform = nullptr; // If onGround, what platform?
+        const PlatformBody* groundPlatform = nullptr; // If onGround, what platform?
         // Add any other relevant info from the collision
     };
 
