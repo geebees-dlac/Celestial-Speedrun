@@ -138,8 +138,8 @@ int main(void) {
         Tile newTile(sf::Vector2f(body.getWidth(), body.getHeight()));
         newTile.setPosition(body.getPosition());
         switch (body.getType()) {
-            case phys::bodyType::platform:     newTile.setFillColor(sf::Color(200, 70, 70, 255)); break;
-            case phys::bodyType::conveyorBelt: newTile.setFillColor(sf::Color(255, 150, 50, 255)); break;
+            case phys::bodyType::platform:     newTile.setFillColor(sf::Color(200, 70, 70, 255)); break; //refer to the PhysicsTypes.hpp file for the bodyType enum class
+            case phys::bodyType::conveyorBelt: newTile.setFillColor(sf::Color(255, 150, 50, 255)); break; // also color schemed RGBW i think
             case phys::bodyType::moving:       newTile.setFillColor(sf::Color(70, 200, 70, 255)); break;
             case phys::bodyType::jumpthrough:  newTile.setFillColor(sf::Color(70, 150, 200, 180)); break;
             case phys::bodyType::falling:      newTile.setFillColor(sf::Color(200, 200, 70, 255)); break;
@@ -185,7 +185,7 @@ int main(void) {
             while(window.pollEvent(menuEvent)) {
                  if (menuEvent.type == sf::Event::Closed) { running = false; window.close(); }
                  if (menuEvent.type == sf::Event::KeyPressed && menuEvent.key.code == sf::Keyboard::Escape) { running = false; window.close(); }
-                 // Add your menu button logic (hover, click based on mousePosView and menuEvent.MouseButtonReleased)
+                 // Add your menu button logic but i put remineddedrclick based on mousePosView and menuEvent.MouseButtonReleased)
             }
             // (Menu drawing)
             window.clear(sf::Color(30,30,70));
@@ -199,7 +199,8 @@ int main(void) {
         }
 
         // --- PLAYING STATE ---
-        // ... (event polling as before) ...
+        // will add levels soon wait ffs
+        
 
         sf::Time elapsedTime = tickClock.restart();
         timeSinceLastUpdate += elapsedTime;
@@ -249,7 +250,7 @@ int main(void) {
                 movingPlatformPtr->setPosition(movingPlatformPtr->getPosition() + sf::Vector2f(platformFrameVelocity, 0.f));
                 // Sync corresponding Tile: Find tile matching movingPlatformPtr->getID() or by index if consistent
                 for(auto& tile_vis : tiles) { if(tile_vis.getPosition() == movingPlatformPtr->getPosition() - sf::Vector2f(platformFrameVelocity, 0.f) ) { tile_vis.setPosition(movingPlatformPtr->getPosition()); break; }} //This search is inefficient. Link tiles and bodies better.
-                 // A better way: if (tiles.size() > 12 && bodies[12].getID() == 12) tiles[12].setPosition(bodies[12].getPosition()); ASSUMING bodies[12] IS THE ONE.
+                 // A better way: if (tiles.size() > 12 && bodies[12].getID() == 12) tiles[12].setPosition(bodies[12].getPosition()); ASSUMING bodies[12] IS THE ONE. but idk havent complied yet
             }
 
 
@@ -257,7 +258,7 @@ int main(void) {
             for (size_t i = 0; i < bodies.size(); ++i) {
                  if (tiles.size() <=i) continue; // Safety
 
-                tiles[i].update(TIME_PER_FRAME); // ** ALWAYS UPDATE THE TILE **
+                tiles[i].update(TIME_PER_FRAME); // ** ALWAYS UPDATE THE TILE PLEASE FOR GODS SAKEA DASDASDASd**
 
                 if (bodies[i].getType() == phys::bodyType::falling) {
                     bool playerOnThisPlatform = playerIsGrounded &&
@@ -266,15 +267,14 @@ int main(void) {
 
                     if (playerOnThisPlatform && !bodies[i].isFalling() && !tiles[i].isFalling() && !tiles[i].hasFallen()) {
                         tiles[i].startFalling(sf::seconds(0.25f)); // Tile handles its delay and m_isFalling state
-                         // You might still change visual cues here on the tile
-                         // tiles[i].setFillColor(sf::Color::Yellow);
+                        tiles[i].setFillColor(sf::Color::Yellow);
                     }
 
                     // If Tile says it IS visually falling (after its delay timer)
                     // AND the physics body isn't yet marked as such
                     if (tiles[i].isFalling() && !bodies[i].isFalling()) {
                          bodies[i].setFalling(true); // Sync physics body state
-                         // tiles[i].setFillColor(sf::Color(255,100,0)); // Visually falling color
+                         tiles[i].setFillColor(sf::Color(255,100,0)); 
                     }
 
                     // If Tile has visually completed its fall (e.g., went off-screen)
