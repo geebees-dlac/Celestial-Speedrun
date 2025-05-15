@@ -5,7 +5,7 @@
 namespace phys {
     enum class bodyType {
         none, platform, conveyorBelt, moving,
-        jumpthrough, falling, vanishing, spring
+        jumpthrough, falling, vanishing, spring, trap
     };
 }
 #endif
