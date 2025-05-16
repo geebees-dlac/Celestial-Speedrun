@@ -1,5 +1,5 @@
-#include "dynamicBody.hpp"
-#include "platformBody.hpp"
+#include "Player.hpp"
+#include "PlatformBody.hpp"
 
 namespace phys {
 

@@ -4,8 +4,8 @@
 #include "PhysicsTypes.hpp"
 #include <vector>
 #include <SFML/System/Vector2.hpp>
-#include "dynamicBody.hpp" 
-#include "platformBody.hpp" 
+#include "Player.hpp" 
+#include "PlatformBody.hpp" 
 // i am not burying this comments, since the names are naming itself, i just noticed comments are dirty and fuck the book
 namespace phys {
 

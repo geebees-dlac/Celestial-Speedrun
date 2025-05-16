@@ -1,5 +1,5 @@
-#ifndef DYNAMICBODY_HPP
-#define DYNAMICBODY_HPP
+#ifndef PLAYER_HPP
+#define PLAYER_HPP
 
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Rect.hpp> 

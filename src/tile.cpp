@@ -1,7 +1,4 @@
-#include "tile.hpp" // Use ""
-
-// If Tile.hpp uses namespace phys for the Tile class, then this should too
-// Assuming Tile class is global scope as per Tile.hpp provided
+#include "Tile.hpp" 
 
 Tile::Tile(const sf::Vector2f& size, const sf::Color& color)
     : m_shape(size),
@@ -10,7 +7,6 @@ Tile::Tile(const sf::Vector2f& size, const sf::Color& color)
       m_hasFallen(false),
       m_fallSpeed(200.f) {
     m_shape.setFillColor(color);
-    // For sf::Transformable part, position will be set via setPosition()
 }
 
 void Tile::update(sf::Time deltaTime) {

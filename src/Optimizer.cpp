@@ -1,4 +1,4 @@
-#include "interpolate.hpp" // Or your new name like "Easing.hpp"
+#include "Optimizer.hpp" // Or your new name like "Easing.hpp"
 #include <cmath> // For std::cos, std::pow
 #include <vector>
 #include <SFML/System/Vector2.hpp> // Add this include for sf::Vector2f

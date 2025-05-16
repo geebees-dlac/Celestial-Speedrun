@@ -1,6 +1,6 @@
 #include "CollisionSystem.hpp"
-#include "dynamicBody.hpp"
-#include "platformBody.hpp"
+#include "Player.hpp"
+#include "PlatformBody.hpp"
 #include <SFML/Graphics/Rect.hpp>
 #include <limits>
 #include <algorithm>

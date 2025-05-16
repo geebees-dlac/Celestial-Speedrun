@@ -15,11 +15,13 @@ FetchContent_MakeAvailable(SFML)
 
 add_executable(main 
     src/main.cpp
-    src/platformBody.cpp
-    src/tile.cpp
-    src/dynamicBody.cpp
+    src/PlatformBody.cpp
+    src/Tile.cpp
+    src/Player.cpp
     src/CollisionSystem.cpp
-    src/interpolate.cpp
+    src/Optimizer.cpp
+    src/LevelManager.cpp
+    src/Trap.cpp
     )
     
 file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})

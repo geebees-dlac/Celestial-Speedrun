@@ -1,8 +1,7 @@
-#include "platformBody.hpp"
+#include "PlatformBody.hpp"
 #include "PhysicsTypes.hpp" 
 
-namespace phys { // Namespace
-
+namespace phys { 
 PlatformBody::PlatformBody(
     unsigned int id, const sf::Vector2f& position, float width, float height,
     bodyType type, bool initiallyFalling, const sf::Vector2f& surfaceVelocity)
@@ -20,11 +19,8 @@ sf::FloatRect PlatformBody::getAABB() const {
 }
 
 void PlatformBody::update(float deltaTime) {
-    // Implement specific update logic if needed, e.g., for a platform that moves itself
-    // if (m_type == bodyType::moving && m_isPlatformInternallyDriven) {
-    //     m_position += m_internalVelocity * deltaTime;
-    // }
+    // Implement specific update logic for later
 }
 
-} // namespace phys
+} 
 
