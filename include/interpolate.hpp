@@ -4,7 +4,7 @@
 #include <cmath>   // For std::pow, std::cos, std::sin
 #include <numbers> // For std::numbers::pi_v (C++20)
 
-
+// this has gone kaput and i will not be using this until further notice and realized its effects alr
 // --- Robert Penner Easing Functions (t, b, c, d pattern) ---
 //ty robert penner for da easing functions
 // i just copied it like a dumbass 
