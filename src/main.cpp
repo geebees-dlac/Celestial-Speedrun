@@ -85,27 +85,38 @@ int main(void) {
     // and the death effects have not been included yet nor the respawn mechanics for the player
 
      // ID 0 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(0), sf::Vector2f(0.f, window.getSize().y - 32.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    bodies.emplace_back(static_cast<unsigned int>(0), sf::Vector2f(0.f, window.getSize().y - 32.f), 
+                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
     // ID 1 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(1), sf::Vector2f(0.f, 356.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    bodies.emplace_back(static_cast<unsigned int>(1), sf::Vector2f(0.f, 356.f), 
+                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
     // ID 2 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(2), sf::Vector2f(480.f, window.getSize().y - 192.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    bodies.emplace_back(static_cast<unsigned int>(2), sf::Vector2f(480.f, window.getSize().y - 192.f), 
+                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
     // ID 3 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(3), sf::Vector2f(0.f, 96.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    bodies.emplace_back(static_cast<unsigned int>(3), sf::Vector2f(0.f, 96.f), 
+                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
     // ID 4 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(4), sf::Vector2f(640.f, 224.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    bodies.emplace_back(static_cast<unsigned int>(4), sf::Vector2f(640.f, 224.f), 
+                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
     // ID 5 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(5), sf::Vector2f(480.f, window.getSize().y - 32.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    bodies.emplace_back(static_cast<unsigned int>(5), sf::Vector2f(480.f, window.getSize().y - 32.f), 
+                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
     // ID 6 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(6), sf::Vector2f(672.f, window.getSize().y - 260.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    bodies.emplace_back(static_cast<unsigned int>(6), sf::Vector2f(672.f, window.getSize().y - 260.f), 
+                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
     // ID 7 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(7), sf::Vector2f(96.f, window.getSize().y - 128.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    bodies.emplace_back(static_cast<unsigned int>(7), sf::Vector2f(96.f, window.getSize().y - 128.f), 
+                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
     // ID 8 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(8), sf::Vector2f(640.f, window.getSize().y - 160.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    bodies.emplace_back(static_cast<unsigned int>(8), sf::Vector2f(640.f, window.getSize().y - 160.f), 
+                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
     // ID 9 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(9), sf::Vector2f(640.f, 64.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    bodies.emplace_back(static_cast<unsigned int>(9), sf::Vector2f(640.f, 64.f), 
+                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
     // ID 10 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(10), sf::Vector2f(292.f, window.getSize().y - 128.f), tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    bodies.emplace_back(static_cast<unsigned int>(10), sf::Vector2f(292.f, window.getSize().y - 128.f), 
+                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
 
     // ID 11 (Conveyor)
     bodies.emplace_back(static_cast<unsigned int>(11), sf::Vector2f(window.getSize().x / 4.f, window.getSize().y / 2.f),
@@ -149,6 +160,9 @@ int main(void) {
             case phys::bodyType::jumpthrough:  newTile.setFillColor(sf::Color(70, 150, 200, 180)); break;
             case phys::bodyType::falling:      newTile.setFillColor(sf::Color(200, 200, 70, 255)); break;
             case phys::bodyType::vanishing:    newTile.setFillColor(sf::Color(200, 70, 200, 255)); break;
+            case phys::bodyType::none:        newTile.setFillColor(sf::Color(0, 0, 0, 0)); break; // Transparent    
+            case phys::bodyType::spring:       newTile.setFillColor(sf::Color(255, 255, 0, 255)); break;
+            case phys::bodyType::trap:         newTile.setFillColor(sf::Color(255, 0, 0, 255)); break;
             default:                           newTile.setFillColor(sf::Color(128, 128, 128, 255)); break;
         }
         tiles.push_back(newTile);
