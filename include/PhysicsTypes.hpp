@@ -4,8 +4,15 @@
 
 namespace phys {
     enum class bodyType {
-        none, platform, conveyorBelt, moving,
-        jumpthrough, falling, vanishing, spring, trap
+        none = 0,
+        platform = 1,       
+        conveyorBelt = 2,
+        moving = 3,
+        falling = 5,
+        vanishing = 6,
+        spring = 7,
+        trap = 8,
+        solid = 9      //gian the id 4 is not missing, i have a plan for it later, remind me later...
     };
 }
 #endif

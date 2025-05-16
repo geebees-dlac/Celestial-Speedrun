@@ -7,14 +7,14 @@
 #include <ctime>
 #include <algorithm>
 #include <limits>
-#include <filesystem>
+#include <filesystem> // when needed for levels, i think but now its not needed
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include "CollisionSystem.hpp"
 #include "dynamicBody.hpp"
 #include "platformBody.hpp"
 #include "tile.hpp"
-#include "interpolate.hpp"
+#include "interpolate.hpp" // i have abandoned this for now, i will come back to this later
 #include "PhysicsTypes.hpp"
 
 enum class GameState {
@@ -23,29 +23,28 @@ enum class GameState {
 };
 
 int main(void) {
-    const phys::PlatformBody* lastFrameGroundPlatform = nullptr;
     const sf::Vector2f tileSize(32.f, 32.f);
-    const int NUM_PLATFORM_OBJECTS = 24;
-
+    const int NUM_PLATFORM_OBJECTS = 24; // Adjust depending on how many we make, should be needed for file lvl 12345
     const float PLAYER_MOVE_SPEED = 200.f;
     const float JUMP_INITIAL_VELOCITY = -450.f;
     const float GRAVITY_ACCELERATION = 1200.f;
     const float MAX_FALL_SPEED = 700.f;
     const sf::Time MAX_JUMP_HOLD_TIME = sf::seconds(0.18f);
 
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Project - T (Corrected)", sf::Style::Default);
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Project - T (Updated Physics)", sf::Style::Default);
     window.setKeyRepeatEnabled(false);
-    window.setVerticalSyncEnabled(true);
-    window.setFramerateLimit(60);
-    sf::Event e;
-
+    window.setVerticalSyncEnabled(true); //better than framrate cuz this acually exists, thank you brain for looking this up lmaooooo
     GameState currentState = GameState::MENU;
 
     sf::Font menuFont;
-    std::string fontPath = "../assets/ARIALBD.TTF";
+    std::string fontPath = "../assets/ARIALBD.TTF"; 
     if (!menuFont.loadFromFile(fontPath)) {
         std::cerr << "Failed to load font: " << fontPath << std::endl;
-        return -1;
+        fontPath = "ARIALBD.TTF";
+        if (!menuFont.loadFromFile(fontPath)) {
+             std::cerr << "Failed to load font from local: " << fontPath << std::endl;
+            return -1;
+        } //this is to avoid the incident... catdespair
     }
     sf::Text startButtonText, settingsButtonText, exitButtonText;
     auto setupButton = [&](sf::Text& text, const sf::String& str, float yPos, float xPosOffset = 0.f) {
@@ -69,107 +68,110 @@ int main(void) {
     sf::View mainView(sf::FloatRect(0.f, 0.f, 800.f, 600.f));
 
     std::vector<phys::PlatformBody> bodies;
-    bodies.reserve(NUM_PLATFORM_OBJECTS); 
+    bodies.reserve(NUM_PLATFORM_OBJECTS);
+    bodies.clear();
+    unsigned int current_id = 0;
 
-    // --- Platform Initialization - PROVIDING ALL 7 ARGUMENTS (MORE TO COME)---
-    // Order: id, position, width, height, type, initiallyFalling, surfaceVelocity
+    // --- Main Solid Floor ---
+    bodies.emplace_back(current_id++,
+                        sf::Vector2f(0.f, window.getSize().y - tileSize.y),
+                        window.getSize().x, tileSize.y,
+                        phys::bodyType::solid, false, sf::Vector2f(0.f, 0.f));
 
-    // will be useful on creating the level series as we go on, and the pase section menu.
-    // for now my focus is this and the applicaacility of the sprites on the game and its possibility of it being intergrated
-    //onto the game as early as possible.
+    float leftSectionX = tileSize.x * 3.f;
+    // --- One-Way Platform ---
+    bodies.emplace_back(current_id++,
+                        sf::Vector2f(leftSectionX, window.getSize().y - tileSize.y * 5.f),
+                        tileSize.x * 3.f, tileSize.y / 4.f,
+                        phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
 
-    // the guide onto this is checking the bodyType enum class in the PhysicsTypes.hpp file
-    // and the platformBody.hpp file for the constructor of the PlatformBody class.
+    // --- Standard Solid Platform---
+    bodies.emplace_back(current_id++,
+                        sf::Vector2f(leftSectionX + tileSize.x, window.getSize().y - tileSize.y * 8.f),
+                        tileSize.x * 4.f, tileSize.y,
+                        phys::bodyType::solid, false, sf::Vector2f(0.f, 0.f));
 
-    // but we can use it as a guide to create the level series as we go on, and the pase section menu.
-    // and the death effects have not been included yet nor the respawn mechanics for the player
+    float middleSectionX = window.getSize().x / 2.f - (tileSize.x * 5.f);
+    // ID 3 - Conveyor Belt
+    bodies.emplace_back(current_id++,
+                        sf::Vector2f(middleSectionX, window.getSize().y - tileSize.y * 3.f),
+                        tileSize.x * 10.f, tileSize.y,
+                        phys::bodyType::conveyorBelt, false, sf::Vector2f(70.f, 0.f));
 
-     // ID 0 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(0), sf::Vector2f(0.f, window.getSize().y - 32.f), 
-                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
-    // ID 1 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(1), sf::Vector2f(0.f, 356.f), 
-                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
-    // ID 2 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(2), sf::Vector2f(480.f, window.getSize().y - 192.f), 
-                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
-    // ID 3 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(3), sf::Vector2f(0.f, 96.f), 
-                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
-    // ID 4 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(4), sf::Vector2f(640.f, 224.f), 
-                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
-    // ID 5 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(5), sf::Vector2f(480.f, window.getSize().y - 32.f), 
-                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
-    // ID 6 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(6), sf::Vector2f(672.f, window.getSize().y - 260.f), 
-                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
-    // ID 7 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(7), sf::Vector2f(96.f, window.getSize().y - 128.f), 
-                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
-    // ID 8 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(8), sf::Vector2f(640.f, window.getSize().y - 160.f), 
-                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
-    // ID 9 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(9), sf::Vector2f(640.f, 64.f), 
-                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
-    // ID 10 - Standard Platform
-    bodies.emplace_back(static_cast<unsigned int>(10), sf::Vector2f(292.f, window.getSize().y - 128.f), 
-                        tileSize.x * 4, tileSize.y, phys::bodyType::platform, false, sf::Vector2f(0.f, 0.f));
+    // ID 4 - Moving Platform , these fuckers behave like solids ok, not platforms, since im not sure how to make them work yet
+    // For now, assume type::moving is multi-directional solid like type::solid.
+    size_t movingPlatformID = current_id; // Store the ID if needed later
+    bodies.emplace_back(current_id++,
+                        sf::Vector2f(middleSectionX + tileSize.x * 2.f, window.getSize().y - tileSize.y * 7.f),
+                        tileSize.x * 5.f, tileSize.y / 2.f,
+                        phys::bodyType::moving, false, sf::Vector2f(0.f, 0.f));
 
-    // ID 11 (Conveyor)
-    bodies.emplace_back(static_cast<unsigned int>(11), sf::Vector2f(window.getSize().x / 4.f, window.getSize().y / 2.f),
-                        tileSize.x * 10, tileSize.y, phys::bodyType::conveyorBelt,
-                        false, sf::Vector2f(70.f, 0.f));
-    // ID 12 (Moving)
-    bodies.emplace_back(static_cast<unsigned int>(12), sf::Vector2f(window.getSize().x / 4.f, window.getSize().y / 4.f),
-                        tileSize.x * 5, tileSize.y / 8.f, phys::bodyType::moving, false, sf::Vector2f(0.f, 0.f));
-    // ID 13 (Jump-through)
-    bodies.emplace_back(static_cast<unsigned int>(13), sf::Vector2f(160.f, window.getSize().y - 224.f),
-                        tileSize.x, tileSize.y / 8.f, phys::bodyType::jumpthrough, false, sf::Vector2f(0.f, 0.f));
-    // ID 14 (Jump-through)
-    bodies.emplace_back(static_cast<unsigned int>(14), sf::Vector2f(576.f, window.getSize().y - 288.f),
-                        tileSize.x, tileSize.y / 8.f, phys::bodyType::jumpthrough, false, sf::Vector2f(0.f, 0.f));
 
-    // IDs 15-19 (Falling)
-    for(int id_val_int=15; id_val_int<=19; ++id_val_int) { // Use a temp int for loop
-        bodies.emplace_back(static_cast<unsigned int>(id_val_int), sf::Vector2f(192.f + (id_val_int-15)*tileSize.x, 64.f),
-                            tileSize.x, tileSize.y, phys::bodyType::falling, false, sf::Vector2f(0.f, 0.f));
-    }
-    // IDs 20-23 (Vanishing)
-    for(int id_val_int=20; id_val_int<=23; ++id_val_int) { // Use a temp int for loop
-        bodies.emplace_back(static_cast<unsigned int>(id_val_int), sf::Vector2f(192.f + (id_val_int-20)*tileSize.x, -32.f),
-                            tileSize.x, tileSize.y, phys::bodyType::vanishing, false, sf::Vector2f(0.f, 0.f));
+    float rightSectionX = window.getSize().x - tileSize.x * 10.f;
+    for (int i = 0; i < 3; ++i) {
+        bodies.emplace_back(current_id++,
+                            sf::Vector2f(rightSectionX + (i * (tileSize.x + tileSize.x/2.f)), window.getSize().y - tileSize.y * 6.f),
+                            tileSize.x, tileSize.y,
+                            phys::bodyType::falling, false, sf::Vector2f(0.f, 0.f));
     }
 
-    unsigned int next_id_filler_uint = bodies.size(); // Use unsigned int here too
+    float vanishingY = window.getSize().y - tileSize.y * 10.f;
+    for (int i = 0; i < 3; ++i) {
+        bodies.emplace_back(current_id++,
+                            sf::Vector2f(rightSectionX + tileSize.x * 1.5f + (i * (tileSize.x + tileSize.x/2.f)), vanishingY),
+                            tileSize.x, tileSize.y,
+                            phys::bodyType::vanishing, false, sf::Vector2f(0.f, 0.f));
+    }
+    // --- Solid Platform ---
+    bodies.emplace_back(current_id++,
+                        sf::Vector2f(window.getSize().x / 2.f - tileSize.x * 2.f, tileSize.y * 5.f),
+                        tileSize.x * 4.f, tileSize.y,
+                        phys::bodyType::solid, false, sf::Vector2f(0.f, 0.f));
+
+
+    // Fill remaining with ::none type
+    // This is to ensure we have a fixed number of bodies for the simulation
+    // This is useful for debugging and ensuring we have a consistent number of bodies in the simulation if we need to add more later
+    // This is a placeholder, you can adjust the number of bodies as needed and sprites 
     while (bodies.size() < NUM_PLATFORM_OBJECTS) {
-        bodies.emplace_back(next_id_filler_uint++, sf::Vector2f(-10000.f, -10000.f), 1.f, 1.f, phys::bodyType::none, false, sf::Vector2f(0.f, 0.f));
-    }
+        bodies.emplace_back(current_id++,
+                            sf::Vector2f(-10000.f, -10000.f), 1.f, 1.f,
+                            phys::bodyType::none, false, sf::Vector2f(0.f, 0.f));
+    } // yes just copy past this [;es]
+
 
     std::vector<Tile> tiles;
     tiles.reserve(bodies.size());
-    for (const auto& body : bodies) {
+    std::vector<size_t> tile_to_body_map; //moving tiles
+    tile_to_body_map.resize(bodies.size());
+
+    for (size_t i = 0; i < bodies.size(); ++i) {
+        const auto& body = bodies[i];
+        tile_to_body_map[i] = i; // Simple 1-to-1 map for now will adjust later
+
         Tile newTile(sf::Vector2f(body.getWidth(), body.getHeight()));
         newTile.setPosition(body.getPosition());
         switch (body.getType()) {
-            case phys::bodyType::platform:     newTile.setFillColor(sf::Color(200, 70, 70, 255)); break; //refer to the PhysicsTypes.hpp file for the bodyType enum class
-            case phys::bodyType::conveyorBelt: newTile.setFillColor(sf::Color(255, 150, 50, 255)); break; // also color schemed RGBW i think
-            case phys::bodyType::moving:       newTile.setFillColor(sf::Color(70, 200, 70, 255)); break;
-            case phys::bodyType::jumpthrough:  newTile.setFillColor(sf::Color(70, 150, 200, 180)); break;
-            case phys::bodyType::falling:      newTile.setFillColor(sf::Color(200, 200, 70, 255)); break;
-            case phys::bodyType::vanishing:    newTile.setFillColor(sf::Color(200, 70, 200, 255)); break;
-            case phys::bodyType::none:        newTile.setFillColor(sf::Color(0, 0, 0, 0)); break; // Transparent    
-            case phys::bodyType::spring:       newTile.setFillColor(sf::Color(255, 255, 0, 255)); break;
-            case phys::bodyType::trap:         newTile.setFillColor(sf::Color(255, 0, 0, 255)); break;
-            default:                           newTile.setFillColor(sf::Color(128, 128, 128, 255)); break;
+            // i like how geometry dash inspired me to make it like this
+            case phys::bodyType::solid:        newTile.setFillColor(sf::Color(0, 0, 0, 255)); break; // Dark Gray for solid
+            case phys::bodyType::platform:     newTile.setFillColor(sf::Color(70, 150, 200, 180)); break; // Light blue for one-way
+            case phys::bodyType::conveyorBelt: newTile.setFillColor(sf::Color(255, 150, 50, 255)); break; //orange
+            case phys::bodyType::moving:       newTile.setFillColor(sf::Color(70, 200, 70, 255)); break; // Green for moving
+            case phys::bodyType::falling:      newTile.setFillColor(sf::Color(200, 200, 70, 255)); break; // Yellow for falling
+            case phys::bodyType::vanishing:    newTile.setFillColor(sf::Color(200, 70, 200, 255)); break; // Purple for vanishing
+            case phys::bodyType::none:         newTile.setFillColor(sf::Color(0, 0, 0, 0)); break; // Transparent for none
+            case phys::bodyType::spring:       newTile.setFillColor(sf::Color(255, 255, 0, 255)); break; // Yellow for spring
+            case phys::bodyType::trap:         newTile.setFillColor(sf::Color(255, 0, 0, 255)); break; // Red for trap
+            default:                           newTile.setFillColor(sf::Color(128, 128, 128, 255)); break; // Default Gray for unknown debugging purposes so if u find gray tell me
         }
         tiles.push_back(newTile);
     }
 
     phys::DynamicBody playerBody(
-        {window.getSize().x / 2.f, window.getSize().y / 2.f - 100.f},
+        {window.getSize().x / 4.f, window.getSize().y / 2.f - 100.f}, // the experimental ground here starts at left
+        //i cant believe im putting comments at the bottom it looks bad anyways
+        // ypu can adjust as you see fit on where ypu want to player to start on other levels
+        //cuz like i said u do you
         tileSize.x, tileSize.y, {0.f, 0.f}
     );
 
@@ -180,267 +182,322 @@ int main(void) {
 
     sf::Clock tickClock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
-    const sf::Time TIME_PER_FRAME = sf::seconds(1.f / 60.f);
+    const sf::Time TIME_PER_FRAME = sf::seconds(1.f / 60.f); 
 
     sf::Time movingPlatformCycleTimer = sf::Time::Zero;
+    float movingPlatformTotalDist = tileSize.x * 6.f; 
     int platformDir = 1;
-    float platformFrameVelocity = 0.f;
+    sf::Vector2f movingPlatformStartPos = {middleSectionX + tileSize.x * 2.f, window.getSize().y - tileSize.y * 7.f};
+
 
     sf::Time vanishingPlatformCycleTimer = sf::Time::Zero;
     int oddEvenVanishing = 1;
 
     bool jumpKeyHeld = false;
-    sf::Time currentJumpHoldDuration = sf::Time::Zero;
-    bool playerIsGrounded = false;
+    sf::Time currentJumpHoldDuration = sf::Time::Zero;     // playerIsGrounded is now primarily managed by playerBody.isOnGround() after collisions
+    int turboMultiplier = 1; //in case you read the pdf and the website
 
-    int turboMultiplier = 1;
-    int debugMode = -1;
+    // Debug, should put here for any debugs you make ok..... if its on main or in the drawing window below
+    // and and i forgor what to say ill come back here later (the comment after the ... was the one i was looking for)
+    sf::Text debugText;
+    debugText.setFont(menuFont);
+    debugText.setCharacterSize(14);
+    debugText.setFillColor(sf::Color::White);
+    debugText.setPosition(10.f, 10.f);
+
 
     bool running = true;
     while (running) {
-        if (currentState == GameState::MENU) {
-            // (Menu input handling)
-            sf::Event menuEvent;
-            while(window.pollEvent(menuEvent)) {
-                 if (menuEvent.type == sf::Event::Closed) { running = false; window.close(); }
-                 if (menuEvent.type == sf::Event::KeyPressed && menuEvent.key.code == sf::Keyboard::Escape) { running = false; window.close(); }
-                 
-                 // Add your menu button logic but i put remineddedrclick based on mousePosView and menuEvent.MouseButtonReleased)
-                sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
-
-                // Reset colors
-                startButtonText.setFillColor(defaultButtonColor);
-                settingsButtonText.setFillColor(defaultButtonColor);
-                exitButtonText.setFillColor(defaultButtonColor);
-
-                bool mousePressedDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
-
-                if (startButtonText.getGlobalBounds().contains(mousePos)){
-                    startButtonText.setFillColor(mousePressedDown ? clickedButtonColor : hoverButtonColor);
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                running = false; window.close();
+            }
+            if (currentState == GameState::MENU) { // Menu event i didnt change it just relocated it
+                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+                    running = false; window.close();
                 }
-                else if (settingsButtonText.getGlobalBounds().contains(mousePos)){
-                    settingsButtonText.setFillColor(mousePressedDown ? clickedButtonColor : hoverButtonColor);
-                }
-                else if (exitButtonText.getGlobalBounds().contains(mousePos)){
-                    exitButtonText.setFillColor(mousePressedDown ? exitButtonColor : hoverButtonColor);
-                }
-
-                // Mouse button click release
-                if (menuEvent.type == sf::Event::MouseButtonReleased){
-                    if (menuEvent.mouseButton.button == sf::Mouse::Button::Left){
-                        mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
-
-                        if (startButtonText.getGlobalBounds().contains(mousePos)){
+                if (event.type == sf::Event::MouseButtonReleased) {
+                    if (event.mouseButton.button == sf::Mouse::Button::Left) {
+                        sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
+                        if (startButtonText.getGlobalBounds().contains(mousePos)) {
                             currentState = GameState::PLAYING;
-                            timeSinceLastUpdate = sf::Time::Zero;
+                            timeSinceLastUpdate = sf::Time::Zero; // Reset simulation time
                             tickClock.restart();
-                            if (sf::Joystick::isConnected(0)){
-                                sf::Joystick::Identification id = sf::Joystick::getIdentification(0);
-                                window.setTitle("Joystick use: "+ id.name);
-                            }
-                            else {
-                                window.setTitle("Project T (playing)");
-                            }
-                        }
-                        else if (settingsButtonText.getGlobalBounds().contains(mousePos)){
-                            std::cout << "Settings pressed" << std::endl;
-                        }
-                        else if (exitButtonText.getGlobalBounds().contains(mousePos)){
-                            window.close();
-                            running = false;
+                            window.setTitle("Project T (Playing)");
+                        } else if (settingsButtonText.getGlobalBounds().contains(mousePos)) {
+                            std::cout << "Settings pressed (NYI)" << std::endl;
+                        } else if (exitButtonText.getGlobalBounds().contains(mousePos)) {
+                            running = false; window.close();
                         }
                     }
                 }
-
+            } else if (currentState == GameState::PLAYING) { // Playing event handling
+                 if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+                    currentState = GameState::MENU; // Pause to menu
+                    window.setTitle("Project T (Menu - Paused)");
+                 }
+                 if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::R) {
+                    playerBody.setPosition({window.getSize().x / 4.f, window.getSize().y / 2.f - 150.f});
+                    playerBody.setVelocity({0.f, 0.f});
+                 }
             }
-            // (Menu drawing)
-            window.clear(sf::Color(30,30,70));
-            window.setView(window.getDefaultView());
+        }
+
+        if (!running) break;
+
+
+        if (currentState == GameState::MENU) {
+            sf::Vector2f mousePosView = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
+            bool mousePressedDown = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+
+            startButtonText.setFillColor(defaultButtonColor);
+            settingsButtonText.setFillColor(defaultButtonColor);
+            exitButtonText.setFillColor(defaultButtonColor);
+
+            if (startButtonText.getGlobalBounds().contains(mousePosView)) {
+                startButtonText.setFillColor(mousePressedDown ? clickedButtonColor : hoverButtonColor);
+            } else if (settingsButtonText.getGlobalBounds().contains(mousePosView)) {
+                settingsButtonText.setFillColor(mousePressedDown ? clickedButtonColor : hoverButtonColor);
+            } else if (exitButtonText.getGlobalBounds().contains(mousePosView)) {
+                exitButtonText.setFillColor(mousePressedDown ? exitButtonColor : hoverButtonColor);
+            }
+
+            window.clear(sf::Color(30, 30, 70));
+            window.setView(window.getDefaultView()); // Use default view for UI
             window.draw(startButtonText);
             window.draw(settingsButtonText);
             window.draw(exitButtonText);
             window.display();
-            if(!running) break;
-            continue;
+            continue; 
         }
 
-        // --- PLAYING STATE ---
-        // will add levels soon wait ffs
-        
-
+        // --- PLAYING STATE LOGIC ---
         sf::Time elapsedTime = tickClock.restart();
         timeSinceLastUpdate += elapsedTime;
 
         while (timeSinceLastUpdate >= TIME_PER_FRAME) {
             timeSinceLastUpdate -= TIME_PER_FRAME;
-            playerBody.setLastPosition(playerBody.getPosition());
+            playerBody.setLastPosition(playerBody.getPosition()); // Store before any physics
 
-            // --- 1. INPUT PROCESSING ---
-            // ... (input logic as before to set horizontalInput, jumpKeyHeld, newJumpPressThisFrame) ...
-            float horizontalInput = 0.f; // Reset
-            bool newJumpPressThisFrame = false; // Reset
-            jumpKeyHeld = false; // Reset
-            turboMultiplier = 1; // Reset
+            // --- 1. INPUT ---
+            // escape is pause menu and r is to reset the player
+            //shift is for run but i will remove depending on u guys
+            //wasd for movement you alr know this and spacebar w or arrowkeys
 
-            // Your full input logic to set these variables
-            if (sf::Joystick::isConnected(0)) {
-                float joyX = sf::Joystick::getAxisPosition(0, sf::Joystick::X);
-                if (std::abs(joyX) > 20.f) horizontalInput = joyX / 100.f;
-                if (sf::Joystick::isButtonPressed(0, 0)) jumpKeyHeld = true;
-                if (sf::Joystick::isButtonPressed(0, 2)) turboMultiplier = 2;
-            }
+            float horizontalInput = 0.f;
+            bool jumpIntentThisFrame = false; // Key press for jump
+            bool dropIntentThisFrame = false; // Key press for dropping
+
+            turboMultiplier = (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) ? 2 : 1;
+
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) horizontalInput = -1.f;
             else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) horizontalInput = 1.f;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) jumpKeyHeld = true;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) turboMultiplier = 2;
 
-            if (jumpKeyHeld && playerIsGrounded && currentJumpHoldDuration == sf::Time::Zero) {
+            jumpIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space));
+            dropIntentThisFrame = sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
+
+
+            bool newJumpPressThisFrame = false;
+            if (jumpIntentThisFrame && playerBody.isOnGround() && currentJumpHoldDuration == sf::Time::Zero) {
                 newJumpPressThisFrame = true;
             }
+            playerBody.setTryingToDrop(dropIntentThisFrame && playerBody.isOnGround());
 
 
             // --- PLATFORM BEHAVIORS ---
-            // Moving Platform
-            phys::PlatformBody* movingPlatformPtr = nullptr; // Find the moving platform
-            for(auto& pf : bodies) { if(pf.getID() == 12 && pf.getType() == phys::bodyType::moving) { movingPlatformPtr = &pf; break; } }
+            // Find the moving platform
+            phys::PlatformBody* movingPlatformPtr = nullptr;
+            size_t movingPlatformTileIndex = (size_t)-1; // Index for the visual tile
+            for(size_t i=0; i < bodies.size(); ++i) {
+                if(bodies[i].getID() == movingPlatformID && bodies[i].getType() == phys::bodyType::moving) {
+                    movingPlatformPtr = &bodies[i];
+                    movingPlatformTileIndex = i; // Assuming tiles are in same order
+                    break;
+                }
+            }
+            sf::Vector2f movingPlatformFrameDisplacement = {0.f,0.f};
 
             if (movingPlatformPtr) {
                 movingPlatformCycleTimer += TIME_PER_FRAME;
-                if (movingPlatformCycleTimer.asSeconds() >= 4.f) {
-                    platformDir *= -1; movingPlatformCycleTimer = sf::Time::Zero;
+                float cycleDuration = 4.f; // e.g., 2s to move, 2s pause, 2s back, 2s pause change this as you see fit
+                float moveTime = cycleDuration / 2.f;
+
+                if (movingPlatformCycleTimer.asSeconds() >= cycleDuration) {
+                     movingPlatformCycleTimer -= sf::seconds(cycleDuration); // Reset cycle idk if it removes the remainders or not
                 }
-                float moveCycleProgress = movingPlatformCycleTimer.asSeconds();
-                if (moveCycleProgress <= 3.f) {
-                    platformFrameVelocity = platformDir * 200.f * math::easing::quadraticEaseInOut(moveCycleProgress, 0.f, 1.f, 3.f) * TIME_PER_FRAME.asSeconds();
-                } else { platformFrameVelocity = 0.f; }
-                movingPlatformPtr->setPosition(movingPlatformPtr->getPosition() + sf::Vector2f(platformFrameVelocity, 0.f));
-                // Sync corresponding Tile: Find tile matching movingPlatformPtr->getID() or by index if consistent
-                for(auto& tile_vis : tiles) { if(tile_vis.getPosition() == movingPlatformPtr->getPosition() - sf::Vector2f(platformFrameVelocity, 0.f) ) { tile_vis.setPosition(movingPlatformPtr->getPosition()); break; }} //This search is inefficient. Link tiles and bodies better.
-                 // A better way: if (tiles.size() > 12 && bodies[12].getID() == 12) tiles[12].setPosition(bodies[12].getPosition()); ASSUMING bodies[12] IS THE ONE. but idk havent complied yet
+
+                float currentCycleTime = movingPlatformCycleTimer.asSeconds();
+                float targetPosOffset = 0.f;
+
+                if(currentCycleTime < moveTime / 2.f) { // Moving one way
+                    targetPosOffset = math::easing::sineEaseInOut(currentCycleTime, 0, platformDir * movingPlatformTotalDist, moveTime/2.f);
+                } else if (currentCycleTime < moveTime) { // Pause at one end
+                    targetPosOffset = platformDir * movingPlatformTotalDist;
+                } else if (currentCycleTime < moveTime + moveTime/2.f) { // Moving back
+                    targetPosOffset = math::easing::sineEaseInOut(currentCycleTime - moveTime, platformDir * movingPlatformTotalDist, -platformDir * movingPlatformTotalDist, moveTime/2.f);
+                } else { // Pause at start
+                    targetPosOffset = 0;
+                }
+
+                sf::Vector2f newPos = movingPlatformStartPos + sf::Vector2f(targetPosOffset, 0.f);
+                movingPlatformFrameDisplacement = newPos - movingPlatformPtr->getPosition();
+                movingPlatformPtr->setPosition(newPos);
+
+                if(movingPlatformTileIndex < tiles.size()) {
+                    tiles[movingPlatformTileIndex].setPosition(movingPlatformPtr->getPosition());
+                }
             }
 
+            // Falling & Vanishing
+             for (size_t i = 0; i < bodies.size(); ++i) {
+                 if (tiles.size() <=i) continue;
 
-            // Falling & Vanishing Platforms
-            for (size_t i = 0; i < bodies.size(); ++i) {
-                 if (tiles.size() <=i) continue; // Safety
-
-                tiles[i].update(TIME_PER_FRAME); // ** ALWAYS UPDATE THE TILE PLEASE FOR GODS SAKEA DASDASDASd**
+                tiles[i].update(TIME_PER_FRAME); // Update visual tile
 
                 if (bodies[i].getType() == phys::bodyType::falling) {
-                    bool playerOnThisPlatform = playerIsGrounded &&
-                                                lastFrameGroundPlatform != nullptr &&
-                                                lastFrameGroundPlatform->getID() == bodies[i].getID();
+                    bool playerOnThisPlatform = playerBody.isOnGround() &&
+                                                playerBody.getGroundPlatform() != nullptr &&
+                                                playerBody.getGroundPlatform()->getID() == bodies[i].getID();
 
                     if (playerOnThisPlatform && !bodies[i].isFalling() && !tiles[i].isFalling() && !tiles[i].hasFallen()) {
-                        tiles[i].startFalling(sf::seconds(0.25f)); // Tile handles its delay and m_isFalling state
-                        tiles[i].setFillColor(sf::Color::Yellow);
+                        tiles[i].startFalling(sf::seconds(0.25f));
+ 
                     }
-
-                    // If Tile says it IS visually falling (after its delay timer)
-                    // AND the physics body isn't yet marked as such
-                    if (tiles[i].isFalling() && !bodies[i].isFalling()) {
-                         bodies[i].setFalling(true); // Sync physics body state
-                         tiles[i].setFillColor(sf::Color(255,100,0)); 
+                    if (tiles[i].isFalling() && !bodies[i].isFalling()) { // Tile has started visual fall
+                         bodies[i].setFalling(true); // Mark physics body
+                         // Visual changes in Tile.update or when starting
                     }
-
-                    // If Tile has visually completed its fall (e.g., went off-screen)
-                    if (tiles[i].hasFallen()) {
-                         bodies[i].setPosition({-9999.f, -9999.f}); // Make physics body non-collidable
-                         if (!bodies[i].isFalling()) bodies[i].setFalling(true); // Ensure state consistency
+                    if (tiles[i].hasFallen()) { // Visually off-screen
+                         bodies[i].setPosition({-9999.f, -9999.f}); // Move physics body out
+                         if(!bodies[i].isFalling()) bodies[i].setFalling(true);
                     }
                 } else if (bodies[i].getType() == phys::bodyType::vanishing) {
-                    bool is_even_platform = (bodies[i].getID() % 2 == 0);
+                    bool is_even_platform = (bodies[i].getID() % 2 == 0); // Example logic
                     bool should_be_vanishing_phase = (oddEvenVanishing == 1 && is_even_platform) || (oddEvenVanishing == -1 && !is_even_platform);
-                    float t_vanish = vanishingPlatformCycleTimer.asSeconds();
+                    float t_vanish_cycle_normalized = vanishingPlatformCycleTimer.asSeconds() / 2.f; // Normalize over 2s cycle
 
-                    if (should_be_vanishing_phase) {
-                        float alpha_val = math::easing::sineEaseIn(t_vanish, 0.f, 255.f, 1.f);
-                        tiles[i].setFillColor(sf::Color(200, 70, 200, 255 - static_cast<sf::Uint8>(alpha_val)));
-                        if (tiles[i].getFillColor().a <= 10) {
+                    sf::Color originalColor = sf::Color(200, 70, 200, 255); // Store original color
+                    float alpha_val;
+
+                    if (should_be_vanishing_phase) { // Fade out
+                        alpha_val = math::easing::sineEaseInOut(t_vanish_cycle_normalized, 255.f, -255.f, 1.f);
+                        alpha_val = std::max(0.f, std::min(255.f, alpha_val)); // Clamp
+                        tiles[i].setFillColor(sf::Color(originalColor.r, originalColor.g, originalColor.b, static_cast<sf::Uint8>(alpha_val)));
+                        if (alpha_val <= 10) { // Fully (or mostly) faded
                             bodies[i].setPosition({-9999.f, -9999.f});
                         }
-                    } else {
-                        float alpha_val = math::easing::sineEaseIn(t_vanish, 0.f, 255.f, 1.f);
-                        tiles[i].setFillColor(sf::Color(200, 70, 200, static_cast<sf::Uint8>(alpha_val)));
-                        // Check if the body *was* off-screen before making it reappear
-                        if (tiles[i].getFillColor().a > 10 && bodies[i].getPosition().x < -9000.f) {
-
-                            bodies[i].setPosition(tiles[i].getPosition()); // Restore based on current tile visual pos
+                    } else { // Fade in
+                        alpha_val = math::easing::sineEaseInOut(t_vanish_cycle_normalized, 0.f, 255.f, 1.f);
+                        alpha_val = std::max(0.f, std::min(255.f, alpha_val)); // Clamp
+                        tiles[i].setFillColor(sf::Color(originalColor.r, originalColor.g, originalColor.b, static_cast<sf::Uint8>(alpha_val)));
+                        if (alpha_val > 10 && bodies[i].getPosition().x < -9000.f) {
+                            bodies[i].setPosition(tiles[i].getPosition());
                         }
                     }
                 }
             }
             vanishingPlatformCycleTimer += TIME_PER_FRAME;
-            if (vanishingPlatformCycleTimer.asSeconds() > 2.f) {
-                vanishingPlatformCycleTimer = sf::Time::Zero;
+            if (vanishingPlatformCycleTimer.asSeconds() >= 2.f) {
+                vanishingPlatformCycleTimer -= sf::seconds(2.f);
                 oddEvenVanishing *= -1;
             }
 
-            // --- 2. PLAYER PHYSICS --- (Using getters/setters for playerBody)
+            // --- 2. PLAYER PHYSICS ---
             sf::Vector2f currentPlayerVelocity = playerBody.getVelocity();
             currentPlayerVelocity.x = horizontalInput * PLAYER_MOVE_SPEED * turboMultiplier;
-            if (!playerIsGrounded) {
+
+            if (!playerBody.isOnGround()) { // Check player's ground state
                 currentPlayerVelocity.y += GRAVITY_ACCELERATION * TIME_PER_FRAME.asSeconds();
                 if (currentPlayerVelocity.y > MAX_FALL_SPEED) currentPlayerVelocity.y = MAX_FALL_SPEED;
             }
-            if (newJumpPressThisFrame && playerIsGrounded) {
+
+            if (newJumpPressThisFrame) { 
                 currentPlayerVelocity.y = JUMP_INITIAL_VELOCITY;
                 currentJumpHoldDuration = sf::microseconds(1);
-            } else if (jumpKeyHeld && currentJumpHoldDuration > sf::Time::Zero && currentJumpHoldDuration < MAX_JUMP_HOLD_TIME) {
-                currentPlayerVelocity.y = JUMP_INITIAL_VELOCITY;
+            } else if (jumpIntentThisFrame && currentJumpHoldDuration > sf::Time::Zero && currentJumpHoldDuration < MAX_JUMP_HOLD_TIME) {
+                currentPlayerVelocity.y = JUMP_INITIAL_VELOCITY; 
                 currentJumpHoldDuration += TIME_PER_FRAME;
-            } else if (!jumpKeyHeld || currentJumpHoldDuration >= MAX_JUMP_HOLD_TIME) {
-                currentJumpHoldDuration = sf::Time::Zero;
+            } else if (!jumpIntentThisFrame || currentJumpHoldDuration >= MAX_JUMP_HOLD_TIME) {
+                currentJumpHoldDuration = sf::Time::Zero; 
             }
             playerBody.setVelocity(currentPlayerVelocity);
 
-            // --- 3. APPLY VELOCITY TO POSITION ---
-            playerBody.setPosition(playerBody.getPosition() + playerBody.getVelocity() * TIME_PER_FRAME.asSeconds());
-
-            // --- 4. COLLISION DETECTION AND RESOLUTION ---
+            // --- 3. COLLISION DETECTION AND RESOLUTION ---
+            // Position update is now part of resolveCollisions' iterative process.
+            // We do NOT call playerBody.setPosition(playerBody.getPosition() + playerBody.getVelocity() * TIME_PER_FRAME.asSeconds()); here.
+            // That full movement is handled internally by the iterative resolver over deltaTime.
             phys::CollisionResolutionInfo resolutionResult = phys::CollisionSystem::resolveCollisions(playerBody, bodies, TIME_PER_FRAME.asSeconds());
 
-            // --- 5. POST-COLLISION ADJUSTMENTS & STATE UPDATE ---
-            playerIsGrounded = resolutionResult.onGround;
-            lastFrameGroundPlatform = resolutionResult.groundPlatform; // Store for next iteration's platform logic
-
+            // --- 4. POST-COLLISION ADJUSTMENTS ---
             currentPlayerVelocity = playerBody.getVelocity(); // Get velocity modified by CollisionSystem
 
-            if (resolutionResult.onGround) {
-                if (currentPlayerVelocity.y > 0.f) currentPlayerVelocity.y = 0.f;
-                currentJumpHoldDuration = sf::Time::Zero;
-                if (resolutionResult.groundPlatform) {
-                    const phys::PlatformBody& collidedPf = *resolutionResult.groundPlatform;
+            if (playerBody.isOnGround()) {
+                // Velocity.y should be 0 if on ground and not a special surface.
+                // This is mostly handled by CollisionSystem. ApplyCollisionResponse, but a final clamp can be useful.
+                if (currentPlayerVelocity.y > 0.f && playerBody.getGroundPlatform() &&
+                    playerBody.getGroundPlatform()->getType() != phys::bodyType::conveyorBelt &&
+                    playerBody.getGroundPlatform()->getType() != phys::bodyType::moving // Moving platforms might impart small Y if angled
+                    ) {
+                   // currentPlayerVelocity.y = 0.f; // Collision system should handle this zeroing.
+                }
+                currentJumpHoldDuration = sf::Time::Zero; // Reset jump hold when grounded
+
+                if (playerBody.getGroundPlatform()) {
+                    const phys::PlatformBody& collidedPf = *playerBody.getGroundPlatform();
                     if (collidedPf.getType() == phys::bodyType::conveyorBelt) {
+                        // Apply surface velocity *as an additional movement*. Player should not get X-velocity set directly from conveyor.
                         playerBody.setPosition(playerBody.getPosition() + collidedPf.getSurfaceVelocity() * TIME_PER_FRAME.asSeconds());
-                    } else if (movingPlatformPtr && collidedPf.getID() == movingPlatformPtr->getID()) { // Check against the found moving platform
-                        playerBody.setPosition(playerBody.getPosition() + sf::Vector2f(platformFrameVelocity, 0.f));
+                    } else if (movingPlatformPtr && collidedPf.getID() == movingPlatformPtr->getID()) {
+                        // Player is on the specific moving platform found earlier.
+                        // Add the platform's displacement for THIS frame.
+                        playerBody.setPosition(playerBody.getPosition() + movingPlatformFrameDisplacement);
                     }
                 }
             }
             if (resolutionResult.hitCeiling) {
-                if (currentPlayerVelocity.y < 0.f) currentPlayerVelocity.y = 0.f;
+                if (currentPlayerVelocity.y < 0.f) currentPlayerVelocity.y = 0.f; // Should be handled by CollisionSystem
                 currentJumpHoldDuration = sf::Time::Zero;
             }
-            playerBody.setVelocity(currentPlayerVelocity);
+            playerBody.setVelocity(currentPlayerVelocity); // Set final velocity after all adjustments
+        } // End of fixed timestep loop
 
-            playerShape.setPosition(playerBody.getPosition());
+        // --- 5. Update Visuals & View ---
+        playerShape.setPosition(playerBody.getPosition());
 
-            if (debugMode == 1) { // Debug mode 1: Show player zoom zoom
-                std::cout << "Player Velocity: " << playerBody.getVelocity().x << ", " << playerBody.getVelocity().y << std::endl;
-            } else if (debugMode == 2) { // Debug mode 2: Show platform ID to check for trolls later
-                std::cout << "Platform ID: " << (resolutionResult.groundPlatform ? resolutionResult.groundPlatform->getID() : -1) << std::endl;
-            }
-            // --- 6. VIEW UPDATE ---
+        // Camera follow
+        mainView.setCenter(playerBody.getPosition().x + playerBody.getWidth()/2.f,
+                           playerBody.getPosition().y + playerBody.getHeight()/2.f - 50.f); // Center on player, slightly offset Y
 
-        } 
-        mainView.setCenter(playerBody.getPosition().x, playerBody.getPosition().y - 50.f);
+        // Clamp view to prevent seeing too far outside level boundaries (optional)
+        // Example: float minViewX = 0, maxViewX = LEVEL_WIDTH - mainView.getSize().x;
+        // if (mainView.getCenter().x - mainView.getSize().x / 2.f < minViewX) mainView.setCenter(minViewX + mainView.getSize().x / 2.f, mainView.getCenter().y);
+        // ... similar for max and Y axis
+
+
+        // Drawing
         window.clear(sf::Color(20, 20, 40));
         window.setView(mainView);
-        for (const auto& t : tiles) { if (t.getFillColor().a > 5) window.draw(t); }
+        for (const auto& t : tiles) {
+            if (t.getFillColor().a > 5) window.draw(t); // Only draw visible tiles
+        }
         window.draw(playerShape);
+
+        // UI / Debug Text on Default View
         window.setView(window.getDefaultView());
+        debugText.setString(
+            "Player Pos: " + std::to_string(static_cast<int>(playerBody.getPosition().x)) + "," + std::to_string(static_cast<int>(playerBody.getPosition().y)) +
+            "\nPlayer Vel: " + std::to_string(static_cast<int>(playerBody.getVelocity().x)) + "," + std::to_string(static_cast<int>(playerBody.getVelocity().y)) +
+            "\nOnGround: " + (playerBody.isOnGround() ? "Yes" : "No") +
+            (playerBody.getGroundPlatform() ? (" (ID: " + std::to_string(playerBody.getGroundPlatform()->getID()) + ")") : "") +
+            "\nTryingToDrop: " + (playerBody.isTryingToDropFromPlatform() ? "Yes" : "No") +
+             (playerBody.getGroundPlatformTemporarilyIgnored() ? "\nTempIgnoring: Yes" : "")
+        );
+        window.draw(debugText);
+
+
         window.display();
-    }
+    } // End of game loop
+
     return 0;
 }
