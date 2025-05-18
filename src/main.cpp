@@ -39,7 +39,7 @@ int main(void) {
     GameState currentState = GameState::MENU;
 
     sf::Font menuFont;
-    std::string fontPath = "../assets/ARIALBD.TTF"; 
+    std::string fontPath = "../assets/fonts/ARIALBD.TTF"; 
     if (!menuFont.loadFromFile(fontPath)) {
         std::cerr << "Failed to load font: " << fontPath << std::endl;
         fontPath = "ARIALBD.TTF";
@@ -68,6 +68,11 @@ int main(void) {
     sf::Color exitButtonColor = sf::Color::Red;
 
     sf::View mainView(sf::FloatRect(0.f, 0.f, 800.f, 600.f));
+
+    // Level loading 
+    rapidjson::Document* level1;
+    level1 = readFile();
+    savetest(level1);
 
     std::vector<phys::PlatformBody> bodies;
     bodies.reserve(NUM_PLATFORM_OBJECTS);
@@ -168,6 +173,8 @@ int main(void) {
         }
         tiles.push_back(newTile);
     }
+
+    freeData(level1);
 
     phys::DynamicBody playerBody(
         {window.getSize().x / 4.f, window.getSize().y / 2.f - 100.f}, // the experimental ground here starts at left

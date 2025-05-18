@@ -13,6 +13,15 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
+FetchContent_Declare(rapidjson
+    GIT_REPOSITORY https://github.com/Tencent/rapidjson
+    GIT_TAG master
+    )
+set(RAPIDJSON_BUILD_DOC OFF CACHE BOOL "" FORCE)
+set(RAPIDJSON_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(RAPIDJSON_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(rapidjson)
+
 add_executable(main 
     src/main.cpp
     src/PlatformBody.cpp
@@ -28,6 +37,7 @@ file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
 target_link_libraries(main PRIVATE sfml-graphics)
 target_compile_features(main PRIVATE cxx_std_17)
 target_include_directories(main PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(main PUBLIC ${rapidjson_SOURCE_DIR}/include)
 
 if(WIN32)
     add_custom_command(
