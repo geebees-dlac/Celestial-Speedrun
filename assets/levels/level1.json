@@ -1,5 +1,6 @@
 {
     "lvlcode": 1,
     "platform-objs": 24,
-    "test": "Hello World"
+    "test": "Hello World",
+    "comments": "Hell's Office"
 }
