@@ -33,30 +33,30 @@ int main(void) {
     const float MAX_FALL_SPEED = 700.f;
     const sf::Time MAX_JUMP_HOLD_TIME = sf::seconds(0.18f);
 
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Project - T (Updated Physics)", sf::Style::Default);
+    sf::RenderWindow window(sf::VideoMode({800, 600}), "Project - T (Updated Physics)", sf::Style::Default);
     window.setKeyRepeatEnabled(false);
     window.setVerticalSyncEnabled(true); //better than framrate cuz this acually exists, thank you brain for looking this up lmaooooo
     GameState currentState = GameState::MENU;
 
     sf::Font menuFont;
     std::string fontPath = "../assets/fonts/ARIALBD.TTF"; 
-    if (!menuFont.loadFromFile(fontPath)) {
+    if (!menuFont.openFromFile(fontPath)) {
         std::cerr << "Failed to load font: " << fontPath << std::endl;
         fontPath = "ARIALBD.TTF";
-        if (!menuFont.loadFromFile(fontPath)) {
+        if (!menuFont.openFromFile(fontPath)) {
              std::cerr << "Failed to load font from local: " << fontPath << std::endl;
             return -1;
         } //this is to avoid the incident... catdespair
     }
-    sf::Text startButtonText, settingsButtonText, exitButtonText;
+    sf::Text startButtonText(menuFont), settingsButtonText(menuFont), exitButtonText(menuFont);
     auto setupButton = [&](sf::Text& text, const sf::String& str, float yPos, float xPosOffset = 0.f) {
         text.setFont(menuFont);
         text.setString(str);
         text.setCharacterSize(30);
         text.setFillColor(sf::Color::White);
         sf::FloatRect bounds = text.getLocalBounds();
-        text.setOrigin(bounds.left + bounds.width / 2.f, bounds.top + bounds.height / 2.f);
-        text.setPosition(window.getSize().x / 2.f + xPosOffset, yPos);
+        text.setOrigin({bounds.position.x + bounds.size.x / 2.f, bounds.position.y + bounds.size.y / 2.f});
+        text.setPosition({window.getSize().x / 2.f + xPosOffset, yPos});
     };
     setupButton(startButtonText, "Start Game", 250.f);
     setupButton(settingsButtonText, "Settings (NYI)", 300.f);
@@ -67,7 +67,7 @@ int main(void) {
     sf::Color clickedButtonColor = sf::Color::Green;
     sf::Color exitButtonColor = sf::Color::Red;
 
-    sf::View mainView(sf::FloatRect(0.f, 0.f, 800.f, 600.f));
+    sf::View mainView(sf::FloatRect({0.f, 0.f}, {800.f, 600.f}));
 
     // Level loading 
     rapidjson::Document* level1;
@@ -157,7 +157,7 @@ int main(void) {
         tile_to_body_map[i] = i; // Simple 1-to-1 map for now will adjust later
 
         Tile newTile(sf::Vector2f(body.getWidth(), body.getHeight()));
-        newTile.setPosition(body.getPosition());
+        newTile.setPosition({body.getPosition()});
         switch (body.getType()) {
             // i like how geometry dash inspired me to make it like this
             case phys::bodyType::solid:        newTile.setFillColor(sf::Color(0, 0, 0, 255)); break; // Dark Gray for solid
@@ -187,7 +187,7 @@ int main(void) {
     sf::RectangleShape playerShape;
     playerShape.setFillColor(sf::Color(220, 220, 250, 255));
     playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
-    playerShape.setPosition(playerBody.getPosition());
+    playerShape.setPosition({playerBody.getPosition()});
 
     sf::Clock tickClock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
@@ -208,39 +208,41 @@ int main(void) {
 
     // Debug, should put here for any debugs you make ok..... if its on main or in the drawing window below
     // and and i forgor what to say ill come back here later (the comment after the ... was the one i was looking for)
-    sf::Text debugText;
+    sf::Text debugText(menuFont);
     debugText.setFont(menuFont);
     debugText.setCharacterSize(14);
     debugText.setFillColor(sf::Color::White);
-    debugText.setPosition(10.f, 10.f);
+    debugText.setPosition({10.f, 10.f});
 
 
     bool running = true;
     while (running) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
+       //sf::Event event;
+        while (const std::optional event=window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()){
                 running = false; window.close();
             }
             if (currentState == GameState::MENU) { // Menu event i didnt change it just relocated it
-                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
-                    running = false; window.close();
-                }
-                if (event.type == sf::Event::MouseButtonReleased) {
-                    if (event.mouseButton.button == sf::Mouse::Button::Left) {
-                        sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
-                        if (startButtonText.getGlobalBounds().contains(mousePos)) {
-                            currentState = GameState::PLAYING;
-                            timeSinceLastUpdate = sf::Time::Zero; // Reset simulation time
-                            tickClock.restart();
-                            window.setTitle("Project T (Playing)");
-                        } else if (settingsButtonText.getGlobalBounds().contains(mousePos)) {
-                            std::cout << "Settings pressed (NYI)" << std::endl;
-                        } else if (exitButtonText.getGlobalBounds().contains(mousePos)) {
-                            running = false; window.close();
-                        }
+                if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){
+                    if (keyPressed->scancode==sf::Keyboard::Scancode::Escape){
+                        running = false; window.close();
                     }
                 }
+               
+                if (event.mouseButton.button == sf::Mouse::Button::Left) {
+                    sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
+                    if (startButtonText.getGlobalBounds().contains(mousePos)) {
+                        currentState = GameState::PLAYING;
+                        timeSinceLastUpdate = sf::Time::Zero; // Reset simulation time
+                        tickClock.restart();
+                        window.setTitle("Project T (Playing)");
+                    } else if (settingsButtonText.getGlobalBounds().contains(mousePos)) {
+                        std::cout << "Settings pressed (NYI)" << std::endl;
+                    } else if (exitButtonText.getGlobalBounds().contains(mousePos)) {
+                        running = false; window.close();
+                    }
+                }
+                
             } else if (currentState == GameState::PLAYING) { // Playing event handling
                  if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
                     currentState = GameState::MENU; // Pause to menu
@@ -351,10 +353,10 @@ int main(void) {
 
                 sf::Vector2f newPos = movingPlatformStartPos + sf::Vector2f(targetPosOffset, 0.f);
                 movingPlatformFrameDisplacement = newPos - movingPlatformPtr->getPosition();
-                movingPlatformPtr->setPosition(newPos);
+                movingPlatformPtr->setPosition({newPos});
 
                 if(movingPlatformTileIndex < tiles.size()) {
-                    tiles[movingPlatformTileIndex].setPosition(movingPlatformPtr->getPosition());
+                    tiles[movingPlatformTileIndex].setPosition({movingPlatformPtr->getPosition()});
                 }
             }
 
@@ -401,7 +403,7 @@ int main(void) {
                         alpha_val = std::max(0.f, std::min(255.f, alpha_val)); // Clamp
                         tiles[i].setFillColor(sf::Color(originalColor.r, originalColor.g, originalColor.b, static_cast<sf::Uint8>(alpha_val)));
                         if (alpha_val > 10 && bodies[i].getPosition().x < -9000.f) {
-                            bodies[i].setPosition(tiles[i].getPosition());
+                            bodies[i].setPosition({tiles[i].getPosition()});
                         }
                     }
                 }
@@ -456,11 +458,11 @@ int main(void) {
                     const phys::PlatformBody& collidedPf = *playerBody.getGroundPlatform();
                     if (collidedPf.getType() == phys::bodyType::conveyorBelt) {
                         // Apply surface velocity *as an additional movement*. Player should not get X-velocity set directly from conveyor.
-                        playerBody.setPosition(playerBody.getPosition() + collidedPf.getSurfaceVelocity() * TIME_PER_FRAME.asSeconds());
+                        playerBody.setPosition({playerBody.getPosition() + collidedPf.getSurfaceVelocity() * TIME_PER_FRAME.asSeconds()});
                     } else if (movingPlatformPtr && collidedPf.getID() == movingPlatformPtr->getID()) {
                         // Player is on the specific moving platform found earlier.
                         // Add the platform's displacement for THIS frame.
-                        playerBody.setPosition(playerBody.getPosition() + movingPlatformFrameDisplacement);
+                        playerBody.setPosition({playerBody.getPosition() + movingPlatformFrameDisplacement});
                     }
                 }
             }
@@ -472,7 +474,7 @@ int main(void) {
         } // End of fixed timestep loop
 
         // --- 5. Update Visuals & View ---
-        playerShape.setPosition(playerBody.getPosition());
+        playerShape.setPosition({playerBody.getPosition()});
 
         // Camera follow
         mainView.setCenter(playerBody.getPosition().x + playerBody.getWidth()/2.f,
