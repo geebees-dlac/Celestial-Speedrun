@@ -21,7 +21,7 @@ void Tile::update(sf::Time deltaTime) {
 
     if (m_isFalling) {
         // sf::Transformable::move is inherited
-        this->move(0.f, m_fallSpeed * deltaTime.asSeconds());
+        this->move({0.f, m_fallSpeed * deltaTime.asSeconds()});
     }
 }
 

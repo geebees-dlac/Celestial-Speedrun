@@ -228,30 +228,34 @@ int main(void) {
                         running = false; window.close();
                     }
                 }
-               
-                if (event.mouseButton.button == sf::Mouse::Button::Left) {
-                    sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
-                    if (startButtonText.getGlobalBounds().contains(mousePos)) {
-                        currentState = GameState::PLAYING;
-                        timeSinceLastUpdate = sf::Time::Zero; // Reset simulation time
-                        tickClock.restart();
-                        window.setTitle("Project T (Playing)");
-                    } else if (settingsButtonText.getGlobalBounds().contains(mousePos)) {
-                        std::cout << "Settings pressed (NYI)" << std::endl;
-                    } else if (exitButtonText.getGlobalBounds().contains(mousePos)) {
-                        running = false; window.close();
+
+                if (const auto* mouseButtonReleased = event->getIf<sf::Event::MouseButtonReleased>()){
+                    if (mouseButtonReleased->button == sf::Mouse::Button::Left){
+                        sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
+                        if (startButtonText.getGlobalBounds().contains(mousePos)) {
+                            currentState = GameState::PLAYING;
+                            timeSinceLastUpdate = sf::Time::Zero; // Reset simulation time
+                            tickClock.restart();
+                            window.setTitle("Project T (Playing)");
+                        } else if (settingsButtonText.getGlobalBounds().contains(mousePos)) {
+                            std::cout << "Settings pressed (NYI)" << std::endl;
+                        } else if (exitButtonText.getGlobalBounds().contains(mousePos)) {
+                            running = false; window.close();
+                        }
                     }
                 }
                 
             } else if (currentState == GameState::PLAYING) { // Playing event handling
-                 if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
-                    currentState = GameState::MENU; // Pause to menu
-                    window.setTitle("Project T (Menu - Paused)");
-                 }
-                 if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::R) {
-                    playerBody.setPosition({window.getSize().x / 4.f, window.getSize().y / 2.f - 150.f});
-                    playerBody.setVelocity({0.f, 0.f});
-                 }
+                if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){ 
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
+                        currentState = GameState::MENU; // Pause to menu
+                        window.setTitle("Project T (Menu - Paused)");
+                    }
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::R) {
+                        playerBody.setPosition({window.getSize().x / 4.f, window.getSize().y / 2.f - 150.f});
+                        playerBody.setVelocity({0.f, 0.f});
+                    }
+                }
             }
         }
 
@@ -260,7 +264,7 @@ int main(void) {
 
         if (currentState == GameState::MENU) {
             sf::Vector2f mousePosView = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
-            bool mousePressedDown = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+            bool mousePressedDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
 
             startButtonText.setFillColor(defaultButtonColor);
             settingsButtonText.setFillColor(defaultButtonColor);
@@ -300,13 +304,13 @@ int main(void) {
             bool jumpIntentThisFrame = false; // Key press for jump
             bool dropIntentThisFrame = false; // Key press for dropping
 
-            turboMultiplier = (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) ? 2 : 1;
+            turboMultiplier = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RShift)) ? 2 : 1;
 
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) horizontalInput = -1.f;
-            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) horizontalInput = 1.f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) horizontalInput = -1.f;
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right)) horizontalInput = 1.f;
 
-            jumpIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space));
-            dropIntentThisFrame = sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
+            jumpIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space));
+            dropIntentThisFrame = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Down);
 
 
             bool newJumpPressThisFrame = false;
@@ -394,14 +398,14 @@ int main(void) {
                     if (should_be_vanishing_phase) { // Fade out
                         alpha_val = math::easing::sineEaseInOut(t_vanish_cycle_normalized, 255.f, -255.f, 1.f);
                         alpha_val = std::max(0.f, std::min(255.f, alpha_val)); // Clamp
-                        tiles[i].setFillColor(sf::Color(originalColor.r, originalColor.g, originalColor.b, static_cast<sf::Uint8>(alpha_val)));
+                        tiles[i].setFillColor(sf::Color(originalColor));
                         if (alpha_val <= 10) { // Fully (or mostly) faded
                             bodies[i].setPosition({-9999.f, -9999.f});
                         }
                     } else { // Fade in
                         alpha_val = math::easing::sineEaseInOut(t_vanish_cycle_normalized, 0.f, 255.f, 1.f);
                         alpha_val = std::max(0.f, std::min(255.f, alpha_val)); // Clamp
-                        tiles[i].setFillColor(sf::Color(originalColor.r, originalColor.g, originalColor.b, static_cast<sf::Uint8>(alpha_val)));
+                        tiles[i].setFillColor(sf::Color(originalColor));
                         if (alpha_val > 10 && bodies[i].getPosition().x < -9000.f) {
                             bodies[i].setPosition({tiles[i].getPosition()});
                         }
@@ -477,8 +481,8 @@ int main(void) {
         playerShape.setPosition({playerBody.getPosition()});
 
         // Camera follow
-        mainView.setCenter(playerBody.getPosition().x + playerBody.getWidth()/2.f,
-                           playerBody.getPosition().y + playerBody.getHeight()/2.f - 50.f); // Center on player, slightly offset Y
+        mainView.setCenter({playerBody.getPosition().x + playerBody.getWidth()/2.f,
+                           playerBody.getPosition().y + playerBody.getHeight()/2.f - 50.f}); // Center on player, slightly offset Y
 
         // Clamp view to prevent seeing too far outside level boundaries (optional)
         // Example: float minViewX = 0, maxViewX = LEVEL_WIDTH - mainView.getSize().x;

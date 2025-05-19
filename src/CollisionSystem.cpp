@@ -45,12 +45,12 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
             }
 
             sf::FloatRect dynamicSweptAABB = dynamicBody.getAABB(); 
-            if (sweepVector.x < 0) dynamicSweptAABB.left += sweepVector.x;
-            dynamicSweptAABB.width += std::abs(sweepVector.x);
-            if (sweepVector.y < 0) dynamicSweptAABB.top += sweepVector.y;
-            dynamicSweptAABB.height += std::abs(sweepVector.y);
+            if (sweepVector.x < 0) dynamicSweptAABB.position.x += sweepVector.x;
+            dynamicSweptAABB.size.x += std::abs(sweepVector.x);
+            if (sweepVector.y < 0) dynamicSweptAABB.position.y += sweepVector.y;
+            dynamicSweptAABB.size.y += std::abs(sweepVector.y);
 
-            if (!dynamicSweptAABB.intersects(platform.getAABB())) {
+            if (!dynamicSweptAABB.findIntersection(platform.getAABB())) {
                 continue;
             }
 
@@ -82,7 +82,7 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
                     // thanks @boytboyt30, i follow him on github, hes a friend of mine hes a classmate
                     if (!(currentEventDetails.axis == 1 &&
                           currentVelocity.y > 0.f &&
-                          (bodyAABBAtSweepStart.top + bodyAABBAtSweepStart.height) <= (currentEventDetails.hitPlatform->getAABB().top + JUMP_THROUGH_TOLERANCE)
+                          (bodyAABBAtSweepStart.position.y + bodyAABBAtSweepStart.size.y) <= (currentEventDetails.hitPlatform->getAABB().position.y + JUMP_THROUGH_TOLERANCE)
                        )) {
                         continue; // Skip this event, its not a landing/collision
                     }
@@ -106,10 +106,10 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
 
                 // Using nearestCollisionEvent.axis determined by sweptAABB for static overlaps
                 if (nearestCollisionEvent.axis == 1) { // Y-axis overlap
-                    float bodyBottom = bodyAABB.top + bodyAABB.height;
-                    float platTop = platAABB.top;
-                    float bodyTop = bodyAABB.top;
-                    float platBottom = platAABB.top + platAABB.height;
+                    float bodyBottom = bodyAABB.position.y + bodyAABB.size.y;
+                    float platTop = platAABB.position.y;
+                    float bodyTop = bodyAABB.position.y;
+                    float platBottom = platAABB.position.y + platAABB.size.y;
 
                     if (currentVelocity.y >= 0 && bodyBottom > platTop) { // Moving down 
                         posCorrection.y = -(bodyBottom - platTop) - DEPENETRATION_BIAS;
@@ -117,10 +117,10 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
                         posCorrection.y = (platBottom - bodyTop) + DEPENETRATION_BIAS;
                     }
                 } else { // X-axis overlap
-                    float bodyRight = bodyAABB.left + bodyAABB.width;
-                    float platLeft = platAABB.left;
-                    float bodyLeft = bodyAABB.left;
-                    float platRight = platAABB.left + platAABB.width;
+                    float bodyRight = bodyAABB.position.x + bodyAABB.size.x;
+                    float platLeft = platAABB.position.x;
+                    float bodyLeft = bodyAABB.position.x;
+                    float platRight = platAABB.position.x + platAABB.size.x;
 
                     if (currentVelocity.x >= 0 && bodyRight > platLeft) { // Moving right
                         posCorrection.x = -(bodyRight - platLeft) - DEPENETRATION_BIAS;
@@ -190,15 +190,15 @@ bool CollisionSystem::sweptAABB(
 
     // Static Overlap (No Displacement)
     if (displacement.x == 0.f && displacement.y == 0.f) {
-        if (bodyRect.intersects(platRect)) {
+        if (bodyRect.findIntersection(platRect)) {
             outCollisionEvent.time = 0.f;
             outCollisionEvent.hitPlatform = &platform;
 
             // Simplified Static Overlap Axis Determination:
             // Calculate overlap on each axis.
             // Axis with larger overlap is collision axis. Resolve Y first if overlaps are equal.
-            float xOverlap = std::max(0.f, std::min(bodyRect.left + bodyRect.width, platRect.left + platRect.width) - std::max(bodyRect.left, platRect.left));
-            float yOverlap = std::max(0.f, std::min(bodyRect.top + bodyRect.height, platRect.top + platRect.height) - std::max(bodyRect.top, platRect.top));
+            float xOverlap = std::max(0.f, std::min(bodyRect.position.x + bodyRect.size.x, platRect.position.x + platRect.size.x) - std::max(bodyRect.position.x, platRect.position.x));
+            float yOverlap = std::max(0.f, std::min(bodyRect.position.y + bodyRect.size.y, platRect.position.y + platRect.size.y) - std::max(bodyRect.position.y, platRect.position.y));
 
             if (yOverlap > 0 && yOverlap >= xOverlap) { // Prioritize Y if Y overlap exists and is greater or equal
                 outCollisionEvent.axis = 1;
@@ -221,25 +221,25 @@ bool CollisionSystem::sweptAABB(
     // Swept Testing 
     sf::Vector2f invEntry, invExit;
     if (displacement.x > 0.f) {
-        invEntry.x = platRect.left - (bodyRect.left + bodyRect.width);
-        invExit.x  = (platRect.left + platRect.width) - bodyRect.left;
+        invEntry.x = platRect.position.x - (bodyRect.position.x + bodyRect.size.x);
+        invExit.x  = (platRect.position.x + platRect.size.x) - bodyRect.position.x;
     } else {
-        invEntry.x = (platRect.left + platRect.width) - bodyRect.left;
-        invExit.x  = platRect.left - (bodyRect.left + bodyRect.width);
+        invEntry.x = (platRect.position.x + platRect.size.x) - bodyRect.position.x;
+        invExit.x  = platRect.position.x - (bodyRect.position.x + bodyRect.size.x);
     }
     if (displacement.y > 0.f) {
-        invEntry.y = platRect.top - (bodyRect.top + bodyRect.height);
-        invExit.y  = (platRect.top + platRect.height) - bodyRect.top;
+        invEntry.y = platRect.position.y - (bodyRect.position.y + bodyRect.size.y);
+        invExit.y  = (platRect.position.y + platRect.size.y) - bodyRect.position.y;
     } else {
-        invEntry.y = (platRect.top + platRect.height) - bodyRect.top;
-        invExit.y  = platRect.top - (bodyRect.top + bodyRect.height);
+        invEntry.y = (platRect.position.y + platRect.size.y) - bodyRect.position.y;
+        invExit.y  = platRect.position.y - (bodyRect.position.y + bodyRect.size.y);
     }
 
     sf::Vector2f entryTime, exitTime;
     if (displacement.x == 0.f) {
         entryTime.x = (invEntry.x <= 0.f && invExit.x >= 0.f) ? 0.f : -std::numeric_limits<float>::infinity(); // Check if already overlapping on X
         exitTime.x = std::numeric_limits<float>::infinity();
-        if (!(bodyRect.left < platRect.left + platRect.width && bodyRect.left + bodyRect.width > platRect.left)) { // No X overlap
+        if (!(bodyRect.position.x < platRect.position.x + platRect.size.x && bodyRect.position.x + bodyRect.size.x > platRect.position.x)) { // No X overlap
             entryTime.x = -std::numeric_limits<float>::infinity();
         }
     } else {
@@ -249,7 +249,7 @@ bool CollisionSystem::sweptAABB(
     if (displacement.y == 0.f) {
         entryTime.y = (invEntry.y <= 0.f && invExit.y >= 0.f) ? 0.f : -std::numeric_limits<float>::infinity(); // Check if already overlapping on Y
         exitTime.y = std::numeric_limits<float>::infinity();
-        if (!(bodyRect.top < platRect.top + platRect.height && bodyRect.top + bodyRect.height > platRect.top)) { // No Y overlap
+        if (!(bodyRect.position.y < platRect.position.y + platRect.size.y && bodyRect.position.y + bodyRect.size.y > platRect.position.y)) { // No Y overlap
              entryTime.y = -std::numeric_limits<float>::infinity();
         }
     } else {
