@@ -7,17 +7,17 @@
 #include <ctime>
 #include <algorithm>
 #include <limits>
-#include <filesystem> // when needed for levels, i think but now its not needed
+#include <filesystem> 
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include "CollisionSystem.hpp"
 #include "Player.hpp"
 #include "PlatformBody.hpp"
 #include "Tile.hpp"
-#include "Optimizer.hpp" // i have abandoned this for now, i will come back to this later
+#include "Optimizer.hpp" 
 #include "PhysicsTypes.hpp"
-#include "Player.hpp" // i have abandoned this for now, i will come back to this later
-#include "LevelManager.hpp" // i have abandoned this for now, i will come back to this later
+#include "Player.hpp" 
+#include "LevelManager.hpp" 
 
 enum class GameState {
     MENU,
@@ -95,6 +95,7 @@ int main(void) {
     // --- Standard Solid Platform---
     bodies.emplace_back(current_id++,
                         sf::Vector2f(leftSectionX + tileSize.x, window.getSize().y - tileSize.y * 8.f),
+
                         tileSize.x * 4.f, tileSize.y,
                         phys::bodyType::solid, false, sf::Vector2f(0.f, 0.f));
 
