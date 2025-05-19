@@ -7,7 +7,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 include(FetchContent)
 FetchContent_Declare(SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
-    GIT_TAG 2.6.x
+    GIT_TAG master
     GIT_SHALLOW ON
     EXCLUDE_FROM_ALL
     SYSTEM)
@@ -34,7 +34,7 @@ add_executable(main
     )
     
 file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
-target_link_libraries(main PRIVATE sfml-graphics)
+target_link_libraries(main PRIVATE SFML::Graphics)
 target_compile_features(main PRIVATE cxx_std_17)
 target_include_directories(main PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(main PUBLIC ${rapidjson_SOURCE_DIR}/include)
