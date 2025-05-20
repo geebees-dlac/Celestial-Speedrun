@@ -1,4 +1,4 @@
-# The Time I Got Truck-kun'd to Hell and Decided Upper Management Was an Even Bigger Nightmare
+# Celestial Speedrun ("The Time I Got Truck-kun'd to Hell and Decided Upper Management Was an Even Bigger Nightmare")
 
 **Tagline:** Escaping eternal damnation was easy. Dealing with interdimensional HR? That's the real nightmare.
 
