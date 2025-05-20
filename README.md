@@ -8,15 +8,15 @@
 ---
 
 ## Table of Contents
-1.  [About The Game](#about-the-game)
-2.  [Story Synopsis](#story-synopsis)
-3.  [Features](#features)
-4.  [Controls](#controls)
-5.  [Levels](#levels)
-6.  [Installation](#installation)
-7.  [How to Play](#how-to-play)
-8.  [System Requirements (Recommended)](#system-requirements-recommended)
-9. [Acknowledgements](#acknowledgements) 
+  [About The Game](#about-the-game)
+  [Story Synopsis](#story-synopsis)
+  [Features](#features)
+  [Controls](#controls)
+  [Levels](#levels)
+  [Installation](#installation)
+  [How to Play](#how-to-play)
+  [System Requirements (Recommended)](#system-requirements-recommended)
+  [Acknowledgements](#acknowledgements) 
 ---
 
 ## About The Game
