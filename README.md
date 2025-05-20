@@ -1,103 +1,139 @@
-# CMake SFML Project Template
+# The Time I Got Truck-kun'd to Hell and Decided Upper Management Was an Even Bigger Nightmare
 
-This repository template should allow for a fast and hassle-free kick start of your next SFML project using CMake.
-Thanks to [GitHub's nature of templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template), you can fork this repository without inheriting its Git history.
+**Tagline:** Escaping eternal damnation was easy. Dealing with interdimensional HR? That's the real nightmare.
 
-The template starts out very basic, but might receive additional features over time:
+---
 
-- Basic CMake script to build your project and link SFML on any operating system
-- Basic [GitHub Actions](https://github.com/features/actions) script for all major platforms
+## Table of Contents
+1.  [About The Game](#about-the-game)
+2.  [Story Synopsis](#story-synopsis)
+3.  [Features](#features)
+4.  [Controls](#controls)
+5.  [Levels](#levels)
+6.  [Installation](#installation)
+7.  [How to Play](#how-to-play)
+8.  [System Requirements (Recommended)](#system-requirements-recommended)
+9.  [Known Issues / Roadmap](#known-issues--roadmap) 
+10. [Contributing](#contributing) 
+11. [License](#license) 
+12. [Acknowledgements](#acknowledgements) 
+---
 
-## How to Use
+## About The Game
 
-1. Install [Git](https://git-scm.com/downloads) and [CMake](https://cmake.org/download/). Use your system's package manager if available.
-2. Follow [GitHub's instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template) for how to use their project template feature to create your own project. If you don't want to use GitHub, see the section below.
-3. Clone your new GitHub repo and open the repo in your text editor of choice.
-4. Open [CMakeLists.txt](CMakeLists.txt). Rename the project and the target name of the executable to whatever name you want. Make sure to change all occurrences.
-5. If you want to add or remove any .cpp files, change the source files listed in the `add_executable` call in CMakeLists.txt to match the source files your project requires. If you plan on keeping the default main.cpp file then no changes are required.
-6. If your code uses the Audio or Network modules then add `sfml-audio` or `sfml-network` to the `target_link_libraries` call alongside the existing `sfml-graphics` library that is being linked.
-7. If you use Linux, install SFML's dependencies using your system package manager. On Ubuntu and other Debian-based distributions you can use the following commands:
-   ```
-   sudo apt update
-   sudo apt install \
-       libxrandr-dev \
-       libxcursor-dev \
-       libudev-dev \
-       libfreetype-dev \
-       libopenal-dev \
-       libflac-dev \
-       libvorbis-dev \
-       libgl1-mesa-dev \
-       libegl1-mesa-dev
-   ```
-8. Configure and build your project. Most popular IDEs support CMake projects with very little effort on your part.
+"The Time I Got Truck-kun'd to Hell and Decided Upper Management Was an Even Bigger Nightmare" is a 2D platformer that sends you on a frantic, bureaucratic odyssey through the afterlife. After an unfortunate encounter with the infamous Truck-kun, you find yourself in Hell, only to discover that eternal torment is less about fire and brimstone and more about soul-crushing paperwork and demonic middle-managers.
 
-   - [VS Code](https://code.visualstudio.com) via the [CMake extension](https://code.visualstudio.com/docs/cpp/cmake-linux)
-   - [Visual Studio](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=msvc-170)
-   - [CLion](https://www.jetbrains.com/clion/features/cmake-support.html)
-   - [Qt Creator](https://doc.qt.io/qtcreator/creator-project-cmake.html)
+Fed up, you decide to take matters into your own hands and embark on a desperate climb through the celestial hierarchy, from the depths of Hell's corporate ladder, through the chaotic bureaucracy of Purgatory, and into the surprisingly sterile efficiency of Heaven. Will you find peace, or just another layer of management?
 
-   Using CMake from the command line is straightforward as well.
-   Be sure to run these commands in the root directory of the project you just created.
+---
 
-   ```
-   cmake -B build
-   cmake --build build
-   ```
+## Story Synopsis
 
-9. Enjoy!
+It was a day like any other, until it wasn't. One minute you're minding your own business, the next, BAM! Truck-kun. Classic.
 
-## Upgrading SFML
+You awaken not to pearly gates, but to the fluorescent hum of Hell's orientation office. Turns out, eternal damnation involves a lot more TPS reports than you'd think. The demons are less pitchfork-wielding terrors and more passive-aggressive middle managers obsessed with quarterly soul quotas. This, you decide, is a nightmare far worse than any fire pit.
 
-SFML is found via CMake's [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html) module.
-FetchContent automatically downloads SFML from GitHub and builds it alongside your own code.
-Beyond the convenience of not having to install SFML yourself, this ensures ABI compatibility and simplifies things like specifying static versus shared libraries.
+Driven by a desperate need to escape not just Hell, but its infernal bureaucracy, you begin a chaotic ascent. First, you must navigate the labyrinthine cubicles and hazardous "team-building exercises" of Hell's corporate structure. Then, it's a mad dash through the chaotic, ever-shifting landscapes of Purgatory – a realm seemingly designed by a committee that couldn't agree on anything.
 
-Modifying what version of SFML you want is as easy as changing the [`GIT_TAG`](CMakeLists.txt#L7) argument.
-Currently it uses the latest in-development version of SFML 2 via the `2.6.x` tag.
-If you're feeling adventurous and want to give SFML 3 a try, use the `master` tag.
-Beware, this requires changing your code to suit the modified API!
-The nice folks in the [SFML community](https://github.com/SFML/SFML#community) can help you with that transition and the bugs you may encounter along the way.
+Finally, against all odds, you breach the gates of Heaven. But is it the paradise you imagined? Or just another, albeit shinier, office with even higher stakes? As you navigate its pristine corridors and hyper-efficient systems, you can't shake the feeling that someone, or something, is pulling the strings. Your journey culminates in an encounter with a mysterious, impeccably dressed individual at the very apex of existence. Who is he? What does he want? And is he offering salvation, or just a new, even more terrifying, performance review? The answers, if any, remain tantalizingly out of reach... for now.
 
-## But I want to...
+---
 
-Modify CMake options by adding them as configuration parameters (with a `-D` flag) or by modifying the contents of CMakeCache.txt and rebuilding.
+## Features
 
-### Not use GitHub
+*   **Fast-Paced 2D Platforming:** Jump, dash, and dodge your way through multiple afterlife realms.
+*   **Humorous Narrative:** A satirical take on corporate culture, bureaucracy, and the afterlife.
+*   **Boost Mechanic:** Use your otherworldly energy to dash past obstacles and escape irate celestial managers.
+*   **Interactive Environments:** Engage with quirky characters and bizarre contraptions.
+*   **Distinct Levels:** Journey through Hell's offices, Purgatory's mazes, and Heaven's pristine servers.
+*   **An Ending That Makes You Go "Hmm...":** Who *is* that guy?
 
-You can use this project without a GitHub account by [downloading the contents](https://github.com/SFML/cmake-sfml-project/archive/refs/heads/master.zip) of the repository as a ZIP archive and unpacking it locally.
-This approach also avoids using Git entirely if you would prefer to not do that.
+---
 
-### Change Compilers
+## Controls
 
-See the variety of [`CMAKE_<LANG>_COMPILER`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html) options.
-In particular you'll want to modify `CMAKE_CXX_COMPILER` to point to the C++ compiler you wish to use.
+*   **Movement:**
+    *   `W` or `Arrow Up`: Jump
+    *   `A` or `Arrow Left`: Move Left
+    *   `S` or `Arrow Down`: (Optional: Crouch/Specific Action)
+    *   `D` or `Arrow Right`: Move Right
+*   **Boost:**
+    *   `Left Shift` or `Right Shift`: Dash/Boost
+*   **Interact:**
+    *   `E`: Interact with objects, characters, or progress dialogue.
 
-### Change Compiler Optimizations
+---
 
-CMake abstracts away specific optimizer flags through the [`CMAKE_BUILD_TYPE`](https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html) option.
-By default this project recommends `Release` builds which enable optimizations.
-Other build types include `Debug` builds which enable debug symbols but disable optimizations.
-If you're using a multi-configuration generator (as is often the case on Windows), you can modify the [`CMAKE_CONFIGURATION_TYPES`](https://cmake.org/cmake/help/latest/variable/CMAKE_CONFIGURATION_TYPES.html#variable:CMAKE_CONFIGURATION_TYPES) option.
+## Levels
 
-### Change Generators
+Embark on your bureaucratic journey through the great beyond!
 
-While CMake will attempt to pick a suitable default generator, some systems offer a number of generators to choose from.
-Ubuntu, for example, offers Makefiles and Ninja as two potential options.
-For a list of generators, click [here](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html).
-To modify the generator you're using you must reconfigure your project providing a `-G` flag with a value corresponding to the generator you want.
-You can't simply modify an entry in the CMakeCache.txt file unlike the above options.
-Then you may rebuild your project with this new generator.
+1.  **Level 1: Hell Office - "Infernal Intern-ment"**
+    *   *Synopsis:* Your afterlife starts not with fire and brimstone, but with paperwork and passive-aggressive demons in middle management. Navigate the cubicle maze, avoid mandatory "motivation" seminars, and find a way out of this soul-crushing nine-to-never.
+2.  **Level 2: Brimstone Boulevard - "The Devil's Commute"**
+    *   *Synopsis:* Having miraculously escaped the office, you now face the treacherous streets of Hell's downtown. Dodge lava geysers, outrun demonic traffic wardens, and leap across crumbling chasms on your way to the Purgatory transit station.
+3.  **Level 3: The Chromatic Maze (Purgatory) - "Existential Escapism"**
+    *   *Synopsis:* Welcome to Purgatory, a disorienting, ever-shifting labyrinth of bureaucratic red tape and existential uncertainty. Find your way through this confusing dimension where the rules change as often as the color scheme, and every form needs to be filled in triplicate.
+4.  **Level 4: Nimbus Checkpoint - "Heavenly H.R."**
+    *   *Synopsis:* You've somehow made it to the pearly-ish gates, but Heaven has its own stringent entry protocols. Pass celestial security, navigate angelic administrators, and prove you're "Heaven material" at the Nimbus Checkpoint. Hope your halo is regulation size!
+5.  **Level 5: Seraphic Servers (The Celestial Speedrun) - "Cloud Computing Overdrive"**
+    *   *Synopsis:* Heaven isn't all clouds and harps; it's a high-tech, data-driven paradise managed by hyper-efficient angelic beings. Race through the Seraphic Servers, optimize your angelic access, and try to find out who's *really* in charge around here before your trial period expires.
 
-## More Reading
+---
 
-Here are some useful resources if you want to learn more about CMake:
+## Installation
 
-- [Official CMake Tutorial](https://cmake.org/cmake/help/latest/guide/tutorial/)
-- [How to Use CMake Without the Agonizing Pain - Part 1](https://alexreinking.com/blog/how-to-use-cmake-without-the-agonizing-pain-part-1.html)
-- [How to Use CMake Without the Agonizing Pain - Part 2](https://alexreinking.com/blog/how-to-use-cmake-without-the-agonizing-pain-part-2.html)
-- [Better CMake YouTube series by Jefferon Amstutz](https://www.youtube.com/playlist?list=PL8i3OhJb4FNV10aIZ8oF0AA46HgA2ed8g)
+[Provide instructions on how to install or run the game. For example:]
 
-## License
+1.  Download the game files/archive.
+2.  Extract the archive to your desired location.
+3.  Run `GameExecutable.exe` (or equivalent for your OS).
 
-The source code is dual licensed under Public Domain and MIT -- choose whichever you prefer.
+---
+
+## How to Play
+
+*   Navigate through each level using the movement controls.
+*   Use the boost ability to overcome large gaps or avoid hazards.
+*   Press the interact key near highlighted objects or characters to trigger events or dialogue.
+*   Reach the end of each level to progress the story.
+*   Try not to get sent back to Hell's HR department. Seriously.
+
+---
+
+## System Requirements (Recommended)
+
+*   **OS:** Windows 10, MacOS X, Linux
+*   **Processor:** Dual Core @ 2.0GHz
+*   **Memory:** 4 GB RAM
+*   **Graphics:** Dedicated GPU with 1GB VRAM (or modern integrated graphics)
+*   **Storage:** [Specify disk space] MB available space
+*   **Sound Card:** Any
+
+---
+
+## Known Issues / Roadmap (Optional)
+
+*   [List any known bugs or quirks]
+*   **Future Plans:**
+    *   [e.g., More levels, New game modes, Character customization]
+
+---
+
+## Contributing (Optional)
+
+[If your project is open source and you welcome contributions, detail how others can contribute here. E.g., "We welcome contributions! Please see our CONTRIBUTING.md file for guidelines."]
+
+---
+
+## License (Optional)
+
+[Specify the license under which your game is released. E.g., "This game is released under the MIT License. See LICENSE.md for more details."]
+
+---
+
+## Acknowledgements (Optional)
+
+*   Thanks to 
+*   Special thanks to Truck-kun for the initial plot device.
+*   And to all the middle managers who inspired the true horror of this game.
