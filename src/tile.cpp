@@ -26,7 +26,7 @@ void Tile::update(sf::Time deltaTime) {
 
     // Handle falling movement
     if (m_isFalling) {
-        this->move(0.f, m_fallSpeed * deltaTime.asSeconds());
+        this->move({0.f, m_fallSpeed * deltaTime.asSeconds()});
 
         if (getPosition().y > FALLEN_Y_LIMIT) {
             m_hasFallen = true;  // Mark as fallen
