@@ -12,7 +12,7 @@ namespace phys {
         falling = 5,
         vanishing = 6,
         spring = 7,    
-        trap = 8,      //spikes ni siya wait or anything that kills the player
+        trap = 8,    
         solid = 9,     
         goal = 10      // Added for level exit
     };
