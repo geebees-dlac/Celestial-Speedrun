@@ -13,10 +13,7 @@
 6.  [Installation](#installation)
 7.  [How to Play](#how-to-play)
 8.  [System Requirements (Recommended)](#system-requirements-recommended)
-9.  [Known Issues / Roadmap](#known-issues--roadmap) 
-10. [Contributing](#contributing) 
-11. [License](#license) 
-12. [Acknowledgements](#acknowledgements) 
+9. [Acknowledgements](#acknowledgements) 
 ---
 
 ## About The Game
@@ -81,16 +78,6 @@ Embark on your bureaucratic journey through the great beyond!
 
 ---
 
-## Installation
-
-[Provide instructions on how to install or run the game. For example:]
-
-1.  Download the game files/archive.
-2.  Extract the archive to your desired location.
-3.  Run `GameExecutable.exe` (or equivalent for your OS).
-
----
-
 ## How to Play
 
 *   Navigate through each level using the movement controls.
@@ -117,18 +104,6 @@ Embark on your bureaucratic journey through the great beyond!
 *   [List any known bugs or quirks]
 *   **Future Plans:**
     *   [e.g., More levels, New game modes, Character customization]
-
----
-
-## Contributing (Optional)
-
-[If your project is open source and you welcome contributions, detail how others can contribute here. E.g., "We welcome contributions! Please see our CONTRIBUTING.md file for guidelines."]
-
----
-
-## License (Optional)
-
-[Specify the license under which your game is released. E.g., "This game is released under the MIT License. See LICENSE.md for more details."]
 
 ---
 
