@@ -136,7 +136,7 @@ int main(void) {
     const float MAX_FALL_SPEED = 700.f;
     const sf::Time MAX_JUMP_HOLD_TIME = sf::seconds(0.18f);
 
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Project - T", sf::Style::Default);
+    sf::RenderWindow window(sf::VideoMode({800, 600}), "Project - T", sf::Style::Default);
     window.setKeyRepeatEnabled(false); 
     window.setVerticalSyncEnabled(true);
     
@@ -150,23 +150,23 @@ int main(void) {
 
     sf::Font menuFont;
     std::string fontPath = "../assets/fonts/ARIALBD.TTF"; 
-    if (!menuFont.loadFromFile(fontPath)) {
+    if (!menuFont.openFromFile(fontPath)) {
         std::cerr << "Failed to load font: " << fontPath << std::endl;
         fontPath = "ARIALBD.TTF";
-        if (!menuFont.loadFromFile(fontPath)) {
+        if (!menuFont.openFromFile(fontPath)) {
              std::cerr << "Failed to load font from local: " << fontPath << ". Exiting." << std::endl;
             return -1;
         }
     }
-    sf::Text startButtonText, settingsButtonText, exitButtonText, gameStatusText;
+    sf::Text startButtonText(menuFont), settingsButtonText(menuFont), exitButtonText(menuFont), gameStatusText(menuFont);
     auto setupButton = [&](sf::Text& text, const sf::String& str, float yPos, float xPosOffset = 0.f) {
         text.setFont(menuFont);
         text.setString(str);
         text.setCharacterSize(30);
         text.setFillColor(sf::Color::White);
         sf::FloatRect bounds = text.getLocalBounds();
-        text.setOrigin(bounds.left + bounds.width / 2.f, bounds.top + bounds.height / 2.f);
-        text.setPosition(window.getSize().x / 2.f + xPosOffset, yPos);
+        text.setOrigin({bounds.position.x + bounds.size.x / 2.f, bounds.position.y + bounds.size.y / 2.f});
+        text.setPosition({window.getSize().x / 2.f + xPosOffset, yPos});
     };
     setupButton(startButtonText, "Start Game", 250.f);
     setupButton(settingsButtonText, "Settings (NYI)", 300.f);
@@ -178,7 +178,7 @@ int main(void) {
     sf::Color clickedButtonColor = sf::Color::Green;
     sf::Color exitButtonColor = sf::Color::Red;
 
-    sf::View mainView(sf::FloatRect(0.f, 0.f, 800.f, 600.f));
+    sf::View mainView(sf::FloatRect({0.f, 0.f}, {800.f, 600.f}));
 
     sf::RectangleShape playerShape;
     playerShape.setFillColor(sf::Color(220, 220, 250, 255));
@@ -193,27 +193,28 @@ int main(void) {
     int turboMultiplier = 1;
     bool interactKeyPressedThisFrame = false; 
 
-    sf::Text debugText;
+    sf::Text debugText(menuFont);
     debugText.setFont(menuFont);
     debugText.setCharacterSize(14);
     debugText.setFillColor(sf::Color::White);
-    debugText.setPosition(10.f, 10.f);
+    debugText.setPosition({10.f, 10.f});
 
     bool running = true;
     while (running) {
         interactKeyPressedThisFrame = false; 
 
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
                 running = false; window.close();
             }
             if (currentState == GameState::MENU || currentState == GameState::GAME_OVER_WIN || currentState == GameState::GAME_OVER_LOSE) {
-                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
-                    running = false; window.close();
+                if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Escape){
+                        running = false; window.close();
+                    }
                 }
-                if (event.type == sf::Event::MouseButtonReleased) {
-                    if (event.mouseButton.button == sf::Mouse::Button::Left) {
+                if (const auto* mouseButtonReleased = event->getIf<sf::Event::MouseButtonReleased>()) {
+                    if (mouseButtonReleased->button == sf::Mouse::Button::Left) {
                         sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
                         if (startButtonText.getGlobalBounds().contains(mousePos)) {
                             if (levelManager.loadLevel(1, currentLevelData)) { 
@@ -235,11 +236,11 @@ int main(void) {
                 }
             } 
             else if (currentState == GameState::PLAYING) {
-                 if (event.type == sf::Event::KeyPressed) {
-                    if (event.key.code == sf::Keyboard::Escape) {
+                 if (const auto keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
                         currentState = GameState::MENU; 
                         window.setTitle("Project T (Menu - Paused)");
-                    } else if (event.key.code == sf::Keyboard::R) {
+                    } else if (keyPressed->scancode == sf::Keyboard::Scancode::R) {
                         if (levelManager.loadLevel(levelManager.getCurrentLevelNumber(), currentLevelData)) {
                             setupLevelAssets(currentLevelData, window);
                             window.setTitle("Project T - Level " + std::to_string(currentLevelData.levelNumber));
@@ -249,7 +250,7 @@ int main(void) {
                             std::cerr << "Failed to reload current level (" << levelManager.getCurrentLevelNumber() << ")!" << std::endl;
                             currentState = GameState::MENU; 
                         }
-                    } else if (event.key.code == sf::Keyboard::E) { 
+                    } else if (keyPressed->scancode == sf::Keyboard::Scancode::E) { 
                         interactKeyPressedThisFrame = true;
                     }
                  }
@@ -260,7 +261,7 @@ int main(void) {
 
         if (currentState == GameState::MENU || currentState == GameState::GAME_OVER_WIN || currentState == GameState::GAME_OVER_LOSE) {
             sf::Vector2f mousePosView = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
-            bool mousePressedDown = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+            bool mousePressedDown = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
 
             startButtonText.setFillColor(defaultButtonColor);
             settingsButtonText.setFillColor(defaultButtonColor);
@@ -310,13 +311,13 @@ int main(void) {
                 bool jumpIntentThisFrame = false; 
                 bool dropIntentThisFrame = false; 
 
-                turboMultiplier = (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) ? 2 : 1;
+                turboMultiplier = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RShift)) ? 2 : 1;
 
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) horizontalInput = -1.f;
-                else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) horizontalInput = 1.f;
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) horizontalInput = -1.f;
+                else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right)) horizontalInput = 1.f;
 
-                jumpIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space));
-                dropIntentThisFrame = sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
+                jumpIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space));
+                dropIntentThisFrame = sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Down);
 
                 bool newJumpPressThisFrame = false;
                 if (jumpIntentThisFrame && playerBody.isOnGround() && currentJumpHoldDuration == sf::Time::Zero) {
@@ -372,12 +373,12 @@ int main(void) {
                         if (should_be_vanishing_phase) { 
                             alpha_val = math::easing::sineEaseInOut(currentPhaseTime, 255.f, -255.f, 1.f); 
                             alpha_val = std::max(0.f, std::min(255.f, alpha_val));
-                            tiles[i].setFillColor(sf::Color(originalColor.r, originalColor.g, originalColor.b, static_cast<sf::Uint8>(alpha_val)));
+                            tiles[i].setFillColor(sf::Color(originalColor.r, originalColor.g, originalColor.b, alpha_val));
                             if (alpha_val <= 10 && bodies[i].getPosition().x > -9000.f) { bodies[i].setPosition({-9999.f, -9999.f});}
                         } else { 
                             alpha_val = math::easing::sineEaseInOut(currentPhaseTime, 0.f, 255.f, 1.f); 
                             alpha_val = std::max(0.f, std::min(255.f, alpha_val));
-                            tiles[i].setFillColor(sf::Color(originalColor.r, originalColor.g, originalColor.b, static_cast<sf::Uint8>(alpha_val)));
+                            tiles[i].setFillColor(sf::Color(originalColor.r, originalColor.g, originalColor.b, alpha_val));
                             if (alpha_val > 10 && bodies[i].getPosition().x < -9000.f) { 
                                 bool foundOrigPos = false;
                                 for(const auto& pb_template : currentLevelData.platforms) {
@@ -448,7 +449,7 @@ int main(void) {
                         // --- MODIFICATION: Specifically check for goal by type or by ID 10 (E sprite ID) ---
                         if (platform.getType() == phys::bodyType::goal) { 
                         // if (platform.getID() == 10) { // Or, if ID 10 is *always* your E sprite/goal interaction object
-                            if (playerBody.getAABB().intersects(platform.getAABB())) {
+                            if (playerBody.getAABB().findIntersection(platform.getAABB())) {
                                 if (levelManager.hasNextLevel()) {
                                     if (levelManager.loadNextLevel(currentLevelData)) {
                                         setupLevelAssets(currentLevelData, window);
@@ -486,8 +487,8 @@ int main(void) {
             if (currentState != GameState::PLAYING) continue;
 
             playerShape.setPosition(playerBody.getPosition());
-            mainView.setCenter(playerBody.getPosition().x + playerBody.getWidth()/2.f,
-                               playerBody.getPosition().y + playerBody.getHeight()/2.f - 50.f); 
+            mainView.setCenter({playerBody.getPosition().x + playerBody.getWidth()/2.f,
+                               playerBody.getPosition().y + playerBody.getHeight()/2.f - 50.f}); 
 
             window.clear(currentLevelData.backgroundColor); 
             window.setView(mainView);
