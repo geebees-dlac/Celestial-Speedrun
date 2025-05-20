@@ -3,7 +3,7 @@
 <a href="https://ibb.co/yFXqp8X1"><img src="https://i.ibb.co/60mF84mx/Generated-image-1.png" alt="Generated-image-1" border="0"></a>
 
 <br>
-**Tagline:** Escaping eternal damnation was easy. Dealing with interdimensional HR? That's the real nightmare.
+~Escaping eternal damnation was easy. Dealing with interdimensional HR? That's the real nightmare.
 
 ---
 
