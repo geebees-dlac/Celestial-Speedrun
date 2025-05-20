@@ -12,7 +12,6 @@
   [Story Synopsis](#story-synopsis)
   [Features](#features)
   [Controls](#controls)
-  [Levels](#levels)
   [Installation](#installation)
   [How to Play](#how-to-play)
   [System Requirements (Recommended)](#system-requirements-recommended)
@@ -61,23 +60,6 @@ Finally, against all odds, you breach the gates of Heaven. But is it the paradis
     *   `Left Shift` or `Right Shift`: Dash/Boost
 *   **Interact:**
     *   `E`: Interact with objects, characters, or progress dialogue.
-
----
-
-## Levels
-
-Embark on your bureaucratic journey through the great beyond!
-
-1.  **Level 1: Hell Office - "Infernal Intern-ment"**
-    *   *Synopsis:* Your afterlife starts not with fire and brimstone, but with paperwork and passive-aggressive demons in middle management. Navigate the cubicle maze, avoid mandatory "motivation" seminars, and find a way out of this soul-crushing nine-to-never.
-2.  **Level 2: Brimstone Boulevard - "The Devil's Commute"**
-    *   *Synopsis:* Having miraculously escaped the office, you now face the treacherous streets of Hell's downtown. Dodge lava geysers, outrun demonic traffic wardens, and leap across crumbling chasms on your way to the Purgatory transit station.
-3.  **Level 3: The Chromatic Maze (Purgatory) - "Existential Escapism"**
-    *   *Synopsis:* Welcome to Purgatory, a disorienting, ever-shifting labyrinth of bureaucratic red tape and existential uncertainty. Find your way through this confusing dimension where the rules change as often as the color scheme, and every form needs to be filled in triplicate.
-4.  **Level 4: Nimbus Checkpoint - "Heavenly H.R."**
-    *   *Synopsis:* You've somehow made it to the pearly-ish gates, but Heaven has its own stringent entry protocols. Pass celestial security, navigate angelic administrators, and prove you're "Heaven material" at the Nimbus Checkpoint. Hope your halo is regulation size!
-5.  **Level 5: Seraphic Servers (The Celestial Speedrun) - "Cloud Computing Overdrive"**
-    *   *Synopsis:* Heaven isn't all clouds and harps; it's a high-tech, data-driven paradise managed by hyper-efficient angelic beings. Race through the Seraphic Servers, optimize your angelic access, and try to find out who's *really* in charge around here before your trial period expires.
 
 ---
 
