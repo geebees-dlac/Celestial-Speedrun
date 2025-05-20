@@ -8,7 +8,7 @@ namespace phys {
         platform = 1,       
         conveyorBelt = 2,
         moving = 3,
-        // gian the id 4 is not missing, i have a plan for it later, remind me later...
+        interactible = 4,
         falling = 5,
         vanishing = 6,
         spring = 7,    

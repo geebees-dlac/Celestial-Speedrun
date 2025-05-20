@@ -23,7 +23,7 @@ enum class GameState {
     MENU,
     PLAYING,
     LEVEL_TRANSITION, 
-    GAME_OVER_WIN,    
+    GAME_OVER_WIN,      
     GAME_OVER_LOSE    
 };
 
