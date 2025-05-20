@@ -90,10 +90,10 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
 
     if (d.HasMember("backgroundColor") && d["backgroundColor"].IsObject()) {
         const auto& bc = d["backgroundColor"];
-        sf::Uint8 r = 20, g = 20, b = 40; 
-        if (bc.HasMember("r") && bc["r"].IsUint()) r = static_cast<sf::Uint8>(bc["r"].GetUint());
-        if (bc.HasMember("g") && bc["g"].IsUint()) g = static_cast<sf::Uint8>(bc["g"].GetUint());
-        if (bc.HasMember("b") && bc["b"].IsUint()) b = static_cast<sf::Uint8>(bc["b"].GetUint());
+        uint8_t r = 20, g = 20, b = 40; // UNSURE FIX PLS VERIFY
+        if (bc.HasMember("r") && bc["r"].IsUint()) r = bc["r"].GetUint();
+        if (bc.HasMember("g") && bc["g"].IsUint()) g = bc["g"].GetUint();
+        if (bc.HasMember("b") && bc["b"].IsUint()) b = bc["b"].GetUint();
         outLevelData.backgroundColor = sf::Color(r, g, b);
     }
 
