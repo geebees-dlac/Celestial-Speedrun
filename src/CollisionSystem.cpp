@@ -23,10 +23,6 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
     float deltaTime)
 {
     CollisionResolutionInfo resolutionInfo;
-    // resolutionInfo.groundPlatform = dynamicBody.getGroundPlatform(); 
-    // ^ This line from your original code was already commented out by me previously.
-    // Ground platform is determined by actual collision, so initializing it here directly from dynamicBody can be misleading.
-    // It's better to set resolutionInfo.onGround and resolutionInfo.groundPlatform when a landing actually occurs.
     resolutionInfo.onGround = false; // Initialize to not on ground
     resolutionInfo.groundPlatform = nullptr; // Initialize to no ground platform
 
@@ -46,11 +42,11 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
         sf::Vector2f sweepVector = currentVelocity * timeRemaining;
 
         for (const auto& platform : platformBodies) {
-            // --- MODIFICATION: Skip physical collision checks for goal platforms ---
+
             if (platform.getType() == phys::bodyType::goal) {
-                continue; // Goal platforms are non-collidable for physics resolution
+
             }
-            // --- END MODIFICATION ---
+
 
             if (platform.getType() == phys::bodyType::none || &platform == dynamicBody.getGroundPlatformTemporarilyIgnored()) {
                 continue;
@@ -72,7 +68,7 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
                 // --- PLATFORM TYPE SPECIFIC FILTERING ---
                 phys::bodyType type = currentEventDetails.hitPlatform->getType();
 
-                if (type == phys::bodyType::platform) { // Your new one-way platform
+                if (type == phys::bodyType::platform) { 
                     sf::FloatRect bodyAABBAtSweepStart = dynamicBody.getAABB();
 
                     if (dynamicBody.isTryingToDropFromPlatform() &&
