@@ -1,39 +1,67 @@
-#ifndef LVLMNGR_HPP
-#define LVLMNGR_HPP
+#ifndef LEVEL_MANAGER_HPP
+#define LEVEL_MANAGER_HPP
 
 #include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
-#include "SFML/Graphics.hpp"
-
-#include <iostream>
-#include <vector>
-#include <cmath>
+#include "PlatformBody.hpp" // Assuming phys::PlatformBody is here
+#include "SFML/System/Vector2.hpp"
+#include "SFML/Graphics/Color.hpp" // For background color
 #include <string>
-#include <cstdlib>
-#include <ctime>
-#include <algorithm>
-#include <limits>
-#include <filesystem> // when needed for levels, i think but now its not needed
-#include <SFML/System.hpp>
-#include <SFML/Window.hpp>
-#include "PlatformBody.hpp" 
-#include "PhysicsTypes.hpp"
-rapidjson::Document* readFile(const std::string& filePath = "../assets/levels/experimental.json");
-rapidjson::Document* readFile(const std::string& filePath = "../assets/levels/level1.json");
-rapidjson::Document* readFile(const std::string& filePath = "../assets/levels/level2.json");
-rapidjson::Document* readFile(const std::string& filePath = "../assets/levels/level3.json");
-rapidjson::Document* readFile(const std::string& filePath = "../assets/levels/level4.json");
-rapidjson::Document* readFile(const std::string& filePath = "../assets/levels/level5.json");
+#include <vector>
+#include <map>
+#include "PhysicsTypes.hpp" 
+#include "PlatformBody.hpp"
 
-int savetest(rapidjson::Document* d);
-void freeData(rapidjson::Document* d);
+namespace phys {
+}
 
-bool loadPlatformsFromDocument(const rapidjson::Document& doc,
-                               std::vector<phys::PlatformBody>& bodies,
-                               unsigned int& current_id_counter,
-                               sf::Vector2f& playerStartPos, 
-                               size_t& outMovingPlatformID, 
-                               sf::Vector2f& outMovingPlatformStartPos); 
+struct LevelData {
+    std::string levelName;
+    int levelNumber = 0;
+    sf::Vector2f playerStartPosition = {100.f, 100.f}; 
+    sf::Color backgroundColor = sf::Color(20, 20, 40);   
+    std::vector<phys::PlatformBody> platforms;
 
-phys::bodyType stringToBodyType(const std::string& typeStr);
-#endif
+    // For moving platforms sa platformy body ra dhway ni
+    struct MovingPlatformInfo {
+        unsigned int id; 
+        sf::Vector2f startPosition;
+        char axis = 'x';      
+        float distance = 0.f;
+        float cycleDuration = 4.f; 
+        int initialDirection = 1;
+    
+    };
+    std::vector<MovingPlatformInfo> movingPlatformDetails;
+
+};
+
+class LevelManager {
+public:
+    LevelManager();
+
+    bool loadLevel(int levelNumber, LevelData& outLevelData);
+    
+    bool loadLevelFromFile(const std::string& filename, LevelData& outLevelData);
+
+    int getCurrentLevelNumber() const { return m_currentLevelNumber; }
+    void setCurrentLevelNumber(int number) { m_currentLevelNumber = number; }
+    
+    bool hasNextLevel() const;
+    bool loadNextLevel(LevelData& outLevelData); 
+    
+    void setMaxLevels(int max) { m_maxLevels = max; }
+
+
+private:
+    rapidjson::Document* readJsonFile(const std::string& filepath);
+    void freeJsonDocument(rapidjson::Document* doc);
+    phys::bodyType stringToBodyType(const std::string& typeStr);
+    bool parseLevelData(const rapidjson::Document& doc, LevelData& outLevelData);
+
+    int m_currentLevelNumber;
+    int m_maxLevels; 
+    std::string m_levelBasePath;
+    std::map<std::string, phys::bodyType> m_bodyTypeMap;
+};
+
+#endif 

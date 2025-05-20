@@ -1,6 +1,75 @@
 {
-    "lvlcode": 2,
-    "platform-objs": 24,
-    "test": "Hello World",
-    "comments": "Hells Office"
+  "levelName": "Hell's Office",
+  "levelNumber": 1,
+  "playerStart": { "x": 150, "y": 400 },
+  "backgroundColor": { "r": 20, "g": 20, "b": 40 },
+  "platforms": [
+    {
+      "id": 0,
+      "type": "solid",
+      "position": { "x": 0, "y": 568 },
+      "size": { "width": 800, "height": 32 }
+    },
+    {
+      "id": 1,
+      "type": "platform",
+      "position": { "x": 96, "y": 440 },
+      "size": { "width": 96, "height": 8 }
+    },
+    {
+      "id": 2,
+      "type": "solid",
+      "position": { "x": 128, "y": 352 },
+      "size": { "width": 128, "height": 32 }
+    },
+    {
+      "id": 3,
+      "type": "conveyorBelt",
+      "position": { "x": 240, "y": 504 },
+      "size": { "width": 320, "height": 32 },
+      "surfaceVelocity": { "x": 70, "y": 0 }
+    },
+    {
+      "id": 4, 
+      "type": "moving",
+      "position": { "x": 304, "y": 376 },
+      "size": { "width": 160, "height": 16 },
+      "movement": {
+        "axis": "x",
+        "distance": 192,
+        "cycleDuration": 4.0, 
+        "initialDirection": 1
+      }
+    },
+    {
+      "id": 5, "type": "falling", "position": {"x": 544, "y": 408}, "size": {"width": 32, "height": 32}},
+    {
+      "id": 6, "type": "falling", "position": {"x": 592, "y": 408}, "size": {"width": 32, "height": 32}},
+    {
+      "id": 7, "type": "falling", "position": {"x": 640, "y": 408}, "size": {"width": 32, "height": 32}},
+    {
+      "id": 8, "type": "vanishing", "position": {"x": 576, "y": 312}, "size": {"width": 32, "height": 32}},
+    {
+      "id": 9, "type": "vanishing", "position": {"x": 624, "y": 312}, "size": {"width": 32, "height": 32}},
+    {
+      "id": 10, "type": "vanishing", "position": {"x": 672, "y": 312}, "size": {"width": 32, "height": 32}},
+    {
+      "id": 11,
+      "type": "solid",
+      "position": { "x": 256, "y": 160 },
+      "size": { "width": 128, "height": 32 }
+    },
+    {
+    "id": 98,
+    "type": "solid",
+    "position": { "x": 700, "y": 200 }, 
+    "size": { "width": 128, "height": 32 }
+    },
+    {
+    "id": 100, 
+    "type": "goal", 
+    "position": {"x": 700, "y": 68},  
+    "size": {"width": 64, "height": 64} 
+    }
+  ]
 }
