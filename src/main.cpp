@@ -12,8 +12,8 @@
 #include <SFML/Window.hpp>
 #include "CollisionSystem.hpp"
 #include "Player.hpp"
-#include "PlatformBody.hpp"
-#include "Tile.hpp"
+#include "platformBody.hpp"
+#include "tile.hpp"
 #include "Optimizer.hpp" // i have abandoned this for now, i will come back to this later
 #include "PhysicsTypes.hpp"
 #include "Player.hpp" // i have abandoned this for now, i will come back to this later

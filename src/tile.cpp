@@ -1,4 +1,4 @@
-#include "Tile.hpp" 
+#include "tile.hpp" 
 
 Tile::Tile(const sf::Vector2f& size, const sf::Color& color)
     : m_shape(size),

@@ -1,4 +1,4 @@
-#include "PlatformBody.hpp"
+#include "platformBody.hpp"
 #include "PhysicsTypes.hpp" 
 
 namespace phys { 
