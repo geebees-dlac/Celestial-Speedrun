@@ -14,7 +14,7 @@
 >  [Controls](#controls)
 >  [Installation](#installation)
 >  [How to Play](#how-to-play)
->  [System Requirements (Recommended)](#system-requirements-recommended)
+>  [System Requirements](#system-requirements-recommended)
 >  [Acknowledgements](#acknowledgements) 
 ---
 
