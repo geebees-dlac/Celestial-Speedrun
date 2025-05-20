@@ -1,7 +1,6 @@
 # Celestial Speedrun ("The Time I Got Truck-kun'd to Hell and Decided Upper Management Was an Even Bigger Nightmare")
-<p align="center">
-  <img src="https://ibb.co/yFXqp8X1" alt="SELF INSERT BG IF BROKEN" width="700"/>
-
+<div align="center">
+<a href="https://ibb.co/yFXqp8X1"><img src="https://i.ibb.co/60mF84mx/Generated-image-1.png" alt="Generated-image-1" border="0"></a>
 
 <br>
 **Tagline:** Escaping eternal damnation was easy. Dealing with interdimensional HR? That's the real nightmare.
