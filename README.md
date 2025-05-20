@@ -1,4 +1,4 @@
-# Celestial Speedrun ("The Time I Got Truck-kun'd to Hell and Decided Upper Management Was an Even Bigger Nightmare")
+# Celestial Speedrun
 <div align="center">
 <a href="https://ibb.co/yFXqp8X1"><img src="https://i.ibb.co/60mF84mx/Generated-image-1.png" alt="Generated-image-1" border="0"></a>
 
