@@ -46,7 +46,7 @@ add_executable(main # Use your project name if it's not 'main'
 )
     
 # Copy Assets to be next to your executable in the build/bin directory
-file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR}/bin) 
+file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
 # If your C++ code still uses "../assets", this line below is what you'd use.
 # However, placing assets *directly* in the same folder as the executable (or a subfolder like `bin/assets`)
 # is often easier to manage for deployment. If so, change C++ paths to "assets/..."
