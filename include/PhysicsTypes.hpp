@@ -8,11 +8,13 @@ namespace phys {
         platform = 1,       
         conveyorBelt = 2,
         moving = 3,
+        interactible = 4,
         falling = 5,
         vanishing = 6,
         spring = 7,    
-        trap = 8,      //spikes ni siya wait
-        solid = 9      //gian the id 4 is not missing, i have a plan for it later, remind me later...
+        trap = 8,      //spikes ni siya wait or anything that kills the player
+        solid = 9,     
+        goal = 10      // Added for level exit
     };
 }
 #endif

@@ -1,77 +1,120 @@
-/*
+#ifndef LEVEL_MANAGER_HPP
+#define LEVEL_MANAGER_HPP
 
-Level 1: Hell's Office
-(The initial sentencing, paperwork, and the start of the escape through bureaucratic hell)
-Alternative: Infernal Intake, Damnation DMV, Soul Processing Unit 666
+#include "rapidjson/document.h"
+#include "PlatformBody.hpp"
+#include "SFML/System/Vector2.hpp"
+#include "SFML/System/Clock.hpp"
+#include "SFML/Graphics/Color.hpp"
+#include "SFML/Graphics/Texture.hpp"
+#include "SFML/Graphics/Sprite.hpp"
+#include "SFML/Graphics/RectangleShape.hpp"
+#include "SFML/Graphics/RenderWindow.hpp"
 
+#include <string>
+#include <vector>
+#include <map>
+#include "PhysicsTypes.hpp"
 
-Level 2: Deeper into Hell (Post-Escape from the Office)
-Premise: Navigating the more chaotic, fiery, and traditionally "hellish" landscapes after breaking free from the initial processing.
+namespace phys {} 
 
-Name Idea: Brimstone Boulevard
+struct LevelData {
+    std::string levelName;
+    int levelNumber = 0;
+    sf::Vector2f playerStartPosition = {100.f, 100.f};
+    sf::Color backgroundColor = sf::Color(20, 20, 40);
+    std::vector<phys::PlatformBody> platforms;
 
-Why: Sounds like a twisted, dangerous city street or highway. Implies a journey through a more "developed" part of Hell.
+    struct MovingPlatformInfo {
+        unsigned int id;
+        sf::Vector2f startPosition;
+        char axis = 'x';
+        float distance = 0.f;
+        float cycleDuration = 4.f;
+        int initialDirection = 1;
+    };
+    std::vector<MovingPlatformInfo> movingPlatformDetails;
+};
 
-Alternatives:
+class LevelManager {
+public:
+    enum class TransitionState {
+        NONE,
+        FADING_OUT,
+        LOADING,
+        FADING_IN
+    };
 
-The Fiery Foundries: Suggests industrial, hot, mechanical dangers.
+    enum class LoadRequestType {
+        GENERAL,
+        NEXT_LEVEL,
+        RESPAWN
+    };
 
-Satan's Scrapyard: Implies a chaotic, junkyard-like environment full of hazards.
-
-Pandemonium Plaza: Highlights the chaos.
-
-The Devil's Detour: He's not on the "official" path anymore.
-
-Level 3: Purgatory
-Premise: A transitional realm. Could be monotonous, repetitive, foggy, full of minor trials or existential waiting.
-
-Name Idea: The Monochromatic Maze
-
-Why: Suggests a confusing, visually dull (grey, muted colors) environment where one could get lost, reflecting the uncertainty of Purgatory.
-
-Alternatives:
-
-The Endless Escalators: A very "troll" idea of being stuck in a repetitive, slow journey.
-
-The Waiting Wasteland: Emphasizes barrenness and the act of waiting.
-
-Limbo Line-Up: Another bureaucratic nightmare, just waiting... for what?
-
-The Grey Gauntlet: Focuses on trials in a bland setting.
-
-Level 4: Gateway to Heaven / Lower Heaven
-Premise: Reaching the outskirts or initial entry points of Heaven. Might still have bureaucratic hurdles or tests of worthiness, but with a celestial aesthetic.
-
-Name Idea: Cloud Nine Customs
-
-Why: A funny, bureaucratic take on entering Heaven. Imagine angelic customs officers and paperwork on clouds.
-
-Alternatives:
-
-Pearly Gates Pavilion (and a Really Long Queue): Classic imagery with a humorous, mundane twist.
-
-Angelic Admissions: Sounds like applying for college, but in the sky.
-
-Nimbus Checkpoint: A more serious-sounding, but still bureaucratic, entry point.
-
-St. Peter's Sorting Station: Another layer of judgment and processing.
-
-Level 5: Deeper into Heaven / The Core of Heaven
-Premise: The supposed paradise. Could be genuinely blissful, or have its own "troll" quirks – maybe it's too perfect, too ordered, or hilariously mundane in its own way.
-
-Name Idea: The Seraphic Servers
-
-Why: Plays on "servers" as in angelic beings AND computer servers. Maybe Heaven is run by a giant, slightly buggy celestial mainframe. Offers potential for "glitch" or "system error" troll mechanics.
-
-Alternatives:
-
-Ethereal Estates: Sounds like a high-end, perhaps slightly sterile, heavenly suburb.
-
-The Hallelujah Headquarters: The central command of Heaven, possibly with more angelic bureaucracy.
-
-Apex of Afterlife: Sounds grand and final.
-
-Cloud Control Central: A slightly more techy/orderly take on managing Heaven.
+    LevelManager();
+    ~LevelManager();
 
 
-*/
+    void setLevelBasePath(const std::string& path) { m_levelBasePath = path; }
+    void setGeneralLoadingScreenImage(const std::string& imagePath);
+    void setNextLevelLoadingScreenImage(const std::string& imagePath);
+    void setRespawnLoadingScreenImage(const std::string& imagePath);
+    void setTransitionProperties(float fadeDuration = 1.0f);
+
+
+    bool requestLoadLevel(int levelNumber, LevelData& outLevelData, LoadRequestType type = LoadRequestType::GENERAL);
+    bool requestLoadSpecificLevel(int levelNumber, LevelData& outLevelData); 
+    bool requestLoadNextLevel(LevelData& outLevelData);        
+    bool requestRespawnCurrentLevel(LevelData& outLevelData);  
+
+
+    void update(float dt, sf::RenderWindow& window); 
+    void draw(sf::RenderWindow& window);
+
+    bool isTransitioning() const;
+    TransitionState getCurrentTransitionState() const { return m_transitionState; }
+
+    int getCurrentLevelNumber() const { return m_currentLevelNumber; }
+    void setCurrentLevelNumber(int number) { m_currentLevelNumber = number; }
+    
+    bool hasNextLevel() const;
+    void setMaxLevels(int max) { m_maxLevels = max; }
+
+
+private:
+    bool performActualLoad(int levelNumber, LevelData& outLevelData); 
+    bool loadLevelDataFromFile(const std::string& filename, LevelData& outLevelData);
+
+
+    rapidjson::Document* readJsonFile(const std::string& filepath);
+    void freeJsonDocument(rapidjson::Document* doc);
+    phys::bodyType stringToBodyType(const std::string& typeStr);
+    bool parseLevelData(const rapidjson::Document& doc, LevelData& outLevelData);
+
+    int m_currentLevelNumber;
+    int m_targetLevelNumber;
+    LevelData* m_levelDataToFill; 
+
+    int m_maxLevels;
+    std::string m_levelBasePath;
+    std::map<std::string, phys::bodyType> m_bodyTypeMap;
+
+
+    TransitionState m_transitionState;
+    LoadRequestType m_currentLoadType;
+    sf::Clock m_transitionClock;
+    float m_fadeDuration;
+
+    sf::Texture m_loadingTexture; 
+    sf::Sprite m_loadingSprite;
+    bool m_loadingScreenReady;
+
+    std::string m_generalLoadingScreenPath;
+    std::string m_nextLevelLoadingScreenPath;
+    std::string m_respawnLoadingScreenPath;
+    
+
+    sf::RectangleShape m_fadeOverlay;
+};
+
+#endif // LEVEL_MANAGER_HPP
