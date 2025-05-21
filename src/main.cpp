@@ -201,7 +201,7 @@ void setupLevelAssets(const LevelData& data, sf::RenderWindow& window) {
 
 
 int main(void) {
-    const sf::Vector2f LOGICAL_SIZE(800.f, 600.f);
+    const sf::Vector2f LOGICAL_SIZE(800.f, 600.f); // Design resolution
     const sf::Vector2f tileSize(32.f, 32.f);
     const float PLAYER_MOVE_SPEED = 200.f;
     const float JUMP_INITIAL_VELOCITY = -450.f;
@@ -215,9 +215,10 @@ int main(void) {
     window.setKeyRepeatEnabled(false);
     window.setVerticalSyncEnabled(true);
 
-    sf::View uiView;
-    sf::View mainView;
+    sf::View uiView;     // For menus, HUD, transitions - fixed to LOGICAL_SIZE
+    sf::View mainView;   // For gameplay - follows player, same LOGICAL_SIZE dimensions
 
+    // Calculate viewport for letterboxing/pillarboxing
     float windowWidth = static_cast<float>(desktopMode.width);
     float windowHeight = static_cast<float>(desktopMode.height);
     float windowAspectRatio = windowWidth / windowHeight;
@@ -228,27 +229,28 @@ int main(void) {
     float viewportWidthRatio = 1.f;
     float viewportHeightRatio = 1.f;
 
-    if (windowAspectRatio > logicalAspectRatio) {
-        viewportWidthRatio = logicalAspectRatio / windowAspectRatio;
-        viewportX = (1.f - viewportWidthRatio) / 2.f;
-    } else if (windowAspectRatio < logicalAspectRatio) {
-        viewportHeightRatio = windowAspectRatio / logicalAspectRatio;
-        viewportY = (1.f - viewportHeightRatio) / 2.f;
+    if (windowAspectRatio > logicalAspectRatio) { // Window is wider than logical (letterbox top/bottom bars, or pillarbox if math wrong -> pillarbox for wider)
+        viewportWidthRatio = logicalAspectRatio / windowAspectRatio; // Viewport width is scaled down
+        viewportX = (1.f - viewportWidthRatio) / 2.f;             // Center it
+    } else if (windowAspectRatio < logicalAspectRatio) { // Window is narrower than logical (pillarbox left/right bars, or letterbox if math wrong -> letterbox for taller)
+        viewportHeightRatio = windowAspectRatio / logicalAspectRatio; // Viewport height is scaled down
+        viewportY = (1.f - viewportHeightRatio) / 2.f;              // Center it
     }
     sf::FloatRect viewportRect(viewportX, viewportY, viewportWidthRatio, viewportHeightRatio);
 
     uiView.setSize(LOGICAL_SIZE);
-    uiView.setCenter(LOGICAL_SIZE / 2.f);
-    uiView.setViewport(viewportRect);
+    uiView.setCenter(LOGICAL_SIZE / 2.f); // Centered on the logical 800x600 area
+    uiView.setViewport(viewportRect);     // Maps this logical area to the calculated part of the window
 
-    mainView.setSize(LOGICAL_SIZE);
-    mainView.setViewport(viewportRect);
+    mainView.setSize(LOGICAL_SIZE);     // Game world view also uses logical dimensions
+    mainView.setViewport(viewportRect); // And same screen viewport for aspect ratio
+    // mainView.setCenter will be updated dynamically based on player position for scrolling
 
 
     GameState currentState = GameState::MENU;
     levelManager.setMaxLevels(5);
     levelManager.setLevelBasePath("../assets/levels/");
-    levelManager.setTransitionProperties(0.75f); // Consider how overlay is sized if not changed in LevelManager
+    levelManager.setTransitionProperties(0.75f); 
     levelManager.setGeneralLoadingScreenImage(IMG_LOAD_GENERAL);
     levelManager.setNextLevelLoadingScreenImage(IMG_LOAD_NEXT);
     levelManager.setRespawnLoadingScreenImage(IMG_LOAD_RESPAWN);
@@ -276,6 +278,7 @@ int main(void) {
         text.setFillColor(sf::Color::White);
         sf::FloatRect bounds = text.getLocalBounds();
         text.setOrigin(bounds.left + bounds.width / 2.f, bounds.top + bounds.height / 2.f);
+        // Position relative to LOGICAL_SIZE for UI elements
         text.setPosition(LOGICAL_SIZE.x / 2.f + xOffset, yPos);
     };
 
@@ -283,11 +286,15 @@ int main(void) {
     sf::Texture menuBgTexture; sf::Sprite menuBgSprite;
     if (menuBgTexture.loadFromFile(IMG_MENU_BG)) {
         menuBgSprite.setTexture(menuBgTexture);
-        // If menuBgTexture is not LOGICAL_SIZE, you might want to scale it:
-        // menuBgSprite.setScale(LOGICAL_SIZE.x / menuBgTexture.getSize().x, LOGICAL_SIZE.y / menuBgTexture.getSize().y);
+        // Scale sprite to fill the LOGICAL_SIZE view
+        menuBgSprite.setScale(LOGICAL_SIZE.x / menuBgTexture.getSize().x,
+                              LOGICAL_SIZE.y / menuBgTexture.getSize().y);
+        menuBgSprite.setPosition(0.f, 0.f); // Position at top-left of the LOGICAL_SIZE view
     }
-    else std::cerr << "Warning: Menu BG image not found: " << IMG_MENU_BG << std::endl;
-    menuBgSprite.setPosition(0.f, 0.f); // Position at top-left of the logical view
+    else {
+        std::cerr << "Warning: Menu BG image not found: " << IMG_MENU_BG << std::endl;
+    }
+
 
     setupTextUI(menuTitleText, "Project - T", 100, 48);
     setupTextUI(startButtonText, "Start Game", 250);
@@ -333,7 +340,7 @@ int main(void) {
     debugText.setFont(menuFont);
     debugText.setCharacterSize(14);
     debugText.setFillColor(sf::Color::White);
-    debugText.setPosition(10.f, 10.f); // Relative to uiView
+    debugText.setPosition(10.f, 10.f); // Positioned relative to top-left of uiView (LOGICAL_SIZE)
 
     menuMusic.setVolume(gameSettings.musicVolume);
     menuMusic.play();
@@ -356,23 +363,27 @@ int main(void) {
                 }
             }
 
+            // Convert mouse coordinates using uiView for all UI interactions
+            sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
+            sf::Vector2f worldPosUi = window.mapPixelToCoords(pixelPos, uiView);
+
+
             switch(currentState) {
                 case GameState::MENU:
                     if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
-                        sf::Vector2f mPos = window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y}, uiView);
                         playSfx("click");
-                        if (startButtonText.getGlobalBounds().contains(mPos)) {
+                        if (startButtonText.getGlobalBounds().contains(worldPosUi)) {
                             levelManager.setCurrentLevelNumber(0);
                             if (levelManager.requestLoadNextLevel(currentLevelData)) {
                                 currentState = GameState::TRANSITIONING;
                                 menuMusic.stop(); gameMusic.setVolume(gameSettings.musicVolume); gameMusic.play();
                                 window.setTitle("Project T - Loading...");
                             } else { std::cerr << "MENU: Failed request to load level 1." << std::endl; }
-                        } else if (settingsButtonText.getGlobalBounds().contains(mPos)) {
+                        } else if (settingsButtonText.getGlobalBounds().contains(worldPosUi)) {
                             currentState = GameState::SETTINGS;
-                        } else if (creditsButtonText.getGlobalBounds().contains(mPos)) {
+                        } else if (creditsButtonText.getGlobalBounds().contains(worldPosUi)) {
                             currentState = GameState::CREDITS;
-                        } else if (exitButtonText.getGlobalBounds().contains(mPos)) {
+                        } else if (exitButtonText.getGlobalBounds().contains(worldPosUi)) {
                             running = false; window.close();
                         }
                     }
@@ -380,17 +391,15 @@ int main(void) {
                     break;
                 case GameState::SETTINGS:
                      if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
-                        sf::Vector2f mPos = window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y}, uiView);
                         playSfx("click");
-                        if (settingsBackText.getGlobalBounds().contains(mPos)) currentState = GameState::MENU;
+                        if (settingsBackText.getGlobalBounds().contains(worldPosUi)) currentState = GameState::MENU;
                      }
                      if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) currentState = GameState::MENU;
                     break;
                 case GameState::CREDITS:
                     if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
-                        sf::Vector2f mPos = window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y}, uiView);
                         playSfx("click");
-                        if (creditsBackText.getGlobalBounds().contains(mPos)) currentState = GameState::MENU;
+                        if (creditsBackText.getGlobalBounds().contains(worldPosUi)) currentState = GameState::MENU;
                     }
                     if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) currentState = GameState::MENU;
                     break;
@@ -415,9 +424,8 @@ int main(void) {
                 case GameState::GAME_OVER_LOSE_FALL:
                 case GameState::GAME_OVER_LOSE_DEATH:
                     if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
-                        sf::Vector2f mPos = window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y}, uiView);
                         playSfx("click");
-                        if (gameOverOption1Text.getGlobalBounds().contains(mPos)) {
+                        if (gameOverOption1Text.getGlobalBounds().contains(worldPosUi)) {
                             if (currentState == GameState::GAME_OVER_LOSE_FALL || currentState == GameState::GAME_OVER_LOSE_DEATH) {
                                 if (levelManager.requestRespawnCurrentLevel(currentLevelData)) {
                                     currentState = GameState::TRANSITIONING;
@@ -436,7 +444,7 @@ int main(void) {
                                      currentState = GameState::MENU; menuMusic.play();
                                 }
                             }
-                        } else if (gameOverOption2Text.getGlobalBounds().contains(mPos)) { // Back to Menu
+                        } else if (gameOverOption2Text.getGlobalBounds().contains(worldPosUi)) { // Back to Menu
                             currentState = GameState::MENU;
                             gameMusic.stop(); menuMusic.setVolume(gameSettings.musicVolume); menuMusic.play();
                             levelManager.setCurrentLevelNumber(0);
@@ -447,10 +455,11 @@ int main(void) {
                      }
                     break;
                 case GameState::TRANSITIONING:
+                    // No input handling during transitions, usually
                     break;
-                default: // Handles any unexpected GameState value
+                default: 
                     std::cerr << "Warning: Unhandled GameState in event loop: " << static_cast<int>(currentState) << std::endl;
-                    currentState = GameState::MENU; // Fallback to a safe state
+                    currentState = GameState::MENU; 
                     break;
             }
         }
@@ -478,7 +487,7 @@ int main(void) {
                 playerBody.setTryingToDrop(dropIntentThisFrame && playerBody.isOnGround());
 
                 for(auto& activePlat : activeMovingPlatforms) {
-                    phys::PlatformBody* movingBodyPtr = nullptr; size_t tileIdx = (size_t)-1; // Initialize tileIdx
+                    phys::PlatformBody* movingBodyPtr = nullptr; size_t tileIdx = (size_t)-1; 
                     for(size_t i=0; i < bodies.size(); ++i) if(bodies[i].getID() == activePlat.id) {movingBodyPtr = &bodies[i]; tileIdx = i; break;}
 
                     if (movingBodyPtr) {
@@ -501,7 +510,7 @@ int main(void) {
                         sf::Vector2f newPos = activePlat.startPosition;
                         if(activePlat.axis == 'x') newPos.x += offset; else newPos.y += offset;
                         movingBodyPtr->setPosition(newPos);
-                        if (tileIdx != (size_t)-1 && tileIdx < tiles.size()) { // Check tileIdx validity
+                        if (tileIdx != (size_t)-1 && tileIdx < tiles.size()) { 
                             tiles[tileIdx].setPosition(newPos);
                         }
                     }
@@ -588,7 +597,7 @@ int main(void) {
                     currentState = GameState::GAME_OVER_LOSE_DEATH;
                     gameMusic.pause();
                     window.setTitle("Project T - Ouch! Game Over");
-                    break;
+                    break; 
                 }
 
                 if (interactKeyPressedThisFrame) {
@@ -608,7 +617,7 @@ int main(void) {
                             if (currentState != GameState::PLAYING) break;
                         }
                     }
-                    if (currentState != GameState::PLAYING) break;
+                    if (currentState != GameState::PLAYING) break; 
                 }
 
                 if (playerBody.getPosition().y > PLAYER_DEATH_Y_LIMIT) {
@@ -616,12 +625,12 @@ int main(void) {
                     currentState = GameState::GAME_OVER_LOSE_FALL;
                     gameMusic.pause();
                     window.setTitle("Project T - Game Over (Fell)");
-                    break;
+                    break; 
                 }
-            }
+            } // End fixed update loop
         }
         else if (currentState == GameState::TRANSITIONING) {
-            levelManager.update(frameDeltaTime.asSeconds(), window); // LevelManager might internally use window.getSize(), which could be an issue for perfect letterboxing of its elements.
+            levelManager.update(frameDeltaTime.asSeconds(), window);
             if (!levelManager.isTransitioning()) {
                 setupLevelAssets(currentLevelData, window);
                 currentState = GameState::PLAYING;
@@ -633,26 +642,38 @@ int main(void) {
 
 
         // --- DRAW PHASE ---
-        window.clear(sf::Color::Black); // Clear with black for letter/pillar boxing
+        window.clear(sf::Color::Black); // Clear entire window to black for letter/pillar boxing
+
+        // For mouse hover updates, get current mouse position relative to uiView
+        sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
+        sf::Vector2f worldPosUi = window.mapPixelToCoords(pixelPos, uiView);
+
 
         switch(currentState) {
             case GameState::MENU:
                 window.setView(uiView);
-                if(menuBgSprite.getTexture()) window.draw(menuBgSprite); else { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,20,50)); window.draw(bg); }
+                if(menuBgSprite.getTexture()) {
+                    window.draw(menuBgSprite);
+                } else { // Fallback if texture not loaded
+                    sf::RectangleShape bg(LOGICAL_SIZE); 
+                    bg.setFillColor(sf::Color(20,20,50));
+                    bg.setPosition(0,0); // Covers uiView
+                    window.draw(bg);
+                }
                 startButtonText.setFillColor(defaultBtnColor); settingsButtonText.setFillColor(defaultBtnColor);
                 creditsButtonText.setFillColor(defaultBtnColor); exitButtonText.setFillColor(defaultBtnColor);
-                if(startButtonText.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) startButtonText.setFillColor(hoverBtnColor);
-                if(settingsButtonText.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) settingsButtonText.setFillColor(hoverBtnColor);
-                if(creditsButtonText.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) creditsButtonText.setFillColor(hoverBtnColor);
-                if(exitButtonText.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) exitButtonText.setFillColor(exitBtnHoverColor);
+                if(startButtonText.getGlobalBounds().contains(worldPosUi)) startButtonText.setFillColor(hoverBtnColor);
+                if(settingsButtonText.getGlobalBounds().contains(worldPosUi)) settingsButtonText.setFillColor(hoverBtnColor);
+                if(creditsButtonText.getGlobalBounds().contains(worldPosUi)) creditsButtonText.setFillColor(hoverBtnColor);
+                if(exitButtonText.getGlobalBounds().contains(worldPosUi)) exitButtonText.setFillColor(exitBtnHoverColor);
                 window.draw(menuTitleText); window.draw(startButtonText); window.draw(settingsButtonText);
                 window.draw(creditsButtonText); window.draw(exitButtonText);
                 break;
             case GameState::SETTINGS:
                 window.setView(uiView);
-                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,50,20)); window.draw(bg); }
+                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,50,20)); bg.setPosition(0,0); window.draw(bg); }
                 settingsBackText.setFillColor(defaultBtnColor);
-                if(settingsBackText.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) settingsBackText.setFillColor(hoverBtnColor);
+                if(settingsBackText.getGlobalBounds().contains(worldPosUi)) settingsBackText.setFillColor(hoverBtnColor);
                 window.draw(settingsTitleText);
                 musicVolValText.setString(std::to_string(static_cast<int>(gameSettings.musicVolume))+"%");
                 sfxVolValText.setString(std::to_string(static_cast<int>(gameSettings.sfxVolume))+"%");
@@ -662,30 +683,30 @@ int main(void) {
                 break;
             case GameState::CREDITS:
                 window.setView(uiView);
-                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(50,20,20)); window.draw(bg); }
+                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(50,20,20)); bg.setPosition(0,0); window.draw(bg); }
                 creditsBackText.setFillColor(defaultBtnColor);
-                if(creditsBackText.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) creditsBackText.setFillColor(hoverBtnColor);
+                if(creditsBackText.getGlobalBounds().contains(worldPosUi)) creditsBackText.setFillColor(hoverBtnColor);
                 window.draw(creditsTitleText); window.draw(creditsNamesText); window.draw(creditsBackText);
                 break;
             case GameState::PLAYING:
                 mainView.setCenter( playerBody.getPosition().x + playerBody.getWidth()/2.f, playerBody.getPosition().y + playerBody.getHeight()/2.f - 50.f);
                 window.setView(mainView);
+                
+                // Draw background for the gameplay area within mainView
                 {
-                    sf::RectangleShape gameBackground(LOGICAL_SIZE);
-                    gameBackground.setFillColor(currentLevelData.backgroundColor);
-                    // Position relative to view's top-left, which is (0,0) in its coordinate system when size matches mainView.size
-                    // Correct approach would be view.getCenter() - view.getSize()/2.f for world coordinates of top-left of view
-                    // However, for a background covering the entire view, simply drawing it at (0,0) OF THE VIEW SPACE is fine if mainView's coordinate system itself starts near (0,0)
-                    // Since mainView is often centered on player, a large background rect for level at world (0,0) might be needed, or draw the color background first.
-                    // This setup positions gameBackground at mainView's current top-left corner.
-                    gameBackground.setPosition(mainView.getCenter() - mainView.getSize() / 2.f);
-                    window.draw(gameBackground);
+                    sf::RectangleShape gameplayAreaBackground(LOGICAL_SIZE); 
+                    gameplayAreaBackground.setFillColor(currentLevelData.backgroundColor);
+                    // Position at the top-left of the current view (mainView)
+                    gameplayAreaBackground.setPosition(mainView.getCenter() - mainView.getSize() / 2.f); 
+                    window.draw(gameplayAreaBackground);
                 }
+
                 playerShape.setPosition(playerBody.getPosition());
                 for (const auto& t : tiles) { if (t.getFillColor().a > 5) window.draw(t); }
                 window.draw(playerShape);
                 
-                window.setView(uiView); // Switch to UI view for debug text
+                // Switch to uiView for debug text
+                window.setView(uiView); 
                 debugText.setString( "Lvl: " + std::to_string(currentLevelData.levelNumber) +
                                      " Pos: " + std::to_string(static_cast<int>(playerBody.getPosition().x)) + "," + std::to_string(static_cast<int>(playerBody.getPosition().y)) +
                                      " Vel: " + std::to_string(static_cast<int>(playerBody.getVelocity().x)) + "," + std::to_string(static_cast<int>(playerBody.getVelocity().y)) +
@@ -694,51 +715,54 @@ int main(void) {
                 window.draw(debugText);
                 break;
             case GameState::TRANSITIONING:
-                window.setView(uiView); // Set view for LevelManager drawing (assumes LM adapts to view size)
-                levelManager.draw(window);
+                window.setView(uiView);
+                // LevelManager will draw its overlay. If its internal images aren't scaled to LOGICAL_SIZE, they might appear incorrectly.
+                // A solid background could be drawn here first if LevelManager's overlay has transparency
+                // { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color::Black); bg.setPosition(0,0); window.draw(bg); }
+                levelManager.draw(window); 
                 break;
             case GameState::GAME_OVER_WIN:
                  window.setView(uiView);
-                 { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,60,20)); window.draw(bg); }
+                 { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,60,20)); bg.setPosition(0,0); window.draw(bg); }
                  gameOverStatusText.setString("All Levels Cleared! You Win!");
                  gameOverOption1Text.setString("Play Again?");
                  gameOverOption1Text.setFillColor(defaultBtnColor);
                  gameOverOption2Text.setFillColor(defaultBtnColor);
-                 if(gameOverOption1Text.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) gameOverOption1Text.setFillColor(hoverBtnColor);
-                 if(gameOverOption2Text.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) gameOverOption2Text.setFillColor(hoverBtnColor);
+                 if(gameOverOption1Text.getGlobalBounds().contains(worldPosUi)) gameOverOption1Text.setFillColor(hoverBtnColor);
+                 if(gameOverOption2Text.getGlobalBounds().contains(worldPosUi)) gameOverOption2Text.setFillColor(hoverBtnColor);
                  window.draw(gameOverStatusText);
                  window.draw(gameOverOption1Text);
                  window.draw(gameOverOption2Text);
                 break;
             case GameState::GAME_OVER_LOSE_FALL:
                 window.setView(uiView);
-                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(60,20,20)); window.draw(bg); }
+                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(60,20,20)); bg.setPosition(0,0); window.draw(bg); }
                 gameOverStatusText.setString("Game Over! You Fell!");
                 gameOverOption1Text.setString("Retry Level");
                 gameOverOption1Text.setFillColor(defaultBtnColor);
                 gameOverOption2Text.setFillColor(defaultBtnColor);
-                if(gameOverOption1Text.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) gameOverOption1Text.setFillColor(hoverBtnColor);
-                if(gameOverOption2Text.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) gameOverOption2Text.setFillColor(hoverBtnColor);
+                if(gameOverOption1Text.getGlobalBounds().contains(worldPosUi)) gameOverOption1Text.setFillColor(hoverBtnColor);
+                if(gameOverOption2Text.getGlobalBounds().contains(worldPosUi)) gameOverOption2Text.setFillColor(hoverBtnColor);
                 window.draw(gameOverStatusText);
                 window.draw(gameOverOption1Text);
                 window.draw(gameOverOption2Text);
                 break;
             case GameState::GAME_OVER_LOSE_DEATH:
                 window.setView(uiView);
-                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(70,10,10)); window.draw(bg); }
+                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(70,10,10)); bg.setPosition(0,0); window.draw(bg); }
                 gameOverStatusText.setString("Game Over! Hit a Trap!");
                 gameOverOption1Text.setString("Retry Level");
                 gameOverOption1Text.setFillColor(defaultBtnColor);
                 gameOverOption2Text.setFillColor(defaultBtnColor);
-                if(gameOverOption1Text.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) gameOverOption1Text.setFillColor(hoverBtnColor);
-                if(gameOverOption2Text.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window), uiView))) gameOverOption2Text.setFillColor(hoverBtnColor);
+                if(gameOverOption1Text.getGlobalBounds().contains(worldPosUi)) gameOverOption1Text.setFillColor(hoverBtnColor);
+                if(gameOverOption2Text.getGlobalBounds().contains(worldPosUi)) gameOverOption2Text.setFillColor(hoverBtnColor);
                 window.draw(gameOverStatusText);
                 window.draw(gameOverOption1Text);
                 window.draw(gameOverOption2Text);
                 break;
              default:
                  window.setView(uiView);
-                 { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color::Magenta); window.draw(bg); }
+                 { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color::Magenta); bg.setPosition(0,0); window.draw(bg); }
                  sf::Text errorText("Unknown Game State!", menuFont, 20);
                  errorText.setOrigin(errorText.getLocalBounds().width/2.f, errorText.getLocalBounds().height/2.f); 
                  errorText.setPosition(LOGICAL_SIZE.x/2.f, LOGICAL_SIZE.y/2.f);
