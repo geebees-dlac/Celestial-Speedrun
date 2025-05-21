@@ -16,7 +16,7 @@
 #include <map>
 #include "PhysicsTypes.hpp"
 
-namespace phys {} 
+namespace phys {}
 
 struct LevelData {
     std::string levelName;
@@ -34,6 +34,19 @@ struct LevelData {
         int initialDirection = 1;
     };
     std::vector<MovingPlatformInfo> movingPlatformDetails;
+
+    // ADDED for Interactible Platforms
+    struct InteractiblePlatformInfo {
+        unsigned int id;
+        std::string interactionType = "changeSelf"; // For now, only "changeSelf"
+        std::string targetBodyTypeStr;              // String name of the target phys::bodyType
+        // phys::bodyType targetBodyTypeEnum; // This will be resolved in main.cpp using LevelManager instance
+        sf::Color targetTileColor = sf::Color::Transparent; // Default if not specified
+        bool hasTargetTileColor = false;
+        bool oneTime = false;
+        float cooldown = 0.0f; // Time before it can be interacted with again (if not oneTime)
+    };
+    std::vector<InteractiblePlatformInfo> interactiblePlatformDetails; // <-- ADDED THIS
 };
 
 class LevelManager {
@@ -54,21 +67,18 @@ public:
     LevelManager();
     ~LevelManager();
 
-
     void setLevelBasePath(const std::string& path) { m_levelBasePath = path; }
     void setGeneralLoadingScreenImage(const std::string& imagePath);
     void setNextLevelLoadingScreenImage(const std::string& imagePath);
     void setRespawnLoadingScreenImage(const std::string& imagePath);
     void setTransitionProperties(float fadeDuration = 1.0f);
 
-
     bool requestLoadLevel(int levelNumber, LevelData& outLevelData, LoadRequestType type = LoadRequestType::GENERAL);
-    bool requestLoadSpecificLevel(int levelNumber, LevelData& outLevelData); 
-    bool requestLoadNextLevel(LevelData& outLevelData);        
-    bool requestRespawnCurrentLevel(LevelData& outLevelData);  
+    bool requestLoadSpecificLevel(int levelNumber, LevelData& outLevelData);
+    bool requestLoadNextLevel(LevelData& outLevelData);
+    bool requestRespawnCurrentLevel(LevelData& outLevelData);
 
-
-    void update(float dt, sf::RenderWindow& window); 
+    void update(float dt, sf::RenderWindow& window);
     void draw(sf::RenderWindow& window);
 
     bool isTransitioning() const;
@@ -76,43 +86,43 @@ public:
 
     int getCurrentLevelNumber() const { return m_currentLevelNumber; }
     void setCurrentLevelNumber(int number) { m_currentLevelNumber = number; }
-    
+
     bool hasNextLevel() const;
     void setMaxLevels(int max) { m_maxLevels = max; }
 
+    // Utility to convert string to bodyType - MADE PUBLIC
+    phys::bodyType stringToBodyType(const std::string& typeStr) const;
+
 
 private:
-    bool performActualLoad(int levelNumber, LevelData& outLevelData); 
+    bool performActualLoad(int levelNumber, LevelData& outLevelData);
     bool loadLevelDataFromFile(const std::string& filename, LevelData& outLevelData);
-
 
     rapidjson::Document* readJsonFile(const std::string& filepath);
     void freeJsonDocument(rapidjson::Document* doc);
-    phys::bodyType stringToBodyType(const std::string& typeStr);
+    // phys::bodyType stringToBodyType(const std::string& typeStr); // Moved to public
     bool parseLevelData(const rapidjson::Document& doc, LevelData& outLevelData);
 
     int m_currentLevelNumber;
     int m_targetLevelNumber;
-    LevelData* m_levelDataToFill; 
+    LevelData* m_levelDataToFill;
 
     int m_maxLevels;
     std::string m_levelBasePath;
     std::map<std::string, phys::bodyType> m_bodyTypeMap;
-
 
     TransitionState m_transitionState;
     LoadRequestType m_currentLoadType;
     sf::Clock m_transitionClock;
     float m_fadeDuration;
 
-    sf::Texture m_loadingTexture; 
+    sf::Texture m_loadingTexture;
     sf::Sprite m_loadingSprite;
     bool m_loadingScreenReady;
 
     std::string m_generalLoadingScreenPath;
     std::string m_nextLevelLoadingScreenPath;
     std::string m_respawnLoadingScreenPath;
-    
 
     sf::RectangleShape m_fadeOverlay;
 };

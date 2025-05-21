@@ -1,126 +1,81 @@
-#include <iostream>
-#include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp> // For sf::Music and sf::Sound
-#include <vector>
-#include <cmath>
-#include <string>
-#include <cstdlib> // For std::fmod with floats if needed, though cmath should cover it
-#include <ctime>   // Not strictly used here but often good for games
-#include <algorithm> // For std::min/max
-#include <limits>    // For numeric_limits
-#include <filesystem> // For checking font path if needed, currently not actively used for dynamic checks
-#include <map>        // For SFX map
-
+// ... (Includes are fine) ...
 #include "CollisionSystem.hpp"
 #include "Player.hpp"
 #include "PlatformBody.hpp"
 #include "Tile.hpp"
 #include "PhysicsTypes.hpp"
 #include "LevelManager.hpp"
-#include "Optimizer.hpp" // CHANGED FROM Math_Easing.hpp
+#include "Optimizer.hpp" // Your easing functions
 
+// ... (GameState, GameSettings, Globals for Window/Resolution are fine) ...
 
-// --- Updated GameState Enum ---
-enum class GameState {
-    MENU,
-    SETTINGS,
-    CREDITS,
-    PLAYING,
-    TRANSITIONING,
-    GAME_OVER_WIN,
-    GAME_OVER_LOSE_FALL, // Specific to falling out
-    GAME_OVER_LOSE_DEATH // Specific to trap death
-};
-
-// --- Game Settings Struct ---
-struct GameSettings {
-    float musicVolume = 100.f; // 0-100
-    float sfxVolume = 100.f;   // 0-100
-};
-
-// --- Global Game Objects ---
-LevelManager levelManager;
-LevelData currentLevelData; // Holds data for the *currently active or loading* level
+// --- Global Game Objects (Modifications/Additions) ---
+LevelManager levelManager; // Already global
+LevelData currentLevelData;
 phys::DynamicBody playerBody;
-std::vector<phys::PlatformBody> bodies; // Physics bodies for collision
-std::vector<Tile> tiles;                // Visual tiles
+std::vector<phys::PlatformBody> bodies;
+std::vector<Tile> tiles;
 
 struct ActiveMovingPlatform {
     unsigned int id;
-    sf::Vector2f startPosition; // The absolute starting point of the movement path
+    sf::Vector2f startPosition;
     char axis;
     float distance;
     float cycleTime;
     float cycleDuration;
-    int direction; // Current direction of movement for path segment
-    sf::Vector2f lastFramePosition; // Platform's position in the previous frame
+    int direction;
+    sf::Vector2f lastFramePosition;
 };
 std::vector<ActiveMovingPlatform> activeMovingPlatforms;
+
+// ADDED for Interactible Platform runtime state
+struct ActiveInteractiblePlatform {
+    unsigned int id;
+    std::string interactionType;
+    phys::bodyType targetBodyTypeEnum; // Resolved enum value
+    sf::Color targetTileColor;
+    bool hasTargetTileColor;
+    bool oneTime;
+    float cooldown; // Original cooldown from JSON
+
+    // Runtime state
+    bool hasBeenInteractedThisSession; // For oneTime logic
+    float currentCooldownTimer;        // Countdown timer
+};
+std::map<unsigned int, ActiveInteractiblePlatform> activeInteractibles; // Map ID to its active state
 
 sf::Time vanishingPlatformCycleTimer = sf::Time::Zero;
 int oddEvenVanishing = 1;
 
 GameSettings gameSettings;
 
-// --- Audio Objects ---
-sf::Music menuMusic;
-sf::Music gameMusic;
-std::map<std::string, sf::SoundBuffer> soundBuffers;
-sf::Sound sfxPlayer;
+// ... (Audio objects and Asset Paths are fine) ...
+// ... (playSfx, loadAudio are fine) ...
 
-// --- Asset Paths ---
-const std::string FONT_PATH = "../assets/fonts/ARIALBD.TTF"; // Make sure this path is correct
-const std::string IMG_MENU_BG = "../assets/images/mainmenu_bg.png";
-const std::string IMG_LOAD_GENERAL = "../assets/images/loading.png";
-const std::string IMG_LOAD_NEXT = "../assets/images/menuload.png";
-const std::string IMG_LOAD_RESPAWN = "../assets/images/respawn.png";
-
-const std::string AUDIO_MUSIC_MENU = "../assets/audio/music_menu.ogg";
-const std::string AUDIO_MUSIC_GAME = "../assets/audio/music_ingame.ogg";
-const std::string SFX_JUMP = "../assets/audio/sfx_jump.wav";
-const std::string SFX_DEATH = "../assets/audio/sfx_death.wav";
-const std::string SFX_GOAL = "../assets/audio/sfx_goal.wav";
-const std::string SFX_CLICK = "../assets/audio/sfx_click.wav";
-
-
-// --- Helper to play SFX ---
-void playSfx(const std::string& sfxName) {
-    if (soundBuffers.count(sfxName)) {
-        sfxPlayer.setBuffer(soundBuffers[sfxName]);
-        sfxPlayer.setVolume(gameSettings.sfxVolume);
-        sfxPlayer.play();
-    } else {
-        std::cerr << "SFX not loaded/found: " << sfxName << std::endl;
+// Helper to get a default Tile color for a bodyType if not specified by interaction
+sf::Color getTileColorForBodyType(phys::bodyType type, const sf::Color& defaultColorIfUnknown = sf::Color::Magenta) {
+    switch (type) {
+        case phys::bodyType::solid:        return sf::Color(100, 100, 100, 255);
+        case phys::bodyType::platform:     return sf::Color(70, 150, 200, 180);
+        case phys::bodyType::conveyorBelt: return sf::Color(255, 150, 50, 255);
+        case phys::bodyType::moving:       return sf::Color(70, 200, 70, 255);
+        case phys::bodyType::falling:      return sf::Color(200, 200, 70, 255);
+        case phys::bodyType::vanishing:    return sf::Color(200, 70, 200, 255); // Vanishing itself might be complex to target
+        case phys::bodyType::spring:       return sf::Color(255, 255, 0, 255);
+        case phys::bodyType::trap:         return sf::Color(255, 20, 20, 255);
+        case phys::bodyType::goal:         return sf::Color(20, 255, 20, 128);
+        case phys::bodyType::interactible: return sf::Color(180, 180, 220, 200); // Color *before* interaction
+        case phys::bodyType::none:         return sf::Color(0, 0, 0, 0); // Transparent
+        default:                           return defaultColorIfUnknown;
     }
 }
 
-// --- Function to load audio assets ---
-void loadAudio() {
-    if (!menuMusic.openFromFile(AUDIO_MUSIC_MENU))
-        std::cerr << "Error loading menu music: " << AUDIO_MUSIC_MENU << std::endl;
-    else menuMusic.setLoop(true);
 
-    if (!gameMusic.openFromFile(AUDIO_MUSIC_GAME))
-        std::cerr << "Error loading game music: " << AUDIO_MUSIC_GAME << std::endl;
-    else gameMusic.setLoop(true);
-
-    sf::SoundBuffer buffer; // Reusable buffer for loading
-    if (buffer.loadFromFile(SFX_JUMP)) soundBuffers["jump"] = buffer;
-    else std::cerr << "Error loading SFX: " << SFX_JUMP << std::endl;
-    if (buffer.loadFromFile(SFX_DEATH)) soundBuffers["death"] = buffer;
-    else std::cerr << "Error loading SFX: " << SFX_DEATH << std::endl;
-    if (buffer.loadFromFile(SFX_GOAL)) soundBuffers["goal"] = buffer;
-    else std::cerr << "Error loading SFX: " << SFX_GOAL << std::endl;
-    if (buffer.loadFromFile(SFX_CLICK)) soundBuffers["click"] = buffer;
-    else std::cerr << "Error loading SFX: " << SFX_CLICK << std::endl;
-}
-
-
-// --- Function to Setup Level Assets (Visuals, Physics instances from currentLevelData) ---
 void setupLevelAssets(const LevelData& data, sf::RenderWindow& window) {
     bodies.clear();
     tiles.clear();
     activeMovingPlatforms.clear();
+    activeInteractibles.clear(); // <-- CLEAR NEW MAP
 
     playerBody.setPosition(data.playerStartPosition);
     playerBody.setVelocity({0.f, 0.f});
@@ -132,13 +87,12 @@ void setupLevelAssets(const LevelData& data, sf::RenderWindow& window) {
     std::cout << "  Player Start: (" << data.playerStartPosition.x << ", " << data.playerStartPosition.y << ")" << std::endl;
     std::cout << "  Platform Count: " << data.platforms.size() << std::endl;
 
-
     bodies.reserve(data.platforms.size());
     for (const auto& p_body_template : data.platforms) {
-        bodies.push_back(p_body_template); // Add physics body
+        bodies.push_back(p_body_template);
 
-        // Link moving platform details
         if (p_body_template.getType() == phys::bodyType::moving) {
+            // ... (existing moving platform setup logic is fine) ...
             bool foundDetail = false;
             for(const auto& detail : data.movingPlatformDetails){
                 if(detail.id == p_body_template.getID()){
@@ -147,12 +101,10 @@ void setupLevelAssets(const LevelData& data, sf::RenderWindow& window) {
                     if (detail.cycleDuration > 0 && detail.distance != 0) {
                          initialOffsetValue = math::easing::sineEaseInOut(0.f, 0.f, detail.initialDirection * detail.distance, detail.cycleDuration / 2.0f);
                     }
-
                     activeMovingPlatforms.push_back({
                         detail.id, detail.startPosition, detail.axis, detail.distance,
                         0.0f, detail.cycleDuration, detail.initialDirection, initial_platform_pos
                     });
-
                     sf::Vector2f actualInitialPos = detail.startPosition;
                      if (detail.axis == 'x') actualInitialPos.x += initialOffsetValue;
                      else if (detail.axis == 'y') actualInitialPos.y += initialOffsetValue;
@@ -171,6 +123,36 @@ void setupLevelAssets(const LevelData& data, sf::RenderWindow& window) {
                           << " listed in platforms, but missing movement details." << std::endl;
             }
         }
+        // SETUP ACTIVE INTERACTIBLES
+        else if (p_body_template.getType() == phys::bodyType::interactible) {
+            bool foundDetail = false;
+            for (const auto& detail : data.interactiblePlatformDetails) {
+                if (detail.id == p_body_template.getID()) {
+                    ActiveInteractiblePlatform activeDetail;
+                    activeDetail.id = detail.id;
+                    activeDetail.interactionType = detail.interactionType;
+                    // Resolve targetBodyTypeEnum using the global levelManager instance
+                    activeDetail.targetBodyTypeEnum = levelManager.stringToBodyType(detail.targetBodyTypeStr);
+                    activeDetail.targetTileColor = detail.targetTileColor;
+                    activeDetail.hasTargetTileColor = detail.hasTargetTileColor;
+                    activeDetail.oneTime = detail.oneTime;
+                    activeDetail.cooldown = detail.cooldown;
+                    activeDetail.hasBeenInteractedThisSession = false; // Initial runtime state
+                    activeDetail.currentCooldownTimer = 0.f;       // Initial runtime state
+
+                    activeInteractibles[detail.id] = activeDetail;
+                    foundDetail = true;
+                    std::cout << "  Setup interactible platform ID " << detail.id
+                              << " to target type: " << detail.targetBodyTypeStr
+                              << " (Enum: " << static_cast<int>(activeDetail.targetBodyTypeEnum) << ")" << std::endl;
+                    break;
+                }
+            }
+            if (!foundDetail) {
+                std::cerr << "Warning: Interactible platform ID " << p_body_template.getID()
+                          << " listed in platforms, but missing interaction details." << std::endl;
+            }
+        }
     }
 
     tiles.reserve(bodies.size());
@@ -178,20 +160,8 @@ void setupLevelAssets(const LevelData& data, sf::RenderWindow& window) {
         const auto& body = bodies[i];
         Tile newTile(sf::Vector2f(body.getWidth(), body.getHeight()));
         newTile.setPosition(body.getPosition());
-        switch (body.getType()) {
-            case phys::bodyType::solid:        newTile.setFillColor(sf::Color(100, 100, 100, 255)); break;
-            case phys::bodyType::platform:     newTile.setFillColor(sf::Color(70, 150, 200, 180)); break;
-            case phys::bodyType::conveyorBelt: newTile.setFillColor(sf::Color(255, 150, 50, 255)); break;
-            case phys::bodyType::moving:       newTile.setFillColor(sf::Color(70, 200, 70, 255)); break;
-            case phys::bodyType::falling:      newTile.setFillColor(sf::Color(200, 200, 70, 255)); break;
-            case phys::bodyType::vanishing:    newTile.setFillColor(sf::Color(200, 70, 200, 255)); break;
-            case phys::bodyType::spring:       newTile.setFillColor(sf::Color(255, 255, 0, 255)); break;
-            case phys::bodyType::trap:         newTile.setFillColor(sf::Color(255, 20, 20, 255)); break;
-            case phys::bodyType::goal:         newTile.setFillColor(sf::Color(20, 255, 20, 128)); break;
-            case phys::bodyType::interactible: newTile.setFillColor(sf::Color(180, 180, 220, 200)); break;
-            case phys::bodyType::none:         newTile.setFillColor(sf::Color(0, 0, 0, 0)); break;
-            default:                           newTile.setFillColor(sf::Color(128, 128, 128, 255)); break;
-        }
+        // Use the helper function for default colors
+        newTile.setFillColor(getTileColorForBodyType(body.getType()));
         tiles.push_back(newTile);
     }
 
@@ -199,188 +169,61 @@ void setupLevelAssets(const LevelData& data, sf::RenderWindow& window) {
     oddEvenVanishing = 1;
 }
 
+// ... (updateResolutionDisplayText is fine) ...
 
 int main(void) {
-    const sf::Vector2f LOGICAL_SIZE(800.f, 600.f); // Design resolution
-    const sf::Vector2f tileSize(32.f, 32.f);
-    const float PLAYER_MOVE_SPEED = 200.f;
-    const float JUMP_INITIAL_VELOCITY = -450.f;
-    const float GRAVITY_ACCELERATION = 1200.f;
-    const float MAX_FALL_SPEED = 700.f;
-    const sf::Time MAX_JUMP_HOLD_TIME = sf::seconds(0.18f);
-    const float PLAYER_DEATH_Y_LIMIT = 2000.f; // Relative to game world coordinates
+    // ... (Initial setup: resolutions, constants, window creation is fine) ...
+    // ... (GameState, levelManager setup, loadAudio is fine) ...
+    // ... (playerBody, Font, UI Text setup is fine) ...
+    // ... (playerShape, clocks, turboMultiplier, interactKeyPressedThisFrame, debugText fine) ...
+    // ... (Music play, running loop start fine) ...
 
-    sf::VideoMode desktopMode = sf::VideoMode::getFullscreenModes()[0];
-    sf::RenderWindow window(desktopMode, "Project - T", sf::Style::Fullscreen);
-    window.setKeyRepeatEnabled(false);
-    window.setVerticalSyncEnabled(true);
-
-    sf::View uiView;     // For menus, HUD, transitions - fixed to LOGICAL_SIZE
-    sf::View mainView;   // For gameplay - follows player, same LOGICAL_SIZE dimensions
-
-    // Calculate viewport for letterboxing/pillarboxing
-    float windowWidth = static_cast<float>(desktopMode.width);
-    float windowHeight = static_cast<float>(desktopMode.height);
-    float windowAspectRatio = windowWidth / windowHeight;
-    float logicalAspectRatio = LOGICAL_SIZE.x / LOGICAL_SIZE.y;
-
-    float viewportX = 0.f;
-    float viewportY = 0.f;
-    float viewportWidthRatio = 1.f;
-    float viewportHeightRatio = 1.f;
-
-    if (windowAspectRatio > logicalAspectRatio) { // Window is wider than logical (letterbox top/bottom bars, or pillarbox if math wrong -> pillarbox for wider)
-        viewportWidthRatio = logicalAspectRatio / windowAspectRatio; // Viewport width is scaled down
-        viewportX = (1.f - viewportWidthRatio) / 2.f;             // Center it
-    } else if (windowAspectRatio < logicalAspectRatio) { // Window is narrower than logical (pillarbox left/right bars, or letterbox if math wrong -> letterbox for taller)
-        viewportHeightRatio = windowAspectRatio / logicalAspectRatio; // Viewport height is scaled down
-        viewportY = (1.f - viewportHeightRatio) / 2.f;              // Center it
-    }
-    sf::FloatRect viewportRect(viewportX, viewportY, viewportWidthRatio, viewportHeightRatio);
-
-    uiView.setSize(LOGICAL_SIZE);
-    uiView.setCenter(LOGICAL_SIZE / 2.f); // Centered on the logical 800x600 area
-    uiView.setViewport(viewportRect);     // Maps this logical area to the calculated part of the window
-
-    mainView.setSize(LOGICAL_SIZE);     // Game world view also uses logical dimensions
-    mainView.setViewport(viewportRect); // And same screen viewport for aspect ratio
-    // mainView.setCenter will be updated dynamically based on player position for scrolling
-
-
-    GameState currentState = GameState::MENU;
-    levelManager.setMaxLevels(5);
-    levelManager.setLevelBasePath("../assets/levels/");
-    levelManager.setTransitionProperties(0.75f); 
-    levelManager.setGeneralLoadingScreenImage(IMG_LOAD_GENERAL);
-    levelManager.setNextLevelLoadingScreenImage(IMG_LOAD_NEXT);
-    levelManager.setRespawnLoadingScreenImage(IMG_LOAD_RESPAWN);
-
-    loadAudio();
-
-    playerBody = phys::DynamicBody({0.f, 0.f}, tileSize.x, tileSize.y, {0.f, 0.f});
-
-    sf::Font menuFont;
-    if (!menuFont.loadFromFile(FONT_PATH)) {
-        std::cerr << "FATAL: Failed to load font: " << FONT_PATH << ". Exiting." << std::endl;
-        #ifdef _WIN32
-        if (!menuFont.loadFromFile("C:/Windows/Fonts/arialbd.ttf")) return -1;
-        #else
-        // Fallback for other systems if needed
-        #endif
-        if (menuFont.getInfo().family.empty()) {std::cerr << "Fallback font failed.\n"; return -1;}
-        std::cout << "Loaded fallback font for debug." << std::endl;
-    }
-
-    auto setupTextUI = [&](sf::Text& text, const sf::String& str, float yPos, unsigned int charSize = 30, float xOffset = 0.f) {
-        text.setFont(menuFont);
-        text.setString(str);
-        text.setCharacterSize(charSize);
-        text.setFillColor(sf::Color::White);
-        sf::FloatRect bounds = text.getLocalBounds();
-        text.setOrigin(bounds.left + bounds.width / 2.f, bounds.top + bounds.height / 2.f);
-        // Position relative to LOGICAL_SIZE for UI elements
-        text.setPosition(LOGICAL_SIZE.x / 2.f + xOffset, yPos);
-    };
-
-    sf::Text menuTitleText, startButtonText, settingsButtonText, creditsButtonText, exitButtonText;
-    sf::Texture menuBgTexture; sf::Sprite menuBgSprite;
-    if (menuBgTexture.loadFromFile(IMG_MENU_BG)) {
-        menuBgSprite.setTexture(menuBgTexture);
-        // Scale sprite to fill the LOGICAL_SIZE view
-        menuBgSprite.setScale(LOGICAL_SIZE.x / menuBgTexture.getSize().x,
-                              LOGICAL_SIZE.y / menuBgTexture.getSize().y);
-        menuBgSprite.setPosition(0.f, 0.f); // Position at top-left of the LOGICAL_SIZE view
-    }
-    else {
-        std::cerr << "Warning: Menu BG image not found: " << IMG_MENU_BG << std::endl;
-    }
-
-
-    setupTextUI(menuTitleText, "Project - T", 100, 48);
-    setupTextUI(startButtonText, "Start Game", 250);
-    setupTextUI(settingsButtonText, "Settings", 300);
-    setupTextUI(creditsButtonText, "Credits", 350);
-    setupTextUI(exitButtonText, "Exit", 400);
-
-    sf::Text settingsTitleText, musicVolumeText, musicVolValText, sfxVolumeText, sfxVolValText, settingsBackText;
-    setupTextUI(settingsTitleText, "Settings", 100, 40);
-    setupTextUI(musicVolumeText, "Music Volume:", 200, 24, -100);
-    setupTextUI(musicVolValText, "", 200, 24, 50);
-    setupTextUI(sfxVolumeText, "SFX Volume:", 250, 24, -100);
-    setupTextUI(sfxVolValText, "", 250, 24, 50);
-    setupTextUI(settingsBackText, "Back to Menu", 450);
-
-    sf::Text creditsTitleText, creditsNamesText, creditsBackText;
-    setupTextUI(creditsTitleText, "Credits", 100, 40);
-    setupTextUI(creditsNamesText, "Jan\nZean\nJecer\nGian", 250, 28);
-    setupTextUI(creditsBackText, "Back to Menu", 450);
-
-    sf::Text gameOverStatusText, gameOverOption1Text, gameOverOption2Text;
-    setupTextUI(gameOverStatusText, "", 150, 36);
-    setupTextUI(gameOverOption1Text, "", 280);
-    setupTextUI(gameOverOption2Text, "Main Menu", 330);
-
-    sf::Color defaultBtnColor = sf::Color::White;
-    sf::Color hoverBtnColor = sf::Color::Yellow;
-    sf::Color exitBtnHoverColor = sf::Color::Red;
-
-    sf::RectangleShape playerShape;
-    playerShape.setFillColor(sf::Color(220, 220, 250, 255));
-    playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
-
-    sf::Clock gameClock;
-    sf::Time timeSinceLastFixedUpdate = sf::Time::Zero;
-    const sf::Time TIME_PER_FIXED_UPDATE = sf::seconds(1.f / 60.f);
-
-    sf::Time currentJumpHoldDuration = sf::Time::Zero;
-    int turboMultiplier = 1;
-    bool interactKeyPressedThisFrame = false;
-
-    sf::Text debugText;
-    debugText.setFont(menuFont);
-    debugText.setCharacterSize(14);
-    debugText.setFillColor(sf::Color::White);
-    debugText.setPosition(10.f, 10.f); // Positioned relative to top-left of uiView (LOGICAL_SIZE)
-
-    menuMusic.setVolume(gameSettings.musicVolume);
-    menuMusic.play();
-
-    bool running = true;
     while (running) {
-        interactKeyPressedThisFrame = false;
+        interactKeyPressedThisFrame = false; // Reset at the start of each frame
         sf::Time frameDeltaTime = gameClock.restart();
 
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
+            // ... (Existing event handling is mostly fine) ...
+            // In PLAYING state, the 'E' key for interactKeyPressedThisFrame is already captured.
+             if (event.type == sf::Event::Closed) {
                 running = false; window.close();
             }
-             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F4) {
+             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F4) { // Cheat to next level
                 if(currentState == GameState::PLAYING && levelManager.requestLoadNextLevel(currentLevelData)){
-                     currentState = GameState::TRANSITIONING; playSfx("goal");
-                } else if (currentState == GameState::PLAYING) {
+                     currentState = GameState::TRANSITIONING; playSfx("goal"); // Or a generic "cheat" sound
+                } else if (currentState == GameState::PLAYING) { // No next level, treat as win
                     currentState = GameState::GAME_OVER_WIN; gameMusic.stop(); menuMusic.play();
                 }
             }
-
-            // Convert mouse coordinates using uiView for all UI interactions
+            // ... (Rest of your event switch cases for MENU, SETTINGS, etc.)
+            // Ensure PLAYING case captures interactKeyPressedThisFrame = true on E press.
+            // Your existing code:
+            // case GameState::PLAYING:
+            //     if (event.type == sf::Event::KeyPressed) {
+            //         ...
+            //         } else if (event.key.code == sf::Keyboard::E) {
+            //             interactKeyPressedThisFrame = true; // This is correct
+            //         }
+            //     }
+            //     break;
             sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
             sf::Vector2f worldPosUi = window.mapPixelToCoords(pixelPos, uiView);
-
 
             switch(currentState) {
                 case GameState::MENU:
                     if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
                         playSfx("click");
                         if (startButtonText.getGlobalBounds().contains(worldPosUi)) {
-                            levelManager.setCurrentLevelNumber(0);
-                            if (levelManager.requestLoadNextLevel(currentLevelData)) {
+                            levelManager.setCurrentLevelNumber(0); // Start from level 1
+                            if (levelManager.requestLoadNextLevel(currentLevelData)) { // This will load level 1
                                 currentState = GameState::TRANSITIONING;
-                                menuMusic.stop(); gameMusic.setVolume(gameSettings.musicVolume); gameMusic.play();
+                                menuMusic.stop(); gameMusic.play(); 
                                 window.setTitle("Project T - Loading...");
-                            } else { std::cerr << "MENU: Failed request to load level 1." << std::endl; }
+                            } else { std::cerr << "MENU: Failed request to load initial level." << std::endl; }
                         } else if (settingsButtonText.getGlobalBounds().contains(worldPosUi)) {
                             currentState = GameState::SETTINGS;
+                            updateResolutionDisplayText(); 
                         } else if (creditsButtonText.getGlobalBounds().contains(worldPosUi)) {
                             currentState = GameState::CREDITS;
                         } else if (exitButtonText.getGlobalBounds().contains(worldPosUi)) {
@@ -393,6 +236,29 @@ int main(void) {
                      if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
                         playSfx("click");
                         if (settingsBackText.getGlobalBounds().contains(worldPosUi)) currentState = GameState::MENU;
+                        else if (musicVolDownText.getGlobalBounds().contains(worldPosUi)) {
+                            gameSettings.musicVolume = std::max(0.f, gameSettings.musicVolume - 10.f);
+                            menuMusic.setVolume(gameSettings.musicVolume); gameMusic.setVolume(gameSettings.musicVolume);
+                        } else if (musicVolUpText.getGlobalBounds().contains(worldPosUi)) {
+                            gameSettings.musicVolume = std::min(100.f, gameSettings.musicVolume + 10.f);
+                            menuMusic.setVolume(gameSettings.musicVolume); gameMusic.setVolume(gameSettings.musicVolume);
+                        }
+                        else if (sfxVolDownText.getGlobalBounds().contains(worldPosUi)) gameSettings.sfxVolume = std::max(0.f, gameSettings.sfxVolume - 10.f);
+                        else if (sfxVolUpText.getGlobalBounds().contains(worldPosUi)) gameSettings.sfxVolume = std::min(100.f, gameSettings.sfxVolume + 10.f);
+                        else if (resolutionPrevText.getGlobalBounds().contains(worldPosUi)) {
+                            if (!isFullscreen && !availableResolutions.empty()) {
+                                currentResolutionIndex--; if (currentResolutionIndex < 0) currentResolutionIndex = availableResolutions.size() - 1;
+                                applyAndRecreateWindow(window, uiView, mainView); updateResolutionDisplayText();
+                            }
+                        } else if (resolutionNextText.getGlobalBounds().contains(worldPosUi)) {
+                             if (!isFullscreen && !availableResolutions.empty()) {
+                                currentResolutionIndex++; if (currentResolutionIndex >= availableResolutions.size()) currentResolutionIndex = 0;
+                                applyAndRecreateWindow(window, uiView, mainView); updateResolutionDisplayText();
+                            }
+                        } else if (fullscreenToggleText.getGlobalBounds().contains(worldPosUi)) {
+                            isFullscreen = !isFullscreen;
+                            applyAndRecreateWindow(window, uiView, mainView); updateResolutionDisplayText();
+                        }
                      }
                      if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) currentState = GameState::MENU;
                     break;
@@ -407,7 +273,7 @@ int main(void) {
                     if (event.type == sf::Event::KeyPressed) {
                         if (event.key.code == sf::Keyboard::Escape) {
                             currentState = GameState::MENU;
-                            gameMusic.pause(); menuMusic.setVolume(gameSettings.musicVolume); menuMusic.play();
+                            gameMusic.pause(); menuMusic.play();
                             window.setTitle("Project T (Menu - Paused)");
                         } else if (event.key.code == sf::Keyboard::R) {
                             playSfx("click");
@@ -416,65 +282,55 @@ int main(void) {
                                 window.setTitle("Project T - Respawning...");
                             } else {std::cerr << "PLAYING: Failed respawn request.\n";}
                         } else if (event.key.code == sf::Keyboard::E) {
-                            interactKeyPressedThisFrame = true;
+                            interactKeyPressedThisFrame = true; // This is correctly set
                         }
                     }
                     break;
-                case GameState::GAME_OVER_WIN:
-                case GameState::GAME_OVER_LOSE_FALL:
-                case GameState::GAME_OVER_LOSE_DEATH:
+                 case GameState::GAME_OVER_WIN:
+                 case GameState::GAME_OVER_LOSE_FALL:
+                 case GameState::GAME_OVER_LOSE_DEATH:
                     if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
                         playSfx("click");
                         if (gameOverOption1Text.getGlobalBounds().contains(worldPosUi)) {
                             if (currentState == GameState::GAME_OVER_LOSE_FALL || currentState == GameState::GAME_OVER_LOSE_DEATH) {
-                                if (levelManager.requestRespawnCurrentLevel(currentLevelData)) {
-                                    currentState = GameState::TRANSITIONING;
-                                    gameMusic.setVolume(gameSettings.musicVolume); gameMusic.play();
-                                } else {
-                                    std::cerr << "GAME_OVER_LOSE: Failed respawn. Returning to MENU.\n";
-                                    currentState = GameState::MENU; gameMusic.stop(); menuMusic.play(); levelManager.setCurrentLevelNumber(0);
-                                }
-                            } else if (currentState == GameState::GAME_OVER_WIN) {
-                                levelManager.setCurrentLevelNumber(0);
-                                if (levelManager.requestLoadNextLevel(currentLevelData)) {
-                                    currentState = GameState::TRANSITIONING;
-                                    menuMusic.stop(); gameMusic.setVolume(gameSettings.musicVolume); gameMusic.play();
-                                } else {
-                                    std::cerr << "GAME_OVER_WIN: Failed Play Again. Returning to MENU.\n";
-                                     currentState = GameState::MENU; menuMusic.play();
-                                }
+                                if (levelManager.requestRespawnCurrentLevel(currentLevelData)) { // Respawn current
+                                    currentState = GameState::TRANSITIONING; gameMusic.play();
+                                } else { currentState = GameState::MENU; gameMusic.stop(); menuMusic.play(); levelManager.setCurrentLevelNumber(0); }
+                            } else if (currentState == GameState::GAME_OVER_WIN) { // Play Again (from level 1)
+                                levelManager.setCurrentLevelNumber(0); // Reset to allow loading level 1
+                                if (levelManager.requestLoadNextLevel(currentLevelData)) { // This will load level 1
+                                    currentState = GameState::TRANSITIONING; menuMusic.stop(); gameMusic.play();
+                                } else { currentState = GameState::MENU; menuMusic.play(); }
                             }
-                        } else if (gameOverOption2Text.getGlobalBounds().contains(worldPosUi)) { // Back to Menu
-                            currentState = GameState::MENU;
-                            gameMusic.stop(); menuMusic.setVolume(gameSettings.musicVolume); menuMusic.play();
-                            levelManager.setCurrentLevelNumber(0);
+                        } else if (gameOverOption2Text.getGlobalBounds().contains(worldPosUi)) { // Main Menu
+                            currentState = GameState::MENU; gameMusic.stop(); menuMusic.play();
+                            levelManager.setCurrentLevelNumber(0); // Reset current level
                         }
                     }
                      if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
                         currentState = GameState::MENU; gameMusic.stop(); menuMusic.play(); levelManager.setCurrentLevelNumber(0);
                      }
                     break;
-                case GameState::TRANSITIONING:
-                    // No input handling during transitions, usually
+                case GameState::TRANSITIONING: // No input during transitions
                     break;
-                default: 
+                default:
                     std::cerr << "Warning: Unhandled GameState in event loop: " << static_cast<int>(currentState) << std::endl;
-                    currentState = GameState::MENU; 
+                    currentState = GameState::MENU;
                     break;
             }
         }
 
+
         if (!running) break;
 
-        // --- UPDATE LOGIC ---
         timeSinceLastFixedUpdate += frameDeltaTime;
 
         if (currentState == GameState::PLAYING) {
-            window.setTitle("Project T - Level " + currentLevelData.levelName + " (" + std::to_string(currentLevelData.levelNumber) +")");
             while (timeSinceLastFixedUpdate >= TIME_PER_FIXED_UPDATE) {
                 timeSinceLastFixedUpdate -= TIME_PER_FIXED_UPDATE;
                 playerBody.setLastPosition(playerBody.getPosition());
 
+                // ... (Player input, movement, jump logic fine) ...
                 float horizontalInput = 0.f;
                 turboMultiplier = (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) ? 2 : 1;
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) horizontalInput = -1.f;
@@ -486,7 +342,10 @@ int main(void) {
                 if (newJumpPressThisFrame) playSfx("jump");
                 playerBody.setTryingToDrop(dropIntentThisFrame && playerBody.isOnGround());
 
+
+                // --- Update Moving Platforms ---
                 for(auto& activePlat : activeMovingPlatforms) {
+                    // ... (Existing moving platform update logic fine) ...
                     phys::PlatformBody* movingBodyPtr = nullptr; size_t tileIdx = (size_t)-1; 
                     for(size_t i=0; i < bodies.size(); ++i) if(bodies[i].getID() == activePlat.id) {movingBodyPtr = &bodies[i]; tileIdx = i; break;}
 
@@ -516,27 +375,50 @@ int main(void) {
                     }
                 }
 
-                 for (size_t i = 0; i < bodies.size(); ++i) {
-                    if (tiles.size() <= i || (bodies[i].getType() == phys::bodyType::none && tiles[i].getFillColor().a == 0)) continue;
-                    tiles[i].update(TIME_PER_FIXED_UPDATE);
+                // --- Update Tiles (Falling, Vanishing) & Interactible Cooldowns ---
+                for (auto& pair : activeInteractibles) { // Update cooldowns first
+                    ActiveInteractiblePlatform& interactible = pair.second;
+                    if (interactible.currentCooldownTimer > 0.f) {
+                        interactible.currentCooldownTimer -= TIME_PER_FIXED_UPDATE.asSeconds();
+                        if (interactible.currentCooldownTimer < 0.f) {
+                            interactible.currentCooldownTimer = 0.f;
+                        }
+                    }
+                }
+                for (size_t i = 0; i < bodies.size(); ++i) {
+                    // ... (Existing falling/vanishing tile logic fine) ...
+                     if (tiles.size() <= i || (bodies[i].getType() == phys::bodyType::none && tiles[i].getFillColor().a == 0)) continue;
+                    tiles[i].update(TIME_PER_FIXED_UPDATE); // Tile's own animation/fall
                     if (bodies[i].getType() == phys::bodyType::falling) {
                         bool playerOnThis = playerBody.isOnGround() && playerBody.getGroundPlatform() && playerBody.getGroundPlatform()->getID() == bodies[i].getID();
                         if (playerOnThis && !tiles[i].isFalling() && !tiles[i].hasFallen()) tiles[i].startFalling(sf::seconds(0.25f));
-                        if (tiles[i].isFalling() && !bodies[i].isFalling()) bodies[i].setFalling(true);
-                        if (tiles[i].hasFallen() && bodies[i].getPosition().x > -9000.f) bodies[i].setPosition({-9999.f, -9999.f});
+                        if (tiles[i].isFalling() && !bodies[i].isFalling()) bodies[i].setFalling(true); // Sync physics body
+                        if (tiles[i].hasFallen() && bodies[i].getPosition().x > -9000.f) { // If tile visually fell, remove physics body
+                            bodies[i].setPosition({-9999.f, -9999.f});
+                            bodies[i].setType(phys::bodyType::none); // Also mark as none
+                        }
                     } else if (bodies[i].getType() == phys::bodyType::vanishing) {
                         bool is_even_id = (bodies[i].getID() % 2 == 0);
                         bool should_vanish_now = (oddEvenVanishing == 1 && is_even_id) || (oddEvenVanishing == -1 && !is_even_id);
                         float phaseTime = std::fmod(vanishingPlatformCycleTimer.asSeconds(), 1.0f);
-                        sf::Color originalColor(200, 70, 200, 255); float alpha_val;
+                        sf::Color originalColor = getTileColorForBodyType(phys::bodyType::vanishing); // Use helper for consistency
+                        float alpha_val;
                         if (should_vanish_now) alpha_val = math::easing::sineEaseInOut(phaseTime, 255.f, -255.f, 1.f);
                         else alpha_val = math::easing::sineEaseInOut(phaseTime, 0.f, 255.f, 1.f);
                         alpha_val = std::max(0.f, std::min(255.f, alpha_val));
                         tiles[i].setFillColor(sf::Color(originalColor.r, originalColor.g, originalColor.b, static_cast<sf::Uint8>(alpha_val)));
-                        if (alpha_val <= 10.f && bodies[i].getPosition().x > -9000.f) bodies[i].setPosition({-9999.f, -9999.f});
-                        else if (alpha_val > 10.f && bodies[i].getPosition().x < -9000.f) {
-                            for(const auto& templ : currentLevelData.platforms) if(templ.getID() == bodies[i].getID()){
-                                bodies[i].setPosition(templ.getPosition()); tiles[i].setPosition(templ.getPosition()); break;
+                        
+                        if (alpha_val <= 10.f && bodies[i].getType() != phys::bodyType::none) { // Vanished
+                            bodies[i].setType(phys::bodyType::none); // Mark as none for collision
+                            bodies[i].setPosition({-9999.f,-9999.f}); // Move away
+                        } else if (alpha_val > 10.f && bodies[i].getType() == phys::bodyType::none) { // Reappearing
+                            for(const auto& templ : currentLevelData.platforms) {
+                                if(templ.getID() == bodies[i].getID()){
+                                    bodies[i].setPosition(templ.getPosition()); 
+                                    tiles[i].setPosition(templ.getPosition()); 
+                                    bodies[i].setType(phys::bodyType::vanishing); // Restore original type
+                                    break;
+                                }
                             }
                         }
                     }
@@ -546,7 +428,10 @@ int main(void) {
                     vanishingPlatformCycleTimer -= sf::seconds(1.f); oddEvenVanishing *= -1;
                 }
 
+
+                // --- Player Physics Update ---
                 sf::Vector2f pVel = playerBody.getVelocity();
+                // ... (Gravity, jump velocity application fine) ...
                 pVel.x = horizontalInput * PLAYER_MOVE_SPEED * turboMultiplier;
                 if (!playerBody.isOnGround()) {
                     pVel.y += GRAVITY_ACCELERATION * TIME_PER_FIXED_UPDATE.asSeconds();
@@ -560,8 +445,11 @@ int main(void) {
                 }
                 playerBody.setVelocity(pVel);
 
+
+                // --- Collision Resolution ---
                 phys::CollisionResolutionInfo resolutionResult = phys::CollisionSystem::resolveCollisions(playerBody, bodies, TIME_PER_FIXED_UPDATE.asSeconds());
-                pVel = playerBody.getVelocity();
+                // ... (Post-collision velocity adjustments, ground platform effects fine) ...
+                 pVel = playerBody.getVelocity(); // Re-fetch after collision response
                 if (playerBody.isOnGround()) {
                     currentJumpHoldDuration = sf::Time::Zero;
                     if (playerBody.getGroundPlatform()) {
@@ -572,7 +460,7 @@ int main(void) {
                              for(const auto& activePlat : activeMovingPlatforms) {
                                 if (activePlat.id == pf.getID()) {
                                     phys::PlatformBody* movingPhysBody = nullptr;
-                                    for(auto& b : bodies) if(b.getID() == activePlat.id) {movingPhysBody = &b; break;}
+                                    for(auto& b_ref : bodies) if(b_ref.getID() == activePlat.id) {movingPhysBody = &b_ref; break;} // Note: b renamed to b_ref
                                     if(movingPhysBody){
                                         sf::Vector2f platformDisp = movingPhysBody->getPosition() - activePlat.lastFramePosition;
                                         playerBody.setPosition(playerBody.getPosition() + platformDisp);
@@ -586,6 +474,8 @@ int main(void) {
                 if (resolutionResult.hitCeiling && pVel.y < 0.f) { pVel.y = 0.f; currentJumpHoldDuration = sf::Time::Zero;}
                 playerBody.setVelocity(pVel);
 
+
+                // --- Trap Check ---
                 bool trapHit = false;
                 for (const auto& body : bodies) {
                     if (body.getType() == phys::bodyType::trap && playerBody.getAABB().intersects(body.getAABB())) {
@@ -595,118 +485,165 @@ int main(void) {
                 if (trapHit) {
                     playSfx("death");
                     currentState = GameState::GAME_OVER_LOSE_DEATH;
-                    gameMusic.pause();
-                    window.setTitle("Project T - Ouch! Game Over");
-                    break; 
+                    gameMusic.pause(); // Or stop and play menu music later
+                    break; // Break from fixed update loop
                 }
 
+                // --- Goal & Interactible Check (if E was pressed) ---
                 if (interactKeyPressedThisFrame) {
+                    // Goal check first (as it's a level end)
                     for (const auto& platform : bodies) {
                         if (platform.getType() == phys::bodyType::goal && playerBody.getAABB().intersects(platform.getAABB())) {
                             playSfx("goal");
                             if (levelManager.hasNextLevel()) {
                                 if (levelManager.requestLoadNextLevel(currentLevelData)) {
                                     currentState = GameState::TRANSITIONING;
-                                    window.setTitle("Project T - Next Level...");
                                 } else { currentState = GameState::MENU; gameMusic.stop(); menuMusic.play(); }
                             } else {
                                 currentState = GameState::GAME_OVER_WIN;
                                 gameMusic.stop(); menuMusic.play();
-                                window.setTitle("Project T - You Win!");
                             }
-                            if (currentState != GameState::PLAYING) break;
+                            goto end_fixed_update_early; // Exit fixed update if state changed
                         }
                     }
-                    if (currentState != GameState::PLAYING) break; 
-                }
 
+                    // Interactible check
+                    for (size_t i = 0; i < bodies.size(); ++i) {
+                        // Need non-const ref to change type, so access `bodies[i]` directly
+                        if (bodies[i].getType() == phys::bodyType::interactible && playerBody.getAABB().intersects(bodies[i].getAABB())) {
+                            auto it = activeInteractibles.find(bodies[i].getID());
+                            if (it != activeInteractibles.end()) {
+                                ActiveInteractiblePlatform& interactState = it->second;
+
+                                if (interactState.currentCooldownTimer > 0.f) continue; // Still on cooldown
+                                if (interactState.oneTime && interactState.hasBeenInteractedThisSession) continue; // Used up
+
+                                if (interactState.interactionType == "changeSelf") {
+                                    playSfx("click"); // Or a specific interaction sound
+
+                                    bodies[i].setType(interactState.targetBodyTypeEnum);
+                                    std::cout << "Platform " << bodies[i].getID() << " interacted, new type: "
+                                              << static_cast<int>(interactState.targetBodyTypeEnum) << std::endl;
+
+
+                                    if (tiles.size() > i) {
+                                        if (interactState.hasTargetTileColor) {
+                                            tiles[i].setFillColor(interactState.targetTileColor);
+                                        } else {
+                                            tiles[i].setFillColor(getTileColorForBodyType(interactState.targetBodyTypeEnum));
+                                        }
+                                    }
+                                    
+                                    // If changed to 'none', effectively remove it
+                                    if (interactState.targetBodyTypeEnum == phys::bodyType::none) {
+                                        bodies[i].setPosition({-10000.f, -10000.f}); // Move far away
+                                        if (tiles.size() > i) tiles[i].setFillColor(sf::Color::Transparent);
+                                    }
+
+
+                                    if (interactState.oneTime) {
+                                        interactState.hasBeenInteractedThisSession = true;
+                                    } else {
+                                        interactState.currentCooldownTimer = interactState.cooldown;
+                                    }
+                                    break; // Interact with one platform per key press
+                                }
+                            }
+                        }
+                    }
+                }
+                end_fixed_update_early:; // Label for goto
+
+                // --- Death by Falling ---
                 if (playerBody.getPosition().y > PLAYER_DEATH_Y_LIMIT) {
                     playSfx("death");
                     currentState = GameState::GAME_OVER_LOSE_FALL;
                     gameMusic.pause();
-                    window.setTitle("Project T - Game Over (Fell)");
-                    break; 
+                    break; // Break from fixed update loop
                 }
-            } // End fixed update loop
-        }
+            } // End of fixed update loop (while timeSinceLastUpdate >= TIME_PER_FIXED_UPDATE)
+        } // End of PLAYING state update
         else if (currentState == GameState::TRANSITIONING) {
+            // ... (Existing transition logic is fine) ...
             levelManager.update(frameDeltaTime.asSeconds(), window);
             if (!levelManager.isTransitioning()) {
-                setupLevelAssets(currentLevelData, window);
+                setupLevelAssets(currentLevelData, window); // This now sets up interactibles too
                 currentState = GameState::PLAYING;
-                if (gameMusic.getStatus() != sf::Music::Playing) {
-                     menuMusic.stop(); gameMusic.setVolume(gameSettings.musicVolume); gameMusic.play();
+                if (gameMusic.getStatus() != sf::Music::Playing) { // Ensure game music plays
+                     menuMusic.stop(); gameMusic.play();
                 }
             }
         }
 
+        window.setTitle("Project T");
 
         // --- DRAW PHASE ---
-        window.clear(sf::Color::Black); // Clear entire window to black for letter/pillar boxing
-
-        // For mouse hover updates, get current mouse position relative to uiView
-        sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
-        sf::Vector2f worldPosUi = window.mapPixelToCoords(pixelPos, uiView);
-
+        window.clear(sf::Color::Black);
+        sf::Vector2i currentMousePixelPos = sf::Mouse::getPosition(window);
+        sf::Vector2f currentMouseWorldUiPos = window.mapPixelToCoords(currentMousePixelPos, uiView);
 
         switch(currentState) {
-            case GameState::MENU:
+            // ... (MENU, SETTINGS, CREDITS draw logic fine) ...
+             case GameState::MENU:
                 window.setView(uiView);
-                if(menuBgSprite.getTexture()) {
-                    window.draw(menuBgSprite);
-                } else { // Fallback if texture not loaded
-                    sf::RectangleShape bg(LOGICAL_SIZE); 
-                    bg.setFillColor(sf::Color(20,20,50));
-                    bg.setPosition(0,0); // Covers uiView
-                    window.draw(bg);
-                }
+                if(menuBgSprite.getTexture()) { window.draw(menuBgSprite); } 
+                else { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,20,50)); window.draw(bg); }
                 startButtonText.setFillColor(defaultBtnColor); settingsButtonText.setFillColor(defaultBtnColor);
                 creditsButtonText.setFillColor(defaultBtnColor); exitButtonText.setFillColor(defaultBtnColor);
-                if(startButtonText.getGlobalBounds().contains(worldPosUi)) startButtonText.setFillColor(hoverBtnColor);
-                if(settingsButtonText.getGlobalBounds().contains(worldPosUi)) settingsButtonText.setFillColor(hoverBtnColor);
-                if(creditsButtonText.getGlobalBounds().contains(worldPosUi)) creditsButtonText.setFillColor(hoverBtnColor);
-                if(exitButtonText.getGlobalBounds().contains(worldPosUi)) exitButtonText.setFillColor(exitBtnHoverColor);
+                if(startButtonText.getGlobalBounds().contains(currentMouseWorldUiPos)) startButtonText.setFillColor(hoverBtnColor);
+                if(settingsButtonText.getGlobalBounds().contains(currentMouseWorldUiPos)) settingsButtonText.setFillColor(hoverBtnColor);
+                if(creditsButtonText.getGlobalBounds().contains(currentMouseWorldUiPos)) creditsButtonText.setFillColor(hoverBtnColor);
+                if(exitButtonText.getGlobalBounds().contains(currentMouseWorldUiPos)) exitButtonText.setFillColor(exitBtnHoverColor);
                 window.draw(menuTitleText); window.draw(startButtonText); window.draw(settingsButtonText);
                 window.draw(creditsButtonText); window.draw(exitButtonText);
                 break;
             case GameState::SETTINGS:
                 window.setView(uiView);
-                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,50,20)); bg.setPosition(0,0); window.draw(bg); }
+                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,50,20)); window.draw(bg); }
                 settingsBackText.setFillColor(defaultBtnColor);
-                if(settingsBackText.getGlobalBounds().contains(worldPosUi)) settingsBackText.setFillColor(hoverBtnColor);
+                if(settingsBackText.getGlobalBounds().contains(currentMouseWorldUiPos)) settingsBackText.setFillColor(hoverBtnColor);
+                musicVolDownText.setFillColor(defaultBtnColor); musicVolUpText.setFillColor(defaultBtnColor);
+                if(musicVolDownText.getGlobalBounds().contains(currentMouseWorldUiPos)) musicVolDownText.setFillColor(hoverBtnColor);
+                if(musicVolUpText.getGlobalBounds().contains(currentMouseWorldUiPos)) musicVolUpText.setFillColor(hoverBtnColor);
+                sfxVolDownText.setFillColor(defaultBtnColor); sfxVolUpText.setFillColor(defaultBtnColor);
+                if(sfxVolDownText.getGlobalBounds().contains(currentMouseWorldUiPos)) sfxVolDownText.setFillColor(hoverBtnColor);
+                if(sfxVolUpText.getGlobalBounds().contains(currentMouseWorldUiPos)) sfxVolUpText.setFillColor(hoverBtnColor);
+                resolutionPrevText.setFillColor(defaultBtnColor); resolutionNextText.setFillColor(defaultBtnColor);
+                fullscreenToggleText.setFillColor(defaultBtnColor);
+                if(resolutionPrevText.getGlobalBounds().contains(currentMouseWorldUiPos) && !isFullscreen) resolutionPrevText.setFillColor(hoverBtnColor);
+                if(resolutionNextText.getGlobalBounds().contains(currentMouseWorldUiPos) && !isFullscreen) resolutionNextText.setFillColor(hoverBtnColor);
+                if(fullscreenToggleText.getGlobalBounds().contains(currentMouseWorldUiPos)) fullscreenToggleText.setFillColor(hoverBtnColor);
                 window.draw(settingsTitleText);
                 musicVolValText.setString(std::to_string(static_cast<int>(gameSettings.musicVolume))+"%");
                 sfxVolValText.setString(std::to_string(static_cast<int>(gameSettings.sfxVolume))+"%");
-                window.draw(musicVolumeText); window.draw(musicVolValText);
-                window.draw(sfxVolumeText); window.draw(sfxVolValText);
+                window.draw(musicVolumeLabelText); window.draw(musicVolDownText); window.draw(musicVolValText); window.draw(musicVolUpText);
+                window.draw(sfxVolumeLabelText); window.draw(sfxVolDownText); window.draw(sfxVolValText); window.draw(sfxVolUpText);
+                window.draw(resolutionLabelText); window.draw(resolutionPrevText); window.draw(resolutionCurrentText); window.draw(resolutionNextText);
+                window.draw(fullscreenToggleText);
                 window.draw(settingsBackText);
                 break;
             case GameState::CREDITS:
                 window.setView(uiView);
-                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(50,20,20)); bg.setPosition(0,0); window.draw(bg); }
+                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(50,20,20)); window.draw(bg); }
                 creditsBackText.setFillColor(defaultBtnColor);
-                if(creditsBackText.getGlobalBounds().contains(worldPosUi)) creditsBackText.setFillColor(hoverBtnColor);
+                if(creditsBackText.getGlobalBounds().contains(currentMouseWorldUiPos)) creditsBackText.setFillColor(hoverBtnColor);
                 window.draw(creditsTitleText); window.draw(creditsNamesText); window.draw(creditsBackText);
                 break;
             case GameState::PLAYING:
-                mainView.setCenter( playerBody.getPosition().x + playerBody.getWidth()/2.f, playerBody.getPosition().y + playerBody.getHeight()/2.f - 50.f);
+                // ... (View setup, background, player, tiles drawing fine) ...
+                mainView.setCenter( playerBody.getPosition().x + playerBody.getWidth()/2.f, playerBody.getPosition().y + playerBody.getHeight()/2.f - 50.f); // Camera
                 window.setView(mainView);
-                
-                // Draw background for the gameplay area within mainView
-                {
-                    sf::RectangleShape gameplayAreaBackground(LOGICAL_SIZE); 
+                { // Draw background covering the camera view
+                    sf::RectangleShape gameplayAreaBackground(mainView.getSize()); 
                     gameplayAreaBackground.setFillColor(currentLevelData.backgroundColor);
-                    // Position at the top-left of the current view (mainView)
                     gameplayAreaBackground.setPosition(mainView.getCenter() - mainView.getSize() / 2.f); 
                     window.draw(gameplayAreaBackground);
                 }
-
                 playerShape.setPosition(playerBody.getPosition());
-                for (const auto& t : tiles) { if (t.getFillColor().a > 5) window.draw(t); }
+                for (const auto& t : tiles) { if (t.getFillColor().a > 5) window.draw(t); } // Draw if not fully transparent
                 window.draw(playerShape);
                 
-                // Switch to uiView for debug text
-                window.setView(uiView); 
+                window.setView(uiView); // Switch to UI view for debug text
                 debugText.setString( "Lvl: " + std::to_string(currentLevelData.levelNumber) +
                                      " Pos: " + std::to_string(static_cast<int>(playerBody.getPosition().x)) + "," + std::to_string(static_cast<int>(playerBody.getPosition().y)) +
                                      " Vel: " + std::to_string(static_cast<int>(playerBody.getVelocity().x)) + "," + std::to_string(static_cast<int>(playerBody.getVelocity().y)) +
@@ -715,58 +652,46 @@ int main(void) {
                 window.draw(debugText);
                 break;
             case GameState::TRANSITIONING:
+                // ... (Transition draw logic fine) ...
                 window.setView(uiView);
-                // LevelManager will draw its overlay. If its internal images aren't scaled to LOGICAL_SIZE, they might appear incorrectly.
-                // A solid background could be drawn here first if LevelManager's overlay has transparency
-                // { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color::Black); bg.setPosition(0,0); window.draw(bg); }
-                levelManager.draw(window); 
+                { sf::RectangleShape transitionBg(LOGICAL_SIZE); transitionBg.setFillColor(sf::Color::Black); transitionBg.setPosition(0,0); window.draw(transitionBg); }
+                levelManager.draw(window);
                 break;
+            // ... (GAME_OVER_WIN, GAME_OVER_LOSE_FALL, GAME_OVER_LOSE_DEATH draw logic fine) ...
             case GameState::GAME_OVER_WIN:
                  window.setView(uiView);
-                 { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,60,20)); bg.setPosition(0,0); window.draw(bg); }
+                 { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,60,20)); window.draw(bg); }
                  gameOverStatusText.setString("All Levels Cleared! You Win!");
-                 gameOverOption1Text.setString("Play Again?");
-                 gameOverOption1Text.setFillColor(defaultBtnColor);
-                 gameOverOption2Text.setFillColor(defaultBtnColor);
-                 if(gameOverOption1Text.getGlobalBounds().contains(worldPosUi)) gameOverOption1Text.setFillColor(hoverBtnColor);
-                 if(gameOverOption2Text.getGlobalBounds().contains(worldPosUi)) gameOverOption2Text.setFillColor(hoverBtnColor);
-                 window.draw(gameOverStatusText);
-                 window.draw(gameOverOption1Text);
-                 window.draw(gameOverOption2Text);
+                 gameOverOption1Text.setString("Play Again (Level 1)");
+                 gameOverOption1Text.setFillColor(defaultBtnColor); gameOverOption2Text.setFillColor(defaultBtnColor);
+                 if(gameOverOption1Text.getGlobalBounds().contains(currentMouseWorldUiPos)) gameOverOption1Text.setFillColor(hoverBtnColor);
+                 if(gameOverOption2Text.getGlobalBounds().contains(currentMouseWorldUiPos)) gameOverOption2Text.setFillColor(hoverBtnColor);
+                 window.draw(gameOverStatusText); window.draw(gameOverOption1Text); window.draw(gameOverOption2Text);
                 break;
             case GameState::GAME_OVER_LOSE_FALL:
                 window.setView(uiView);
-                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(60,20,20)); bg.setPosition(0,0); window.draw(bg); }
+                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(60,20,20)); window.draw(bg); }
                 gameOverStatusText.setString("Game Over! You Fell!");
                 gameOverOption1Text.setString("Retry Level");
-                gameOverOption1Text.setFillColor(defaultBtnColor);
-                gameOverOption2Text.setFillColor(defaultBtnColor);
-                if(gameOverOption1Text.getGlobalBounds().contains(worldPosUi)) gameOverOption1Text.setFillColor(hoverBtnColor);
-                if(gameOverOption2Text.getGlobalBounds().contains(worldPosUi)) gameOverOption2Text.setFillColor(hoverBtnColor);
-                window.draw(gameOverStatusText);
-                window.draw(gameOverOption1Text);
-                window.draw(gameOverOption2Text);
+                gameOverOption1Text.setFillColor(defaultBtnColor); gameOverOption2Text.setFillColor(defaultBtnColor);
+                if(gameOverOption1Text.getGlobalBounds().contains(currentMouseWorldUiPos)) gameOverOption1Text.setFillColor(hoverBtnColor);
+                if(gameOverOption2Text.getGlobalBounds().contains(currentMouseWorldUiPos)) gameOverOption2Text.setFillColor(hoverBtnColor);
+                window.draw(gameOverStatusText); window.draw(gameOverOption1Text); window.draw(gameOverOption2Text);
                 break;
-            case GameState::GAME_OVER_LOSE_DEATH:
+            case GameState::GAME_OVER_LOSE_DEATH: // Trap death
                 window.setView(uiView);
-                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(70,10,10)); bg.setPosition(0,0); window.draw(bg); }
+                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(70,10,10)); window.draw(bg); }
                 gameOverStatusText.setString("Game Over! Hit a Trap!");
                 gameOverOption1Text.setString("Retry Level");
-                gameOverOption1Text.setFillColor(defaultBtnColor);
-                gameOverOption2Text.setFillColor(defaultBtnColor);
-                if(gameOverOption1Text.getGlobalBounds().contains(worldPosUi)) gameOverOption1Text.setFillColor(hoverBtnColor);
-                if(gameOverOption2Text.getGlobalBounds().contains(worldPosUi)) gameOverOption2Text.setFillColor(hoverBtnColor);
-                window.draw(gameOverStatusText);
-                window.draw(gameOverOption1Text);
-                window.draw(gameOverOption2Text);
+                gameOverOption1Text.setFillColor(defaultBtnColor); gameOverOption2Text.setFillColor(defaultBtnColor);
+                if(gameOverOption1Text.getGlobalBounds().contains(currentMouseWorldUiPos)) gameOverOption1Text.setFillColor(hoverBtnColor);
+                if(gameOverOption2Text.getGlobalBounds().contains(currentMouseWorldUiPos)) gameOverOption2Text.setFillColor(hoverBtnColor);
+                window.draw(gameOverStatusText); window.draw(gameOverOption1Text); window.draw(gameOverOption2Text);
                 break;
-             default:
+             default: // Should not happen
                  window.setView(uiView);
-                 { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color::Magenta); bg.setPosition(0,0); window.draw(bg); }
-                 sf::Text errorText("Unknown Game State!", menuFont, 20);
-                 errorText.setOrigin(errorText.getLocalBounds().width/2.f, errorText.getLocalBounds().height/2.f); 
-                 errorText.setPosition(LOGICAL_SIZE.x/2.f, LOGICAL_SIZE.y/2.f);
-                 window.draw(errorText);
+                 { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color::Magenta); window.draw(bg); }
+                 sf::Text errorText("Unknown Game State!", menuFont, 20); errorText.setOrigin(errorText.getLocalBounds().width/2.f, errorText.getLocalBounds().height/2.f); errorText.setPosition(LOGICAL_SIZE.x/2.f, LOGICAL_SIZE.y/2.f); window.draw(errorText);
                  break;
         }
         window.display();
