@@ -42,7 +42,6 @@ add_executable(main # Use your project name if it's not 'main'
     src/CollisionSystem.cpp
     src/Optimizer.cpp
     src/LevelManager.cpp
-    src/Trap.cpp
 )
     
 # Copy Assets to be next to your executable in the build/bin directory
