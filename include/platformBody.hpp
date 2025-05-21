@@ -2,8 +2,8 @@
 #define PLATFORMBODY_HPP
 
 #include <SFML/System/Vector2.hpp>
-#include <SFML/Graphics/Rect.hpp> 
-#include "PhysicsTypes.hpp" 
+#include <SFML/Graphics/Rect.hpp>
+#include "PhysicsTypes.hpp" // Assumed to provide phys::bodyType
 
 namespace phys {
 
@@ -14,9 +14,9 @@ namespace phys {
             const sf::Vector2f& position = {0.f, 0.f},
             float width = 32.f,
             float height = 32.f,
-            bodyType type = bodyType::platform, 
+            bodyType type = bodyType::platform, // Resolves to phys::bodyType
             bool initiallyFalling = false,
-            const sf::Vector2f& surfaceVelocity = {0.f, 0.f} 
+            const sf::Vector2f& surfaceVelocity = {0.f, 0.f}
         );
 
         void update(float deltaTime);
@@ -27,31 +27,25 @@ namespace phys {
 		float getWidth() const { return m_width; }
 		float getHeight() const { return m_height; }
 		sf::FloatRect getAABB() const;
-		bodyType getType() const { return m_type; }
-		bool isFalling() const { return m_falling; } // Renamed for clarity
+		bodyType getType() const { return m_type; } // Resolves to phys::bodyType
+		bool isFalling() const { return m_falling; }
 		const sf::Vector2f& getSurfaceVelocity() const { return m_surfaceVelocity; }
 
         // --- Mutators (Setters) ---
-        // Typically, platform properties are static after creation, but setters can be added if needed.
-        void setPosition(const sf::Vector2f& position) { m_position = position; } // If platforms can move
+		 void setPosition(const sf::Vector2f& position) { m_position = position; }
         void setFalling(bool falling) { m_falling = falling; }
+        void setType(bodyType type) { m_type = type; }
         // ... others if necessary
 
 	private:
 		unsigned int m_id;
 		sf::Vector2f m_position;
-        sf::Vector2f m_velocity; // Add if m_falling or type::moving actually moves it
+        sf::Vector2f m_velocity;
 		float m_width;
 		float m_height;
-		bodyType m_type;
+		bodyType m_type; // Resolves to phys::bodyType
 		bool m_falling;
-		sf::Vector2f m_surfaceVelocity; // Now a vector for more flexibility
-
-        // If m_falling implies gravity, it might have:
-        // static const sf::Vector2f GRAVITY; (defined in .cpp)
-
-        // For type::vanishing or timed behaviors, store remaining time, not a clock:
-        // float m_vanishTimer = -1.f; // -1 means inactive/permanent
+		sf::Vector2f m_surfaceVelocity;
 	};
 
 } // namespace phys
