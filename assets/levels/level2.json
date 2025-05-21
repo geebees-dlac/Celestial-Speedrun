@@ -7,69 +7,68 @@
     {
       "id": 0,
       "type": "solid",
-      "position": { "x": 0, "y": 568 },
-      "size": { "width": 800, "height": 32 }
+      "position": { "x": -10, "y": 32 },
+      "size": { "width": 500, "height": 32 }
     },
     {
       "id": 1,
       "type": "platform",
-      "position": { "x": 96, "y": 440 },
-      "size": { "width": 96, "height": 8 }
+      "position": { "x": 480, "y": -16 },
+      "size": { "width": 75, "height": 16 }
     },
     {
       "id": 2,
-      "type": "solid",
-      "position": { "x": 128, "y": 352 },
-      "size": { "width": 128, "height": 32 }
+      "type": "platform",
+      "position": { "x": 600, "y": -96 },
+      "size": { "width": 32, "height": 32 }
     },
     {
       "id": 3,
-      "type": "conveyorBelt",
-      "position": { "x": 240, "y": 504 },
-      "size": { "width": 320, "height": 32 },
-      "surfaceVelocity": { "x": 70, "y": 0 }
+      "type": "platform",
+      "position": {"x": 664, "y": -160},
+      "size": {"width": 32, "height": 32}
     },
     {
-      "id": 4, 
-      "type": "moving",
-      "position": { "x": 304, "y": 376 },
-      "size": { "width": 160, "height": 16 },
-      "movement": {
-        "axis": "x",
-        "distance": 192,
-        "cycleDuration": 4.0, 
-        "initialDirection": 1
-      }
-    },
-    {
-      "id": 5, "type": "falling", "position": {"x": 544, "y": 408}, "size": {"width": 32, "height": 32}},
-    {
-      "id": 6, "type": "falling", "position": {"x": 592, "y": 408}, "size": {"width": 32, "height": 32}},
-    {
-      "id": 7, "type": "falling", "position": {"x": 640, "y": 408}, "size": {"width": 32, "height": 32}},
-    {
-      "id": 8, "type": "vanishing", "position": {"x": 576, "y": 312}, "size": {"width": 32, "height": 32}},
-    {
-      "id": 9, "type": "vanishing", "position": {"x": 624, "y": 312}, "size": {"width": 32, "height": 32}},
-    {
-      "id": 10, "type": "vanishing", "position": {"x": 672, "y": 312}, "size": {"width": 32, "height": 32}},
-    {
-      "id": 11,
+      "id": 4,
       "type": "solid",
-      "position": { "x": 256, "y": 160 },
-      "size": { "width": 128, "height": 32 }
+      "position": {"x": 950, "y": 0},
+      "size": {"width": 32, "height": 32}
     },
     {
-    "id": 98,
-    "type": "solid",
-    "position": { "x": 700, "y": 200 }, 
-    "size": { "width": 128, "height": 32 }
+      "id": 5,
+      "type": "solid",
+      "position": {"x": 982, "y": -32},
+      "size": {"width": 128, "height": 64}
     },
     {
-    "id": 100, 
-    "type": "goal", 
-    "position": {"x": 700, "y": 68},  
-    "size": {"width": 64, "height": 64} 
+      "id": 6,
+      "type": "platform",
+      "position": {"x": 1300, "y": -48},
+      "size": {"width": 96, "height": 16}
+    },
+    {
+      "id": 7,
+      "type": "platform",
+      "position": {"x": 1100, "y": -208},
+      "size": {"width": 96, "height": 16}
+    },
+    {
+      "id": 8,
+      "type": "platform",
+      "position": {"x": 1300, "y": -368},
+      "size": {"width": 96, "height": 16}
+    },
+    {
+      "id": 9,
+      "type": "platform",
+      "position": {"x":1000, "y": -460},
+      "size":{"width": 400, "height": 32}
+    },
+    {
+      "id": 10,
+      "type": "goal",
+      "position": {"x": 1100, "y": -540},
+      "size": {"width": 200, "height": 64}
     }
   ]
 }
