@@ -120,6 +120,11 @@ void setupLevelAssets(const LevelData& data, sf::RenderWindow& window) {
             case phys::bodyType::none:         newTile.setFillColor(sf::Color(0, 0, 0, 0)); break;
             default:                           newTile.setFillColor(sf::Color(128, 128, 128, 255)); break;
         }
+        std::cout << "DOING THIS ";
+        std::cout << (int)newTile.getFillColor().r << " "
+                    << (int)newTile.getFillColor().g << " "
+                    << (int)newTile.getFillColor().b << " "
+                    << (int)newTile.getFillColor().a << std::endl;
         tiles.push_back(newTile);
     }
     
@@ -220,7 +225,7 @@ int main(void) {
                             if (levelManager.loadLevel(1, currentLevelData)) { 
                                 setupLevelAssets(currentLevelData, window);
                                 currentState = GameState::PLAYING;
-                                timeSinceLastUpdate = sf::Time::Zero; 
+                                timeSinceLastUpdate = TIME_PER_FRAME; // TEMP FIX 
                                 tickClock.restart();
                                 window.setTitle("Project T - Level " + std::to_string(currentLevelData.levelNumber));
                             } else {
@@ -303,7 +308,19 @@ int main(void) {
             sf::Time elapsedTime = tickClock.restart();
             timeSinceLastUpdate += elapsedTime;
 
+            std::cout << elapsedTime.asSeconds() << " "
+            << timeSinceLastUpdate.asSeconds() << " " << TIME_PER_FRAME.asSeconds() << std::endl;
+
+            if (timeSinceLastUpdate < TIME_PER_FRAME) continue;
+
+            /*while (timeSinceLastUpdate < TIME_PER_FRAME){
+                std::cout << "LOADING..." << elapsedTime.asSeconds() << " "
+            << timeSinceLastUpdate.asSeconds() << " " << TIME_PER_FRAME.asSeconds() << std::endl;
+                timeSinceLastUpdate += elapsedTime;
+            }*/
+
             while (timeSinceLastUpdate >= TIME_PER_FRAME) {
+                std::cout << "Loop entered" << std::endl;
                 timeSinceLastUpdate -= TIME_PER_FRAME;
                 playerBody.setLastPosition(playerBody.getPosition()); 
 
@@ -311,6 +328,7 @@ int main(void) {
                 bool jumpIntentThisFrame = false; 
                 bool dropIntentThisFrame = false; 
 
+                
                 turboMultiplier = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RShift)) ? 2 : 1;
 
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) horizontalInput = -1.f;
@@ -490,11 +508,29 @@ int main(void) {
             mainView.setCenter({playerBody.getPosition().x + playerBody.getWidth()/2.f,
                                playerBody.getPosition().y + playerBody.getHeight()/2.f - 50.f}); 
 
-            window.clear(currentLevelData.backgroundColor); 
-            window.setView(mainView);
-            for (const auto& t : tiles) { if (t.getFillColor().a > 5) window.draw(t); }
-            window.draw(playerShape);
+            
+            try{
+                std::cout << (int)currentLevelData.backgroundColor.r << " " <<
+                            (int)currentLevelData.backgroundColor.g << " " <<
+                            (int)currentLevelData.backgroundColor.b << " " <<
+                            (int)currentLevelData.backgroundColor.a << std::endl;
 
+                window.clear(currentLevelData.backgroundColor); 
+                window.setView(mainView);
+
+                sf::Vector2f center = mainView.getCenter();
+                sf::Vector2f size = mainView.getSize();
+
+
+                for (const auto& t : tiles) { 
+                    if (t.getFillColor().a > 5) window.draw(t);
+                }
+                window.draw(playerShape);
+            } catch (const std::exception& e){
+                std::cerr << "Exception during render: " << e.what() << std::endl;
+            }
+
+            std::cout << "ERROR NOT HERE!!" << std::endl;
             window.setView(window.getDefaultView()); 
             debugText.setString(
                 "Player Pos: " + std::to_string(static_cast<int>(playerBody.getPosition().x)) + "," + std::to_string(static_cast<int>(playerBody.getPosition().y)) +
@@ -506,6 +542,7 @@ int main(void) {
             window.draw(debugText);
 
             window.display();
+            
         } 
     } 
 
