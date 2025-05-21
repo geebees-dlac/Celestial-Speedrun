@@ -7,11 +7,11 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream> //debbugin lang neh para nimo gian ayieeee :)
-#include "PhysicsTypes.hpp" // Added for phys::bodyType::goal comparison
+#include "PhysicsTypes.hpp"
 
 
 //mao ni inyong legend placing it here since most of the physics if not all is here
-// what is AABB? Axis-Aligned Bounding Box. this is the hitbox of the player 
+// what is AABB? Axis-Aligned Bounding Box. this is the hitbox of the player
 // what is sweptAABB? this is the hitbox of the player when it is moving, this is used to check if the player is colliding with the platform
 // what is TOI? Time of Impact. this is the time it takes for the player to hit the platform
 
@@ -23,242 +23,334 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
     float deltaTime)
 {
     CollisionResolutionInfo resolutionInfo;
-    resolutionInfo.onGround = false; // Initialize to not on ground
-    resolutionInfo.groundPlatform = nullptr; // Initialize to no ground platform
+    resolutionInfo.onGround = false;
+    resolutionInfo.groundPlatform = nullptr;
+    resolutionInfo.hitCeiling = false;
+    resolutionInfo.hitWallLeft = false;
+    resolutionInfo.hitWallRight = false;
+    resolutionInfo.surfaceVelocity = {0.f, 0.f};
+
 
     float timeRemaining = deltaTime;
-    const int MAX_COLLISION_ITERATIONS = 5;
-    const float JUMP_THROUGH_TOLERANCE = 3.0f; // How far the framing of this shit on the top where it considers to land, will change this later
-    const float DEPENETRATION_BIAS = 0.01f; // Small bias to push out fully ok book you have my thanks for this
+    const int MAX_COLLISION_ITERATIONS = 5; // Iterative resolution attempts
+    const float JUMP_THROUGH_TOLERANCE = 4.0f; // Pixels player's bottom can be inside platform top for one-way platform landing
+    const float DEPENETRATION_BIAS = 0.01f;  // Small nudge out of collision
+    const float MIN_TIME_STEP = 1e-5f; // Minimum time to process to avoid tiny steps due to precision
 
-    dynamicBody.setGroundPlatformTemporarilyIgnored(nullptr); // Clear ignore from previous tick
 
-    for (int iter = 0; iter < MAX_COLLISION_ITERATIONS && timeRemaining > 1e-5f; ++iter) {
-        float earliestCollisionTOI = 1.0f;
+    dynamicBody.setGroundPlatformTemporarilyIgnored(nullptr); // Clear any temporary ignore from previous frame
+
+    sf::Vector2f originalPlayerVelocity = dynamicBody.getVelocity(); // Store velocity at start of this tick
+
+    for (int iter = 0; iter < MAX_COLLISION_ITERATIONS && timeRemaining > MIN_TIME_STEP; ++iter) {
+        float earliestCollisionTOI = 1.0f + MIN_TIME_STEP; // Start slightly above 1.0 to ensure any valid TOI is less
         CollisionEvent nearestCollisionEvent;
+        nearestCollisionEvent.time = earliestCollisionTOI; // Initialize nearest event time
         const PlatformBody* hitPlatformInIter = nullptr;
 
-        sf::Vector2f currentVelocity = dynamicBody.getVelocity(); // Velocity on the iteration 
-        sf::Vector2f sweepVector = currentVelocity * timeRemaining;
+        sf::Vector2f currentFrameVelocity = dynamicBody.getVelocity(); // Velocity for *this iteration's* sweep
+        sf::Vector2f sweepVector = currentFrameVelocity * timeRemaining;
 
+        // Broadphase (already implicitly done by iterating all platforms)
+        // Narrowphase
         for (const auto& platform : platformBodies) {
-
-            if (platform.getType() == phys::bodyType::goal) {
-
+            if (platform.getType() == phys::bodyType::goal || platform.getType() == phys::bodyType::none || platform.getType() == phys::bodyType::trap) {
+                continue;
             }
-
-
-            if (platform.getType() == phys::bodyType::none || &platform == dynamicBody.getGroundPlatformTemporarilyIgnored()) {
+            if (&platform == dynamicBody.getGroundPlatformTemporarilyIgnored()) {
                 continue;
             }
 
-            sf::FloatRect dynamicSweptAABB = dynamicBody.getAABB(); 
-            if (sweepVector.x < 0) dynamicSweptAABB.left += sweepVector.x;
-            dynamicSweptAABB.width += std::abs(sweepVector.x);
-            if (sweepVector.y < 0) dynamicSweptAABB.top += sweepVector.y;
-            dynamicSweptAABB.height += std::abs(sweepVector.y);
+            // Optional: AABB check for the sweep before detailed sweptAABB
+            sf::FloatRect dynamicBroadAABB = dynamicBody.getAABB();
+            if (sweepVector.x < 0) dynamicBroadAABB.left += sweepVector.x;
+            dynamicBroadAABB.width += std::abs(sweepVector.x);
+            if (sweepVector.y < 0) dynamicBroadAABB.top += sweepVector.y;
+            dynamicBroadAABB.height += std::abs(sweepVector.y);
 
-            if (!dynamicSweptAABB.intersects(platform.getAABB())) {
+            if (!dynamicBroadAABB.intersects(platform.getAABB())) {
                 continue;
             }
+
 
             CollisionEvent currentEventDetails;
-            if (sweptAABB(dynamicBody, sweepVector, platform, 1.0f, currentEventDetails)) {
-                
-                // --- PLATFORM TYPE SPECIFIC FILTERING ---
-                phys::bodyType type = currentEventDetails.hitPlatform->getType();
+            if (sweptAABB(dynamicBody, sweepVector, platform, 1.0f, currentEventDetails)) { // maxTime for sweptAABB here is relative to sweepVector
+                // Filter collisions for one-way platforms (type == platform)
+                if (currentEventDetails.hitPlatform->getType() == phys::bodyType::platform) {
+                    // Player must be moving downwards (or nearly static but overlapping from above)
+                    // Collision must be on the Y-axis (top surface of platform)
+                    // Player's feet must be above or very slightly into the platform's top surface at the START of the sweepVector for this iteration
+                    sf::FloatRect bodyAABBAtSweepStart = dynamicBody.getAABB(); // Player's AABB before this iteration's sweepVector application
+                    bool canLandOnOneWay = (currentEventDetails.axis == 1 && // Y-axis collision normal (hit top/bottom of platform)
+                                         currentFrameVelocity.y >= -JUMP_THROUGH_TOLERANCE && // Player moving down, or very slightly up but overlapping
+                                         (bodyAABBAtSweepStart.top + bodyAABBAtSweepStart.height) <= (currentEventDetails.hitPlatform->getAABB().top + JUMP_THROUGH_TOLERANCE));
 
-                if (type == phys::bodyType::platform) { 
-                    sf::FloatRect bodyAABBAtSweepStart = dynamicBody.getAABB();
-
-                    if (dynamicBody.isTryingToDropFromPlatform() &&
-                        dynamicBody.getGroundPlatform() == currentEventDetails.hitPlatform) {
+                    // If player is trying to drop through this specific platform
+                    if (dynamicBody.isTryingToDropFromPlatform() && dynamicBody.getGroundPlatform() == currentEventDetails.hitPlatform) {
                         dynamicBody.setGroundPlatformTemporarilyIgnored(currentEventDetails.hitPlatform);
-                        resolutionInfo.onGround = false; 
-                        dynamicBody.setGroundPlatform(nullptr);
-                        // also update the iteration's idea of groundPlatform since we're dropping
+                        resolutionInfo.onGround = false; // No longer on this ground
                         if (resolutionInfo.groundPlatform == currentEventDetails.hitPlatform) {
-                            resolutionInfo.groundPlatform = nullptr;
+                           resolutionInfo.groundPlatform = nullptr;
                         }
-                        continue; 
+                        dynamicBody.setGroundPlatform(nullptr);
+                        continue; // Ignore this collision, try to fall through
                     }
-                    
-                    if (!(currentEventDetails.axis == 1 &&
-                          currentVelocity.y > 0.f &&
-                          (bodyAABBAtSweepStart.top + bodyAABBAtSweepStart.height) <= (currentEventDetails.hitPlatform->getAABB().top + JUMP_THROUGH_TOLERANCE)
-                       )) {
-                        continue; 
+
+                    if (!canLandOnOneWay) {
+                        continue; // Not a valid landing on this one-way platform, ignore it
                     }
                 }
 
-                if (currentEventDetails.time < earliestCollisionTOI) {
-                    earliestCollisionTOI = currentEventDetails.time;
+                // Update nearest collision if this one is earlier
+                if (currentEventDetails.time < nearestCollisionEvent.time) {
                     nearestCollisionEvent = currentEventDetails;
-                    hitPlatformInIter = nearestCollisionEvent.hitPlatform;
+                    hitPlatformInIter = nearestCollisionEvent.hitPlatform; // Redundant but clear
                 }
             }
         }
 
+        // Process the nearest collision for this iteration
+        if (hitPlatformInIter && nearestCollisionEvent.time < 1.0f + MIN_TIME_STEP) { // Check if a valid collision was found
+             // Sanity check for TOI being within [0, 1] range relative to current sweepVector
+            if (nearestCollisionEvent.time < 0.0f) nearestCollisionEvent.time = 0.0f;
+            if (nearestCollisionEvent.time > 1.0f) nearestCollisionEvent.time = 1.0f;
 
-        if (hitPlatformInIter) {
-            if (earliestCollisionTOI < 1e-4f) { 
-                sf::FloatRect bodyAABB = dynamicBody.getAABB();
-                sf::FloatRect platAABB = hitPlatformInIter->getAABB();
-                sf::Vector2f posCorrection(0.f, 0.f);
 
-                if (nearestCollisionEvent.axis == 1) { 
-                    float bodyBottom = bodyAABB.top + bodyAABB.height;
-                    float platTop = platAABB.top;
-                    float bodyTop = bodyAABB.top;
-                    float platBottom = platAABB.top + platAABB.height;
+            // Move player to the point of impact
+            sf::Vector2f movementToCollision = sweepVector * nearestCollisionEvent.time;
+            dynamicBody.setPosition(dynamicBody.getPosition() + movementToCollision);
 
-                    if (currentVelocity.y >= 0 && bodyBottom > platTop) { 
-                        posCorrection.y = -(bodyBottom - platTop) - DEPENETRATION_BIAS;
-                    } else if (currentVelocity.y < 0 && bodyTop < platBottom) { 
-                        posCorrection.y = (platBottom - bodyTop) + DEPENETRATION_BIAS;
-                    }
-                } else { 
-                    float bodyRight = bodyAABB.left + bodyAABB.width;
-                    float platLeft = platAABB.left;
-                    float bodyLeft = bodyAABB.left;
-                    float platRight = platAABB.left + platAABB.width;
-
-                    if (currentVelocity.x >= 0 && bodyRight > platLeft) { 
-                        posCorrection.x = -(bodyRight - platLeft) - DEPENETRATION_BIAS;
-                    } else if (currentVelocity.x < 0 && bodyLeft < platRight) { 
-                        posCorrection.x = (platRight - bodyLeft) + DEPENETRATION_BIAS;
-                    }
-                }
-                dynamicBody.setPosition(dynamicBody.getPosition() + posCorrection);
-            }
-
-            dynamicBody.setPosition(dynamicBody.getPosition() + sweepVector * earliestCollisionTOI);
+            // Apply collision response (e.g., stop velocity along collision normal)
+            // Store the velocity *before* response, useful for platform interaction checks.
+            sf::Vector2f velocityBeforeResponse = dynamicBody.getVelocity();
             applyCollisionResponse(dynamicBody, nearestCollisionEvent, *hitPlatformInIter);
+            sf::Vector2f velocityAfterResponse = dynamicBody.getVelocity();
 
-            if (nearestCollisionEvent.axis == 1) { 
-                if (dynamicBody.getVelocity().y == 0.f && currentVelocity.y > 0.f) { 
+
+            // Update resolution info based on the nature of the collision
+            if (nearestCollisionEvent.axis == 1) { // Collision with a horizontal surface
+                if (velocityBeforeResponse.y >= 0 && velocityAfterResponse.y == 0) { // Landed (was moving down or static, now Y velocity is zero)
                     resolutionInfo.onGround = true;
                     resolutionInfo.groundPlatform = hitPlatformInIter;
                     if (hitPlatformInIter->getType() == phys::bodyType::conveyorBelt) {
                         resolutionInfo.surfaceVelocity = hitPlatformInIter->getSurfaceVelocity();
                     } else {
-                        resolutionInfo.surfaceVelocity = {0.f, 0.f};
+                        resolutionInfo.surfaceVelocity = {0.f, 0.f}; // Reset if not conveyor
                     }
-                } else if (dynamicBody.getVelocity().y == 0.f && currentVelocity.y < 0.f) { 
+                } else if (velocityBeforeResponse.y < 0 && velocityAfterResponse.y == 0) { // Hit ceiling (was moving up, now Y velocity is zero)
                     resolutionInfo.hitCeiling = true;
-                    if (resolutionInfo.groundPlatform == hitPlatformInIter) { 
-                         resolutionInfo.onGround = false;
-                         resolutionInfo.groundPlatform = nullptr;
+                     // If somehow thought it was on ground with this platform, unset it.
+                    if (resolutionInfo.groundPlatform == hitPlatformInIter) {
+                        resolutionInfo.onGround = false;
+                        resolutionInfo.groundPlatform = nullptr;
                     }
                 }
-            } else { 
-                if (dynamicBody.getVelocity().x == 0.f && currentVelocity.x > 0.f) resolutionInfo.hitWallRight = true;
-                else if (dynamicBody.getVelocity().x == 0.f && currentVelocity.x < 0.f) resolutionInfo.hitWallLeft = true;
+            } else { // Collision with a vertical surface (axis == 0)
+                if (velocityBeforeResponse.x > 0 && velocityAfterResponse.x == 0) {
+                    resolutionInfo.hitWallRight = true;
+                } else if (velocityBeforeResponse.x < 0 && velocityAfterResponse.x == 0) {
+                    resolutionInfo.hitWallLeft = true;
+                }
             }
-            timeRemaining *= (1.0f - earliestCollisionTOI);
-        } else { 
+
+            // If very small TOI (already overlapping or just touched), attempt depenetration
+            if (nearestCollisionEvent.time < MIN_TIME_STEP) {
+                sf::FloatRect bodyAABB = dynamicBody.getAABB(); // Re-get AABB after moving to TOI
+                sf::FloatRect platAABB = hitPlatformInIter->getAABB();
+                sf::Vector2f penetrationDepth = {0.f, 0.f};
+                sf::Vector2f correction = {0.f, 0.f};
+
+                // Calculate X penetration
+                float xOverlap = (bodyAABB.left < platAABB.left) ?
+                                 (bodyAABB.left + bodyAABB.width) - platAABB.left :
+                                 (platAABB.left + platAABB.width) - bodyAABB.left;
+                // Calculate Y penetration
+                float yOverlap = (bodyAABB.top < platAABB.top) ?
+                                 (bodyAABB.top + bodyAABB.height) - platAABB.top :
+                                 (platAABB.top + platAABB.height) - bodyAABB.top;
+
+                if (nearestCollisionEvent.axis == 1 && yOverlap > 0) { // Primary collision was Y
+                    if (dynamicBody.getPosition().y + bodyAABB.height / 2.f < platAABB.top + platAABB.height / 2.f) { // Player center above platform center (hit top)
+                        correction.y = -yOverlap - DEPENETRATION_BIAS; // Push player up
+                    } else { // Player center below platform center (hit bottom)
+                        correction.y = yOverlap + DEPENETRATION_BIAS;  // Push player down
+                    }
+                } else if (nearestCollisionEvent.axis == 0 && xOverlap > 0) { // Primary collision was X
+                     if (dynamicBody.getPosition().x + bodyAABB.width / 2.f < platAABB.left + platAABB.width / 2.f) { // Player center left of platform center
+                        correction.x = -xOverlap - DEPENETRATION_BIAS; // Push player left
+                    } else { // Player center right of platform center
+                        correction.x = xOverlap + DEPENETRATION_BIAS;  // Push player right
+                    }
+                }
+                 // Apply depenetration only if a clear primary axis was found from SweptAABB and overlap exists on that axis
+                if ( (nearestCollisionEvent.axis == 1 && std::abs(correction.y) > 1e-4f) ||
+                     (nearestCollisionEvent.axis == 0 && std::abs(correction.x) > 1e-4f) ) {
+                    dynamicBody.setPosition(dynamicBody.getPosition() + correction);
+                }
+            }
+
+            // Update remaining time for this physics tick
+            timeRemaining -= nearestCollisionEvent.time * timeRemaining; // timeRemaining * (1.0f - nearestCollisionEvent.time)
+             if (timeRemaining < 0) timeRemaining = 0;
+
+        } else { // No collision found in this iteration
             dynamicBody.setPosition(dynamicBody.getPosition() + sweepVector);
-            timeRemaining = 0;
+            timeRemaining = 0; // All remaining time consumed by free movement
         }
     }
 
+    // Final update to dynamic body state based on resolution
     dynamicBody.setOnGround(resolutionInfo.onGround);
-    dynamicBody.setGroundPlatform(resolutionInfo.groundPlatform);    
-    dynamicBody.setGroundPlatformTemporarilyIgnored(nullptr);
-
+    dynamicBody.setGroundPlatform(resolutionInfo.groundPlatform);
 
     return resolutionInfo;
 }
 
+
 bool CollisionSystem::sweptAABB(
     const DynamicBody& body,
-    const sf::Vector2f& displacement,
+    const sf::Vector2f& displacement, // This is velocity * timeRemaining for the current iteration
     const PlatformBody& platform,
-    float maxTime,
+    float maxTime, // This should always be 1.0f as 'displacement' is the full potential move for this iteration
     CollisionEvent& outCollisionEvent)
 {
     sf::FloatRect bodyRect = body.getAABB();
     sf::FloatRect platRect = platform.getAABB();
 
-    // Static Overlap (No Displacement)
-    if (displacement.x == 0.f && displacement.y == 0.f) {
+    outCollisionEvent.time = 2.0f; // Initialize to a value greater than 1.0f
+    outCollisionEvent.axis = -1;
+    outCollisionEvent.hitPlatform = nullptr;
+
+    // Handle zero displacement case (static overlap check)
+    if (std::abs(displacement.x) < 1e-5f && std::abs(displacement.y) < 1e-5f) {
         if (bodyRect.intersects(platRect)) {
-            outCollisionEvent.time = 0.f;
+            outCollisionEvent.time = 0.0f; // Immediate collision
             outCollisionEvent.hitPlatform = &platform;
 
-            float xOverlap = std::max(0.f, std::min(bodyRect.left + bodyRect.width, platRect.left + platRect.width) - std::max(bodyRect.left, platRect.left));
-            float yOverlap = std::max(0.f, std::min(bodyRect.top + bodyRect.height, platRect.top + platRect.height) - std::max(bodyRect.top, platRect.top));
+            // Determine axis for static overlap: axis of MINIMUM penetration is preferred for depenetration
+            float dx1 = (platRect.left + platRect.width) - bodyRect.left; // Right edge of plat - left edge of body
+            float dx2 = (bodyRect.left + bodyRect.width) - platRect.left; // Right edge of body - left edge of plat
+            float dy1 = (platRect.top + platRect.height) - bodyRect.top;   // Bottom edge of plat - top edge of body
+            float dy2 = (bodyRect.top + bodyRect.height) - platRect.top;   // Bottom edge of body - top edge of plat
 
-            if (yOverlap > 0 && yOverlap >= xOverlap) { 
-                outCollisionEvent.axis = 1;
-            } else if (xOverlap > 0) { 
-                outCollisionEvent.axis = 0;
-            } else {
-                 outCollisionEvent.axis = 1; 
+            float xOverlap = std::min(dx1, dx2);
+            float yOverlap = std::min(dy1, dy2);
+
+            if (xOverlap > 0 && yOverlap > 0) { // Actual overlap
+                 if (xOverlap < yOverlap) { // Less penetration along X-axis implies Y-normal hit
+                    outCollisionEvent.axis = 0; // Respond along X (normal is Y-axis of platform) is wrong, it means we separate along X
+                                               // The axis should be the normal OF THE PLATFORM.
+                                               // If xOverlap is smaller, the NORMAL IS ALONG X. So axis = 0.
+                } else {
+                    outCollisionEvent.axis = 1; // Normal is along Y. So axis = 1.
+                }
+            } else { // Should not happen if intersects is true, but as a fallback
+                return false; // No clear overlap to determine axis
             }
             return true;
         }
-        return false;
+        return false; // No static overlap
     }
 
-    // Swept Testing 
-    sf::Vector2f invEntry, invExit;
-    if (displacement.x > 0.f) {
-        invEntry.x = platRect.left - (bodyRect.left + bodyRect.width);
-        invExit.x  = (platRect.left + platRect.width) - bodyRect.left;
-    } else {
-        invEntry.x = (platRect.left + platRect.width) - bodyRect.left;
-        invExit.x  = platRect.left - (bodyRect.left + bodyRect.width);
-    }
-    if (displacement.y > 0.f) {
-        invEntry.y = platRect.top - (bodyRect.top + bodyRect.height);
-        invExit.y  = (platRect.top + platRect.height) - bodyRect.top;
-    } else {
-        invEntry.y = (platRect.top + platRect.height) - bodyRect.top;
-        invExit.y  = platRect.top - (bodyRect.top + bodyRect.height);
-    }
 
-    sf::Vector2f entryTime, exitTime;
-    if (displacement.x == 0.f) {
-        entryTime.x = (invEntry.x <= 0.f && invExit.x >= 0.f) ? 0.f : -std::numeric_limits<float>::infinity(); 
-        exitTime.x = std::numeric_limits<float>::infinity();
-        if (!(bodyRect.left < platRect.left + platRect.width && bodyRect.left + bodyRect.width > platRect.left)) { 
-            entryTime.x = -std::numeric_limits<float>::infinity();
+    sf::Vector2f entryTime = {-std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity()};
+    sf::Vector2f exitTime = {std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
+
+    // Calculate collision times for X axis
+    if (std::abs(displacement.x) > 1e-5f) {
+        if (displacement.x > 0.f) { // Moving Right
+            entryTime.x = (platRect.left - (bodyRect.left + bodyRect.width)) / displacement.x;
+            exitTime.x = ((platRect.left + platRect.width) - bodyRect.left) / displacement.x;
+        } else { // Moving Left
+            entryTime.x = ((platRect.left + platRect.width) - bodyRect.left) / displacement.x;
+            exitTime.x = (platRect.left - (bodyRect.left + bodyRect.width)) / displacement.x;
         }
-    } else {
-        entryTime.x = invEntry.x / displacement.x;
-        exitTime.x  = invExit.x  / displacement.x;
-    }
-    if (displacement.y == 0.f) {
-        entryTime.y = (invEntry.y <= 0.f && invExit.y >= 0.f) ? 0.f : -std::numeric_limits<float>::infinity(); 
-        exitTime.y = std::numeric_limits<float>::infinity();
-        if (!(bodyRect.top < platRect.top + platRect.height && bodyRect.top + bodyRect.height > platRect.top)) { 
-             entryTime.y = -std::numeric_limits<float>::infinity();
-        }
-    } else {
-        entryTime.y = invEntry.y / displacement.y;
-        exitTime.y  = invExit.y  / displacement.y;
+    } else { // Static in X: check for current overlap in X
+        if (!(bodyRect.left + bodyRect.width <= platRect.left || bodyRect.left >= platRect.left + platRect.width)) { // Overlapping in X
+            entryTime.x = -std::numeric_limits<float>::infinity(); // Can collide at any time during Y move
+            exitTime.x = std::numeric_limits<float>::infinity();
+        } // else, they are separate in X and not moving in X, so no X collision possible
     }
 
+    // Calculate collision times for Y axis
+    if (std::abs(displacement.y) > 1e-5f) {
+        if (displacement.y > 0.f) { // Moving Down
+            entryTime.y = (platRect.top - (bodyRect.top + bodyRect.height)) / displacement.y;
+            exitTime.y = ((platRect.top + platRect.height) - bodyRect.top) / displacement.y;
+        } else { // Moving Up
+            entryTime.y = ((platRect.top + platRect.height) - bodyRect.top) / displacement.y;
+            exitTime.y = (platRect.top - (bodyRect.top + bodyRect.height)) / displacement.y;
+        }
+    } else { // Static in Y: check for current overlap in Y
+         if (!(bodyRect.top + bodyRect.height <= platRect.top || bodyRect.top >= platRect.top + platRect.height)) { // Overlapping in Y
+            entryTime.y = -std::numeric_limits<float>::infinity();
+            exitTime.y = std::numeric_limits<float>::infinity();
+        }
+    }
+    
+    // Times are normalized [0, 1] relative to the displacement for this iteration
+    // Ensure entry times are less than exit times (if displacement was negative, they might be swapped)
     if (entryTime.x > exitTime.x) std::swap(entryTime.x, exitTime.x);
     if (entryTime.y > exitTime.y) std::swap(entryTime.y, exitTime.y);
 
-    float actualEntryTOI = std::max(entryTime.x, entryTime.y);
-    float actualExitTOI  = std::min(exitTime.x, exitTime.y);
+    float firstEntry = std::max(entryTime.x, entryTime.y); // Time when swept AABBs first touch
+    float lastExit = std::min(exitTime.x, exitTime.y);     // Time when swept AABBs last touch
 
-    if (actualEntryTOI > actualExitTOI || actualEntryTOI >= maxTime || actualExitTOI <= 0.f || actualEntryTOI > 1.0f) {
-        return false;
-    } 
-    outCollisionEvent.time = actualEntryTOI; 
-    if (entryTime.x > entryTime.y) {
-        outCollisionEvent.axis = 0;
-    } else if (entryTime.y > entryTime.x) {
-        outCollisionEvent.axis = 1;
-    } else { 
-        outCollisionEvent.axis = (std::abs(displacement.y) > std::abs(displacement.x)) ? 1 : 0; 
-         if(displacement.x == 0.f && displacement.y == 0.f) outCollisionEvent.axis = 1; 
+    // No collision if:
+    // - interval is invalid (firstEntry > lastExit)
+    // - collision interval doesn't overlap with [0, 1] (or [0, maxTime] which should be 1 here)
+    //   (firstEntry >= 1.0f means collision happens after full displacement)
+    //   (lastExit <= 0.0f means collision happened before or at the start of displacement, or they are already separate)
+    if (firstEntry > lastExit || firstEntry >= 1.0f || lastExit <= 0.0f) {
+        return false; // No collision within this iteration's displacement
     }
+
+    // A collision will occur
+    outCollisionEvent.time = firstEntry;
     outCollisionEvent.hitPlatform = &platform;
+
+    // Determine the collision normal (axis)
+    // The axis where entryTime is GREATER determines the normal of the surface hit.
+    // If entryTime.x > entryTime.y, it means it took longer to make contact on X-relevant surfaces
+    // which implies Y-movement primarily led to the collision (or X-separation was greater).
+    // The normal will be along the axis that defined 'firstEntry'.
+    if (entryTime.x > entryTime.y) {
+        // 'firstEntry' was 'entryTime.x'.
+        // This means collision happened when X-bounds met. Normal is along X.
+        outCollisionEvent.axis = 0;
+        // Sanity check the relative velocity against this normal
+        // If moving right (disp.x > 0), normal should be -X. If left, +X.
+        // Not directly setting normal vector here, just axis of response.
+    } else if (entryTime.y > entryTime.x) {
+        // 'firstEntry' was 'entryTime.y'. Normal is along Y.
+        outCollisionEvent.axis = 1;
+    } else { // entryTime.x == entryTime.y (Corner hit or sliding perfectly aligned)
+        // Resolve based on which component of displacement is "stronger" or by some other heuristic.
+        // Using component of displacement, a larger component suggests that axis is "more responsible" for the collision.
+        // However, for platformers, y-axis collisions (ground/ceiling) are often prioritized.
+        // If moving perfectly diagonally into a corner, the choice is somewhat arbitrary without more info.
+        // A common heuristic: if player is primarily moving vertically, treat as Y collision.
+        if (std::abs(displacement.y) > std::abs(displacement.x) * 0.8f ) { // Prioritize Y if Y displacement significant
+            outCollisionEvent.axis = 1;
+        } else if (std::abs(displacement.x) > std::abs(displacement.y) * 0.8f) {
+            outCollisionEvent.axis = 0;
+        } else {
+            // Fallback for very ambiguous corners, e.g., check overlaps
+             // Determine axis for static overlap: axis of MINIMUM penetration is preferred for depenetration
+            float dx1 = (platRect.left + platRect.width) - bodyRect.left; 
+            float dx2 = (bodyRect.left + bodyRect.width) - platRect.left; 
+            float dy1 = (platRect.top + platRect.height) - bodyRect.top;   
+            float dy2 = (bodyRect.top + bodyRect.height) - platRect.top;  
+
+            float xOverlap = std::min(dx1, dx2);
+            float yOverlap = std::min(dy1, dy2);
+            if (xOverlap < yOverlap) {
+                outCollisionEvent.axis = 0;
+            } else {
+                outCollisionEvent.axis = 1;
+            }
+        }
+    }
     return true;
 }
 
@@ -266,12 +358,12 @@ bool CollisionSystem::sweptAABB(
 void CollisionSystem::applyCollisionResponse(
     DynamicBody& dynamicBody,
     const CollisionEvent& event,
-    const PlatformBody& hitPlatform) 
+    const PlatformBody& hitPlatform)
 {
     sf::Vector2f vel = dynamicBody.getVelocity();
-    if (event.axis == 0) { 
+    if (event.axis == 0) { // Hit a vertical surface, zero X velocity
         vel.x = 0.f;
-    } else if (event.axis == 1) { 
+    } else if (event.axis == 1) { // Hit a horizontal surface, zero Y velocity
         vel.y = 0.f;
     }
     dynamicBody.setVelocity(vel);

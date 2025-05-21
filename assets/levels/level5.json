@@ -1,98 +1,476 @@
 {
   "levelName": "The Seraphic Servers",
-  "levelNumber": 5,
-  "playerStart": { "x": 0, "y": 0 },
-  "backgroundColor": { "r": 20, "g": 20, "b": 40 },
+  "levelNumber": 3,
+  "playerStart": {
+    "x": 80,
+    "y": 450
+  },
+  "backgroundColor": {
+    "r": 40,
+    "g": 30,
+    "b": 50
+  },
   "platforms": [
     {
       "id": 0,
       "type": "solid",
-      "position": { "x": -20, "y": 32 },
-      "size": { "width": 3064, "height": 32 }
+      "position": {
+        "x": 0,
+        "y": 550
+      },
+      "size": {
+        "width": 250,
+        "height": 50
+      }
     },
     {
       "id": 1,
       "type": "platform",
-      "position": { "x": 950, "y": -128 },
-      "size": { "width": 64, "height": 160 }
+      "position": {
+        "x": 200,
+        "y": 480
+      },
+      "size": {
+        "width": 70,
+        "height": 16
+      }
     },
-    {
-      "id": 2,
-      "type": "platform",
-      "position": {"x": 1200, "y": -192},
-      "size": {"width": 64, "height": 224}
-    },
-    {
-      "id": 3,
-      "type": "platform",
-      "position": {"x": 1550, "y": -144},
-      "size": {"width": 64, "height": 176}
-    },
-    {
-      "id": 4,
-      "type":"platform",
-      "position": {"x": 1900, "y": -208},
-      "size": {"width": 64, "height": 240}
-    },
-    {
-      "id": 4,
-      "type": "platform",
-      "position": {"x": 2050, "y": -176},
-      "size": {"width": 64, "height": 208}
-    },
-    {
-      "id": 5,
-      "type": "platform",
-      "position": {"x": 2300, "y": -144},
-      "size": {"width": 64, "height": 176}
-    },
-    {
-      "id": 6,
-      "type": "platform",
-      "position": {"x": 2496, "y": -160},
-      "size": {"width": 64, "height": 192}
-    },
-    {
-      "id": 7,
-      "type": "platform",
-      "position": {"x": 2564, "y": -224},
-      "size": {"width": 64, "height": 256}
-    },
-    {
-      "id": 8,
-      "type": "platform",
-      "position": {"x": 2632, "y": -192},
-      "size": {"width": 64, "height": 224}
-    },
-    {
-      "id": 9,
-      "type": "platform",
-      "position": {"x": 2704, "y": -96},
-      "size": {"width": 64, "height": 128}
-    },
+
     {
       "id": 10,
-      "type": "platform",
-      "position": {"x": 2772, "y": -112},
-      "size": {"width": 64, "height": 144}
+      "type": "solid",
+      "position": {
+        "x": 350,
+        "y": 500
+      },
+      "size": {
+        "width": 100,
+        "height": 100
+      }
     },
     {
       "id": 11,
-      "type": "platform",
-      "position": {"x": 2844, "y": -176},
-      "size": {"width": 64, "height": 208}
+      "type": "moving",
+      "position": {
+        "x": 380,
+        "y": 350
+      },
+      "size": {
+        "width": 40,
+        "height": 150
+      },
+      "movement": {
+        "axis": "y",
+        "distance": -180,
+        "cycleDuration": 4.0,
+        "initialDirection": 1
+      }
     },
     {
       "id": 12,
-      "type": "platform",
-      "position": {"x": 2912, "y": -144},
-      "size": {"width": 64, "height": 176}
+      "type": "solid",
+      "position": {
+        "x": 500,
+        "y": 150
+      },
+      "size": {
+        "width": 150,
+        "height": 30
+      }
     },
     {
       "id": 13,
       "type": "platform",
-      "position": {"x": 2980, "y": -208},
-      "size": {"width": 64, "height": 240}
+      "position": {
+        "x": 700,
+        "y": 200
+      },
+      "size": {
+        "width": 80,
+        "height": 16
+      }
+    },
+    {
+      "id": 14,
+      "type": "platform",
+      "position": {
+        "x": 850,
+        "y": 250
+      },
+      "size": {
+        "width": 80,
+        "height": 16
+      }
+    },
+    {
+      "id": 20,
+      "type": "solid",
+      "position": {
+        "x": 1000,
+        "y": 400
+      },
+      "size": {
+        "width": 120,
+        "height": 200
+      }
+    },
+    {
+      "id": 21,
+      "type": "moving",
+      "position": {
+        "x": 1150,
+        "y": 380
+      },
+      "size": {
+        "width": 100,
+        "height": 20
+      },
+      "movement": {
+        "axis": "x",
+        "distance": 300,
+        "cycleDuration": 5.0,
+        "initialDirection": 1
+      }
+    },
+    {
+      "id": 22,
+      "type": "solid",
+      "position": {
+        "x": 1500,
+        "y": 380
+      },
+      "size": {
+        "width": 120,
+        "height": 220
+      }
+    },
+    {
+      "id": 23,
+      "type": "falling",
+      "position": {
+        "x": 1200,
+        "y": 300
+      },
+      "size": {
+        "width": 70,
+        "height": 20
+      }
+    },
+    {
+      "id": 24,
+      "type": "falling",
+      "position": {
+        "x": 1350,
+        "y": 250
+      },
+      "size": {
+        "width": 70,
+        "height": 20
+      }
+    },
+    {
+      "id": 25,
+      "type": "platform",
+      "position": {
+        "x": 1530,
+        "y": 180
+      },
+      "size": {
+        "width": 60,
+        "height": 16
+      }
+    },
+    {
+      "id": 30,
+      "type": "solid",
+      "position": {
+        "x": 1700,
+        "y": 500
+      },
+      "size": {
+        "width": 80,
+        "height": 100
+      }
+    },
+    {
+      "id": 31,
+      "type": "vanishing",
+      "position": {
+        "x": 1820,
+        "y": 480
+      },
+      "size": {
+        "width": 60,
+        "height": 20
+      }
+    },
+    {
+      "id": 32,
+      "type": "vanishing",
+      "position": {
+        "x": 1920,
+        "y": 450
+      },
+      "size": {
+        "width": 60,
+        "height": 20
+      }
+    },
+    {
+      "id": 33,
+      "type": "vanishing",
+      "position": {
+        "x": 2020,
+        "y": 420
+      },
+      "size": {
+        "width": 60,
+        "height": 20
+      }
+    },
+    {
+      "id": 34,
+      "type": "platform",
+      "position": {
+        "x": 2120,
+        "y": 380
+      },
+      "size": {
+        "width": 100,
+        "height": 20
+      }
+    },
+    {
+      "id": 40,
+      "type": "moving",
+      "position": {
+        "x": 2300,
+        "y": 200
+      },
+      "size": {
+        "width": 150,
+        "height": 20
+      },
+      "movement": {
+        "axis": "y",
+        "distance": 250,
+        "cycleDuration": 6.0,
+        "initialDirection": 1
+      }
+    },
+    {
+      "id": 41,
+      "type": "platform",
+      "position": {
+        "x": 2300,
+        "y": 470
+      },
+      "size": {
+        "width": 150,
+        "height": 20
+      }
+    },
+    {
+      "id": 42,
+      "type": "conveyorBelt",
+      "position": {
+        "x": 2500,
+        "y": 180
+      },
+      "size": {
+        "width": 300,
+        "height": 20
+      },
+      "surfaceVelocity": {
+        "x": -70,
+        "y": 0
+      }
+    },
+    {
+      "id": 43,
+      "type": "platform",
+      "position": {
+        "x": 2450,
+        "y": 160
+      },
+      "size": {
+        "width": 40,
+        "height": 10
+      }
+    },
+    {
+      "id": 50,
+      "type": "solid",
+      "position": {
+        "x": 2850,
+        "y": 100
+      },
+      "size": {
+        "width": 80,
+        "height": 500
+      }
+    },
+    {
+      "id": 51,
+      "type": "moving",
+      "position": {
+        "x": 3000,
+        "y": 500
+      },
+      "size": {
+        "width": 20,
+        "height": 80
+      },
+      "movement": {
+        "axis": "y",
+        "distance": -380,
+        "cycleDuration": 7.0,
+        "initialDirection": 1
+      }
+    },
+    {
+      "id": 52,
+      "type": "moving",
+      "position": {
+        "x": 3080,
+        "y": 150
+      },
+      "size": {
+        "width": 20,
+        "height": 80
+      },
+      "movement": {
+        "axis": "y",
+        "distance": 330,
+        "cycleDuration": 6.5,
+        "initialDirection": 1
+      }
+    },
+    {
+      "id": 53,
+      "type": "moving",
+      "position": {
+        "x": 3160,
+        "y": 450
+      },
+      "size": {
+        "width": 20,
+        "height": 80
+      },
+      "movement": {
+        "axis": "y",
+        "distance": -300,
+        "cycleDuration": 5.5,
+        "initialDirection": 1
+      }
+    },
+    {
+      "id": 54,
+      "type": "platform",
+      "position": {
+        "x": 3000,
+        "y": 90
+      },
+      "size": {
+        "width": 180,
+        "height": 20
+      }
+    },
+    {
+      "id": 60,
+      "type": "solid",
+      "position": {
+        "x": 3300,
+        "y": 300
+      },
+      "size": {
+        "width": 100,
+        "height": 300
+      }
+    },
+    {
+      "id": 61,
+      "type": "trap",
+      "position": {
+        "x": 3300,
+        "y": 280
+      },
+      "size": {
+        "width": 100,
+        "height": 20
+      }
+    },
+    {
+      "id": 62,
+      "type": "platform",
+      "position": {
+        "x": 3450,
+        "y": 250
+      },
+      "size": {
+        "width": 60,
+        "height": 16
+      }
+    },
+    {
+      "id": 63,
+      "type": "platform",
+      "position": {
+        "x": 3600,
+        "y": 200
+      },
+      "size": {
+        "width": 60,
+        "height": 16
+      }
+    },
+    {
+      "id": 64,
+      "type": "platform",
+      "position": {
+        "x": 3750,
+        "y": 150
+      },
+      "size": {
+        "width": 60,
+        "height": 16
+      }
+    },
+    {
+      "id": 70,
+      "type": "solid",
+      "position": {
+        "x": 3900,
+        "y": 100
+      },
+      "size": {
+        "width": 200,
+        "height": 500
+      }
+    },
+    {
+      "id": 999,
+      "type": "goal",
+      "position": {
+        "x": 4000,
+        "y": 30
+      },
+      "size": {
+        "width": 64,
+        "height": 64
+      }
+    },
+    {
+      "id": 1001,
+      "type": "solid",
+      "position": {
+        "x": 2500,
+        "y": 580
+      },
+      "size": {
+        "width": 2000,
+        "height": 20
+      }
     }
   ]
 }
