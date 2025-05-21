@@ -2,7 +2,7 @@
 #define PLATFORMBODY_HPP
 
 #include <SFML/System/Vector2.hpp>
-#include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/Rect.hpp> 
 #include "PhysicsTypes.hpp" 
 
 namespace phys {
@@ -16,7 +16,7 @@ namespace phys {
             float height = 32.f,
             bodyType type = bodyType::platform, 
             bool initiallyFalling = false,
-            const sf::Vector2f& surfaceVelocity = {0.f, 0.f}
+            const sf::Vector2f& surfaceVelocity = {0.f, 0.f} 
         );
 
         void update(float deltaTime);
