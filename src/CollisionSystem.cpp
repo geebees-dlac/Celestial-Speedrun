@@ -54,7 +54,7 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
         // Broadphase (already implicitly done by iterating all platforms)
         // Narrowphase
         for (const auto& platform : platformBodies) {
-            if (platform.getType() == phys::bodyType::goal || platform.getType() == phys::bodyType::none) {
+            if (platform.getType() == phys::bodyType::goal || platform.getType() == phys::bodyType::none || platform.getType() == phys::bodyType::trap) {
                 continue;
             }
             if (&platform == dynamicBody.getGroundPlatformTemporarilyIgnored()) {
