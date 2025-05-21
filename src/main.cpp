@@ -528,7 +528,7 @@ while (running) {
                 if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
                     playSfx("click");
                     if (startButtonText.getGlobalBounds().contains(worldPosUi)) {
-                        levelManager.setCurrentLevelNumber(0);
+                        levelManager.setCurrentLevelNumber(3);
                         if (levelManager.requestLoadNextLevel(currentLevelData)) {
                             currentState = GameState::TRANSITIONING;
                             if(menuMusic.getStatus() == sf::Music::Playing) menuMusic.stop();
