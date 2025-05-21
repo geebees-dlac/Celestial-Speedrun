@@ -1,6 +1,6 @@
 {
   "levelName": "Brimstone Boulevard",
-  "levelNumber": 1,
+  "levelNumber": 2,
   "playerStart": { "x": 0, "y": 0 },
   "backgroundColor": { "r": 20, "g": 20, "b": 40 },
   "platforms": [

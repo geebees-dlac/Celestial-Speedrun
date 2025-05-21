@@ -1,6 +1,6 @@
 {
   "levelName": "The Seraphic Servers",
-  "levelNumber": 1,
+  "levelNumber": 5,
   "playerStart": { "x": 150, "y": 400 },
   "backgroundColor": { "r": 20, "g": 20, "b": 40 },
   "platforms": [
