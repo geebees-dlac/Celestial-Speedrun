@@ -34,8 +34,8 @@ enum class GameState {
 
 // --- Game Settings Struct ---
 struct GameSettings {
-    float musicVolume = 30.f; // 0-100
-    float sfxVolume = 50.f;   // 0-100
+    float musicVolume = 100.f; // 0-100
+    float sfxVolume = 100.f;   // 0-100
 };
 
 // --- Global Game Objects ---
@@ -70,10 +70,10 @@ sf::Sound sfxPlayer;
 
 // --- Asset Paths ---
 const std::string FONT_PATH = "../assets/fonts/ARIALBD.TTF"; // Make sure this path is correct
-const std::string IMG_MENU_BG = "../assets/images/main_menu_bg.png";
-const std::string IMG_LOAD_GENERAL = "../assets/images/loading_general.png";
-const std::string IMG_LOAD_NEXT = "../assets/images/loading_nextlevel.png";
-const std::string IMG_LOAD_RESPAWN = "../assets/images/loading_respawn.png";
+const std::string IMG_MENU_BG = "../assets/images/mainmenu_bg.png";
+const std::string IMG_LOAD_GENERAL = "../assets/images/loading.png";
+const std::string IMG_LOAD_NEXT = "../assets/images/menuload.png";
+const std::string IMG_LOAD_RESPAWN = "../assets/images/respawn.png";
 
 const std::string AUDIO_MUSIC_MENU = "../assets/audio/music_menu.ogg";
 const std::string AUDIO_MUSIC_GAME = "../assets/audio/music_ingame.ogg";
