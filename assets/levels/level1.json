@@ -5,6 +5,18 @@
   "backgroundColor": { "r": 20, "g": 20, "b": 40 },
   "platforms": [
     {
+      "id": 10932,
+      "type": "trap",
+      "position": {"x": 50, "y": 550},
+      "size": {"x": 32, "y": 32}
+    },
+    {
+      "id": 19203,
+      "type": "spring",
+      "movement": {"x": 150, "y": 550},
+      "size": {"x": 32, "y": 16}
+    },
+    {
       "id": 0,
       "type": "solid",
       "position": { "x": 0, "y": 568 },
