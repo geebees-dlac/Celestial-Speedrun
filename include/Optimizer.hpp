@@ -21,7 +21,7 @@
     #endif
 #endif
 
-namespace math {
+namespace math { 
 namespace easing {
 
 // Linear

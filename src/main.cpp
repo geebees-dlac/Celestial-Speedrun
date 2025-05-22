@@ -1,11 +1,6 @@
-// main.cpp
-
-// SFML Includes
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <SFML/Window/Event.hpp>
-
-// Standard Library Includes
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -24,7 +19,6 @@
 #include "LevelManager.hpp"
 #include "Optimizer.hpp"
 
-// --- Updated GameState Enum ---
 enum class GameState {
 MENU,
 SETTINGS,
@@ -55,7 +49,7 @@ void updateResolutionDisplayText();
 LevelManager levelManager;
 LevelData currentLevelData;
 phys::DynamicBody playerBody;
-std::vector<phys::PlatformBody> bodies; // Corrected typo
+std::vector<phys::PlatformBody> bodies; 
 std::vector<Tile> tiles;
 
 struct ActiveMovingPlatform {
@@ -756,28 +750,35 @@ for (size_t i = 0; i < bodies.size(); ++i) {
 
                 // Now, use template_body_ptr->getType() to determine the *intended* behavior
                 if (template_body_ptr->getType() == phys::bodyType::falling) {
-                    // Falling logic (uses current_body for runtime state, template_body_ptr for intended type)
                     if (!current_body.isFalling()) {
-                        bool playerOnThis = playerBody.isOnGround() && playerBody.getGroundPlatform() == &current_body;
-                        if (playerOnThis && !current_tile.isFalling() && !current_tile.hasFallen()) {
-                            current_tile.startFalling(sf::seconds(0.25f));
-                        }
-                    }
-                    if (current_tile.isFalling() && !current_body.isFalling()) {
-                        current_body.setFalling(true); // Update runtime state
-                    }
+                          bool playerOnThis = playerBody.isOnGround() && playerBody.getGroundPlatform() == &current_body;
+                    if (playerOnThis && !current_tile.isFalling() && !current_tile.hasFallen()) {
+                          current_tile.startFalling(sf::seconds(0.01f)); // delay time
+                 }
+            }
+
                     current_tile.update(TIME_PER_FIXED_UPDATE);
 
-                    if (current_tile.hasFallen() && current_body.getType() != phys::bodyType::none) {
-                        if (playerBody.getGroundPlatform() == &current_body) {
-                            playerBody.setOnGround(false);
-                            playerBody.setGroundPlatform(nullptr);
-                        }
-                        current_body.setPosition({-9999.f, -9999.f}); // Update runtime state
-                        current_body.setType(phys::bodyType::none);    // Update runtime state
-                        current_tile.setFillColor(sf::Color::Transparent);
+                if (current_tile.isFalling() && !current_body.isFalling()) {
+                    current_body.setFalling(true); 
+                }
+                if (current_tile.isFalling() && current_body.isFalling()) {
+                    current_body.setPosition(current_tile.getPosition());
+                }
+
+                if (current_tile.hasFallen() && current_body.getType() != phys::bodyType::none) {
+                    if (playerBody.getGroundPlatform() == &current_body) {
+                        playerBody.setOnGround(false);
+                        playerBody.setGroundPlatform(nullptr);
                     }
-                } else if (template_body_ptr->getType() == phys::bodyType::vanishing) {
+                    current_body.setPosition({-9999.f, -9999.f});
+                    current_body.setType(phys::bodyType::none);
+                    current_tile.setFillColor(sf::Color::Transparent);
+                }
+
+
+                }
+                else if (template_body_ptr->getType() == phys::bodyType::vanishing) {
                     // Vanishing logic (uses current_body for runtime state, template_body_ptr for intended type, originalPos from template)
                     // Note: 'originalPos' was fetched above when finding template_body_ptr.
 

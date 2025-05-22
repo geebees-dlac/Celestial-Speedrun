@@ -6,43 +6,36 @@ Tile::Tile(const sf::Vector2f& size, const sf::Color& color)
       m_isFalling(false),
       m_fallDelayTimer(sf::Time::Zero),
       m_hasFallen(false),
-      m_fallSpeed(200.f) {
+      m_fallSpeed(200.f) 
+      {
     m_shape.setFillColor(color);
+    m_shape.setSize(size);
 }
 
 void Tile::update(sf::Time deltaTime) {
-    if (m_hasFallen) {
-        return; 
-    }
-
-
-    if (!m_isFalling && m_fallDelayTimer > sf::Time::Zero) {
+    if (m_fallDelayTimer > sf::Time::Zero) {
         m_fallDelayTimer -= deltaTime;
         if (m_fallDelayTimer <= sf::Time::Zero) {
             m_isFalling = true;
-            m_fallDelayTimer = sf::Time::Zero;
         }
     }
 
-    // Handle falling movement
-    if (m_isFalling) {
-        this->move(0.f, m_fallSpeed * deltaTime.asSeconds());
+    
+    if (m_isFalling && !m_hasFallen) {
+        float dy = m_fallSpeed * deltaTime.asSeconds();
+        move(0.f, dy); 
 
-        if (getPosition().y > FALLEN_Y_LIMIT) {
-            m_hasFallen = true;  // Mark as fallen
-            m_isFalling = false; // Stop
+        
+        if (getPosition().y > 600.f) { 
+            m_hasFallen = true;
+            m_isFalling = false;
         }
     }
 }
 
 void Tile::startFalling(sf::Time delay) {
-    if (!m_isFalling && !m_hasFallen) {
+    if (!m_isFalling && !m_hasFallen && m_fallDelayTimer == sf::Time::Zero) {
         m_fallDelayTimer = delay;
-
-        if (delay <= sf::Time::Zero) {
-            m_isFalling = true;
-            m_fallDelayTimer = sf::Time::Zero; // Reset timer
-        }
     }
 }
 
@@ -66,3 +59,4 @@ void Tile::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform(); // Apply the Tile's own transform
     target.draw(m_shape, states);
 }
+

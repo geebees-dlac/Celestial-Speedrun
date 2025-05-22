@@ -24,7 +24,7 @@ LevelManager::LevelManager()
     m_bodyTypeMap["platform"] = phys::bodyType::platform;
     m_bodyTypeMap["conveyorBelt"] = phys::bodyType::conveyorBelt;
     m_bodyTypeMap["moving"] = phys::bodyType::moving;
-    m_bodyTypeMap["interactible"] = phys::bodyType::interactible; // Ensure this is mapped
+    m_bodyTypeMap["interactible"] = phys::bodyType::interactible;
     m_bodyTypeMap["falling"] = phys::bodyType::falling;
     m_bodyTypeMap["vanishing"] = phys::bodyType::vanishing;
     m_bodyTypeMap["spring"] = phys::bodyType::spring;
@@ -36,8 +36,6 @@ LevelManager::LevelManager()
 }
 
 LevelManager::~LevelManager() {}
-
-// ... (setGeneralLoadingScreenImage, etc. remain the same) ...
 void LevelManager::setGeneralLoadingScreenImage(const std::string& imagePath) {
     m_generalLoadingScreenPath = imagePath;
 }
@@ -292,7 +290,7 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
 
     if (d.HasMember("backgroundColor") && d["backgroundColor"].IsObject()) {
         const auto& bc = d["backgroundColor"];
-        sf::Uint8 r = 20, g_json = 20, b_json = 40, a_json = 255; // Renamed to avoid conflict in this scope
+        sf::Uint8 r = 20, g_json = 20, b_json = 40, a_json = 255; 
         if (bc.HasMember("r") && bc["r"].IsUint()) r = static_cast<sf::Uint8>(bc["r"].GetUint());
         if (bc.HasMember("g") && bc["g"].IsUint()) g_json = static_cast<sf::Uint8>(bc["g"].GetUint());
         if (bc.HasMember("b") && bc["b"].IsUint()) b_json = static_cast<sf::Uint8>(bc["b"].GetUint());
@@ -326,18 +324,18 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
             if (platJson.HasMember("type") && platJson["type"].IsString()) {
                 typeStr = platJson["type"].GetString();
             }
-            phys::bodyType type = stringToBodyType(typeStr); // Use the member function
+            phys::bodyType type = stringToBodyType(typeStr); 
 
             sf::Vector2f pos = {0.f, 0.f};
             if (platJson.HasMember("position") && platJson["position"].IsObject()) {
-                const auto& p_json = platJson["position"]; // Renamed
+                const auto& p_json = platJson["position"]; 
                 if (p_json.HasMember("x") && p_json["x"].IsNumber()) pos.x = p_json["x"].GetFloat();
                 if (p_json.HasMember("y") && p_json["y"].IsNumber()) pos.y = p_json["y"].GetFloat();
             } else { std::cerr << "Platform ID " << id << " missing position.\n"; }
 
             float width = 32.f, height = 32.f;
             if (platJson.HasMember("size") && platJson["size"].IsObject()) {
-                const auto& s_json = platJson["size"]; // Renamed
+                const auto& s_json = platJson["size"]; 
                 if (s_json.HasMember("width") && s_json["width"].IsNumber()) width = s_json["width"].GetFloat();
                 if (s_json.HasMember("height") && s_json["height"].IsNumber()) height = s_json["height"].GetFloat();
             }  else { std::cerr << "Platform ID " << id << " missing size.\n"; }
@@ -361,7 +359,7 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
                 LevelData::MovingPlatformInfo mpi;
                 mpi.id = id;
                 mpi.startPosition = pos;
-                if (mov.HasMember("startPosition") && mov["startPosition"].IsObject()) { // Allow override of start pos for movement calc
+                if (mov.HasMember("startPosition") && mov["startPosition"].IsObject()) { 
                     const auto& msp = mov["startPosition"];
                     if (msp.HasMember("x") && msp["x"].IsNumber()) mpi.startPosition.x = msp["x"].GetFloat();
                     if (msp.HasMember("y") && msp["y"].IsNumber()) mpi.startPosition.y = msp["y"].GetFloat();
@@ -398,14 +396,12 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
 
                 if (inter.HasMember("type") && inter["type"].IsString()) {
                     ipi.interactionType = inter["type"].GetString();
-                    // For now, only "changeSelf" is meaningful, but good to parse
                 }
                 if (inter.HasMember("targetBodyType") && inter["targetBodyType"].IsString()) {
                     ipi.targetBodyTypeStr = inter["targetBodyType"].GetString();
                 } else {
                     std::cerr << "LevelManager Parse Error: Interactible platform ID " << id << " 'interaction' block missing 'targetBodyType' string." << std::endl;
-                    // This interactible won't work correctly. Could skip adding it or add with default.
-                    ipi.targetBodyTypeStr = "solid"; // Default to solid if missing
+                    ipi.targetBodyTypeStr = "solid"; 
                 }
 
                 if (inter.HasMember("targetTileColor") && inter["targetTileColor"].IsObject()) {
