@@ -69,7 +69,7 @@
     },
  
     {
-      "id": 14,
+      "id": 15,
       "type": "solid",
       "position": { "x": 1240, "y": -510 },
       "size": { "width": 128, "height": 32 }
@@ -82,13 +82,13 @@
       "id": 18, "type": "vanishing", "position": {"x": 600, "y": -510}, "size": {"width": 32, "height": 32}},  
 
     {
-      "id": 11  ,
+      "id": 19  ,
       "type": "solid",
       "position": { "x": 252, "y": -510 },
       "size": { "width": 128, "height": 32 }
     },
     {
-    "id": 100, 
+    "id": 20, 
     "type": "goal", 
     "position": {"x": 252, "y": -574},  
     "size": {"width": 64, "height": 64} 
