@@ -87,7 +87,7 @@ GameSettings gameSettings;
 sf::Music menuMusic;
 sf::Music gameMusic;
 std::map<std::string, sf::SoundBuffer> soundBuffers;
-const sf::SoundBuffer defaultSoundBuffer("default.wav");
+sf::SoundBuffer defaultSoundBuffer("../assets/audio/default.wav");
 sf::Sound sfxPlayer(defaultSoundBuffer);
 
 // --- Asset Paths ---
