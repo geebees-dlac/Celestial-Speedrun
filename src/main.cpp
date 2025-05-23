@@ -754,7 +754,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
                     if (!current_body.isFalling()) {
                           bool playerOnThis = playerBody.isOnGround() && playerBody.getGroundPlatform() == &current_body;
                     if (playerOnThis && !current_tile.isFalling() && !current_tile.hasFallen()) {
-                          current_tile.startFalling(sf::seconds(0.01f)); // delay time
+                          current_tile.startFalling(sf::seconds(0.5f)); // delay time
                  }
             }
 
