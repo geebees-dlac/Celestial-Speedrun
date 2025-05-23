@@ -86,7 +86,8 @@ GameSettings gameSettings;
 sf::Music menuMusic;
 sf::Music gameMusic;
 std::map<std::string, sf::SoundBuffer> soundBuffers;
-sf::Sound sfxPlayer;
+const sf::SoundBuffer defaultSoundBuffer("default.wav");
+sf::Sound sfxPlayer(defaultSoundBuffer);
 
 // --- Asset Paths ---
 const std::string FONT_PATH = "../assets/fonts/ARIALBD.TTF";
