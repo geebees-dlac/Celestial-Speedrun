@@ -1,1 +1,21 @@
 This is The Start of the Documentation of The Code of Celestial Speedrun
+as the main code (jess) i tend to mix up everything and because i dont want to make any more file extensions, things get a bit wanky on where which goes to which.
+as for the sprite loading (to be finished later) gian will be the one contnuing this sequence
+
+
+
+Table of Contents 
+
+Body Types Debugging
+Player Debugging
+Level Debugging
+Game State Debugging
+Optimizer (i dont know what this is)
+Everything about Collision System hpp and Cpp
+Everything about Level Manager hpp and cpp
+Everything about platformbody hpp and cpp
+Everything about player hpp and cpp 
+Everything about tile hpp and cpp
+
+
+
