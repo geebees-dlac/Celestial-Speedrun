@@ -779,7 +779,7 @@ int main(void) {
 
                     if (template_body_ptr->getType() == phys::bodyType::falling) {
                         if (!current_body.isFalling()) {
-                              bool playerOnThis = playerBody.isOnGround() && playerBody.getGroundPlatform() == &current_body;
+                              bool playerOnThis = playerBody.isOnGround() && playerBody.getGroundPlatform() == ¤t_body;
                               if (playerOnThis && !current_tile.isFalling() && !current_tile.hasFallen()) {
                                   current_tile.startFalling(sf::seconds(0.5f));
                               }
@@ -795,7 +795,7 @@ int main(void) {
                         }
 
                         if (current_tile.hasFallen() && current_body.getType() != phys::bodyType::none) {
-                            if (playerBody.getGroundPlatform() == &current_body) {
+                            if (playerBody.getGroundPlatform() == ¤t_body) {
                                 playerBody.setOnGround(false);
                                 playerBody.setGroundPlatform(nullptr);
                             }
@@ -822,7 +822,7 @@ int main(void) {
 
                         if (alpha_val <= 10.f) {
                             if (current_body.getType() != phys::bodyType::none) {
-                                if (playerBody.getGroundPlatform() == &current_body) {
+                                if (playerBody.getGroundPlatform() == ¤t_body) {
                                     playerBody.setOnGround(false);
                                     playerBody.setGroundPlatform(nullptr);
                                 }
@@ -1041,6 +1041,78 @@ int main(void) {
                                         interact_body_ref.setPosition({-10000.f, -10000.f});
                                         if (tiles.size() > k) tiles[k].setFillColor(sf::Color::Transparent);
                                     }
+
+                                    // --- Linked ID Interaction Logic ---
+                                    if (interactState.linkedID != 0) {
+                                        for (size_t linked_idx = 0; linked_idx < bodies.size(); ++linked_idx) {
+                                            if (bodies[linked_idx].getID() == interactState.linkedID) {
+                                                phys::PlatformBody& linked_body_ref = bodies[linked_idx];
+                                                Tile& linked_tile_ref = tiles[linked_idx]; // Assuming tiles and bodies align by index
+
+                                                // Example: Toggle linked platform between solid and none
+                                                // More complex logic can be added based on interactState properties
+                                                if (linked_body_ref.getType() == phys::bodyType::solid || linked_body_ref.getType() == phys::bodyType::platform /*or other 'visible' types you want to make none*/) {
+                                                    if (playerBody.getGroundPlatform() == &linked_body_ref) {
+                                                        playerBody.setOnGround(false);
+                                                        playerBody.setGroundPlatform(nullptr);
+                                                    }
+                                                    linked_body_ref.setType(phys::bodyType::none);
+                                                    linked_body_ref.setPosition({-10000.f, -10000.f}); // Move off-screen
+                                                    linked_tile_ref.setFillColor(sf::Color::Transparent);
+                                                    linked_tile_ref.setPosition({-10000.f, -10000.f});
+
+                                                } else if (linked_body_ref.getType() == phys::bodyType::none) {
+                                                    // Find its original intended type and position from currentLevelData
+                                                    sf::Vector2f originalLinkedPos = {-9999.f, -9999.f};
+                                                    phys::bodyType originalLinkedType = phys::bodyType::solid; // Default if not found or defined
+                                                    
+                                                    for(const auto& templ : currentLevelData.platforms){
+                                                        if(templ.getID() == linked_body_ref.getID()){
+                                                            originalLinkedPos = templ.getPosition();
+                                                            // Find the original type specified in the JSON template for this ID
+                                                            // This requires the interactible that *targets* this linkedID to know
+                                                            // what type to change it back *to*. 
+                                                            // For simplicity, let's assume it becomes 'solid' or a predefined type
+                                                            // or check if `interactState` has a `linkedTargetBodyTypeEnum` field
+                                                            originalLinkedType = templ.getType(); // Use its original template type
+                                                            // Or: If interactState defines target type for linked:
+                                                            // originalLinkedType = interactState.someLinkedTargetTypeField;
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    if(originalLinkedPos.x > -9998.f){ // If original pos found
+                                                       linked_body_ref.setPosition(originalLinkedPos);
+                                                       linked_body_ref.setType(originalLinkedType); // Make it what it originally was or target type
+                                                       linked_tile_ref.setPosition(originalLinkedPos);
+                                                       // If interactState defines target color for linked:
+                                                       // linked_tile_ref.setFillColor(interactState.someLinkedTargetColorField);
+                                                       // else:
+                                                       linked_tile_ref.setFillColor(getTileColorForBodyType(originalLinkedType));
+                                                    }
+                                                } else if (linked_body_ref.getType() != phys::bodyType::portal &&
+                                                           interactState.targetBodyTypeEnum == phys::bodyType::portal &&
+                                                           linked_body_ref.getID() == interactState.linkedID) { // Specifically activating a 'none' platform to be a portal
+                                                    sf::Vector2f originalLinkedPos = {-9999.f, -9999.f};
+                                                    for(const auto& templ : currentLevelData.platforms){
+                                                        if(templ.getID() == linked_body_ref.getID()){
+                                                            originalLinkedPos = templ.getPosition();
+                                                            break;
+                                                        }
+                                                    }
+                                                    if(originalLinkedPos.x > -9998.f){
+                                                       linked_body_ref.setPosition(originalLinkedPos);
+                                                       linked_body_ref.setType(phys::bodyType::portal); 
+                                                       linked_tile_ref.setPosition(originalLinkedPos);
+                                                       linked_tile_ref.setFillColor(getTileColorForBodyType(phys::bodyType::portal));
+                                                    }
+                                                }
+                                                break; 
+                                            }
+                                        }
+                                    }
+                                    // --- End Linked ID Interaction Logic ---
+
 
                                     if (interactState.oneTime) interactState.hasBeenInteractedThisSession = true;
                                     else interactState.currentCooldownTimer = interactState.cooldown;
