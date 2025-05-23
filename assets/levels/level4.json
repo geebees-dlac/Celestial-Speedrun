@@ -13,13 +13,13 @@
     {
       "id": 1, 
       "type": "moving",
-      "position": { "x": 200, "y": -96 },
+      "position": { "x": 1000, "y": -96 },
       "size": { "width": 100, "height": 32 },
       "movement": {
         "axis": "x",
         "distance": 800,
         "cycleDuration": 15.0, 
-        "initialDirection": 1
+        "initialDirection": -1
       }
     },
     {
@@ -47,13 +47,13 @@
       "size": {"width": 100, "height": 32}
     },
     {
-      "id": 7,
+      "id": 6,
       "type": "vanishing",
       "position": {"x": 325, "y": -371},
       "size": {"width": 100, "height": 32}
     },
     {
-      "id": 6,
+      "id": 7,
       "type": "vanishing",
       "position": {"x": 75, "y": -500},
       "size": {"width": 100, "height": 32}
