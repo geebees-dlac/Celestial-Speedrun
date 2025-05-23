@@ -353,8 +353,10 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
 
             // Create Base Platform
             outLevelData.platforms.emplace_back(
-                id, pos, width, height, type, initiallyFalling, surfaceVel //checkpoint
+                id, pos, width, height, type, initiallyFalling, surfaceVel
             );
+            
+            phys::PlatformBody& justAddedBody = outLevelData.platforms.back();
 
             // Handle Special Types
             if (type == phys::bodyType::portal) {
