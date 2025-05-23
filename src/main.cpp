@@ -42,7 +42,8 @@ std::vector<sf::VideoMode> availableVideoModes; // Corrected typo
 int currentResolutionIndex = 0;
 bool isFullscreen = true;
 
-sf::Text resolutionCurrentText;
+sf::Font defaultFont("../assets/fonts/ARIALBD.TTF");
+sf::Text resolutionCurrentText(defaultFont);
 void updateResolutionDisplayText();
 
 // --- Global Game Objects ---
@@ -198,7 +199,7 @@ if (windowAspectRatio > logicalAspectRatio) {
     viewportHeightRatio = windowAspectRatio / logicalAspectRatio;
     viewportY = (1.f - viewportHeightRatio) / 2.f;
 }
-sf::FloatRect viewportRect(viewportX, viewportY, viewportWidthRatio, viewportHeightRatio);
+sf::FloatRect viewportRect({viewportX, viewportY}, {viewportWidthRatio, viewportHeightRatio});
 
 uiView.setSize(LOGICAL_SIZE);
 uiView.setCenter(LOGICAL_SIZE / 2.f);
@@ -222,11 +223,11 @@ std::cerr << "SFX not loaded/found: " << sfxName << std::endl;
 void loadAudio() {
 if (!menuMusic.openFromFile(AUDIO_MUSIC_MENU))
 std::cerr << "Error loading menu music: " << AUDIO_MUSIC_MENU << std::endl;
-else menuMusic.setLoop(true);
+else menuMusic.setLooping(true);
 
 if (!gameMusic.openFromFile(AUDIO_MUSIC_GAME))
     std::cerr << "Error loading game music: " << AUDIO_MUSIC_GAME << std::endl;
-else gameMusic.setLoop(true);
+else gameMusic.setLooping(true);
 
 auto loadSfxBuffer = [&](const std::string& name, const std::string& path) {
     sf::SoundBuffer buffer;
@@ -361,8 +362,8 @@ std::to_string(static_cast<int>(LOGICAL_SIZE.y)) + " (Default)"
 }
 }
 sf::FloatRect bounds = resolutionCurrentText.getLocalBounds();
-resolutionCurrentText.setOrigin(bounds.position.x + bounds.size.x / 2.f, bounds.position.y + bounds.size.y / 2.f);
-resolutionCurrentText.setPosition(LOGICAL_SIZE.x / 2.f, 320.f);
+resolutionCurrentText.setOrigin({bounds.position.x + bounds.size.x / 2.f, bounds.position.y + bounds.size.y / 2.f});
+resolutionCurrentText.setPosition({LOGICAL_SIZE.x / 2.f, 320.f});
 }
 
 int main(void) {
@@ -415,14 +416,14 @@ loadAudio();
 
 playerBody = phys::DynamicBody(currentLevelData.playerStartPosition, tileSize.x, tileSize.y);
 
-if (!menuFont.loadFromFile(FONT_PATH)) {
+if (!menuFont.openFromFile(FONT_PATH)) {
     std::cerr << "FATAL: Failed to load font: " << FONT_PATH << ". Trying fallback." << std::endl;
     #if defined(_WIN32)
-    if (!menuFont.loadFromFile("C:/Windows/Fonts/arialbd.ttf")) { std::cerr << "Windows fallback font failed.\n"; return -1; }
+    if (!menuFont.openFromFile("C:/Windows/Fonts/arialbd.ttf")) { std::cerr << "Windows fallback font failed.\n"; return -1; }
     #elif defined(__APPLE__)
-    if (!menuFont.loadFromFile("/System/Library/Fonts/Supplemental/Arial Bold.ttf")) { if(!menuFont.loadFromFile("/Library/Fonts/Arial Bold.ttf")) {std::cerr << "macOS fallback font failed.\n"; return -1; }}
+    if (!menuFont.openFromFile("/System/Library/Fonts/Supplemental/Arial Bold.ttf")) { if(!menuFont.openFromFile("/Library/Fonts/Arial Bold.ttf")) {std::cerr << "macOS fallback font failed.\n"; return -1; }}
     #else // Linux
-    if (!menuFont.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")) {
+    if (!menuFont.openFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")) {
         std::cerr << "Linux fallback font failed.\n"; return -1;
         }
     #endif
@@ -436,17 +437,17 @@ auto setupTextUI = [&](sf::Text& text, const sf::String& str, float yPos, unsign
     text.setCharacterSize(charSize);
     text.setFillColor(sf::Color::White);
     sf::FloatRect text_bounds = text.getLocalBounds();
-    text.setOrigin(text_bounds.left + text_bounds.size.x / 2.f, text_bounds.top + text_bounds.size.y / 2.f);
-    text.setPosition(LOGICAL_SIZE.x / 2.f + xOffset, yPos);
+    text.setOrigin({text_bounds.position.x + text_bounds.size.x / 2.f, text_bounds.position.y + text_bounds.size.y / 2.f});
+    text.setPosition({LOGICAL_SIZE.x / 2.f + xOffset, yPos});
 };
 
 if (menuBgTexture.loadFromFile(IMG_MENU_BG)) {
     menuBgSprite.setTexture(menuBgTexture);
     if (menuBgTexture.getSize().x > 0 && menuBgTexture.getSize().y > 0) {
-        menuBgSprite.setScale(LOGICAL_SIZE.x / static_cast<float>(menuBgTexture.getSize().x),
-                              LOGICAL_SIZE.y / static_cast<float>(menuBgTexture.getSize().y));
+        menuBgSprite.setScale({LOGICAL_SIZE.x / static_cast<float>(menuBgTexture.getSize().x),
+                              LOGICAL_SIZE.y / static_cast<float>(menuBgTexture.getSize().y)});
     }
-    menuBgSprite.setPosition(0.f,0.f);
+    menuBgSprite.setPosition({0.f,0.f});
 }
 else {
     std::cerr << "Warning: Menu BG image not found: " << IMG_MENU_BG << std::endl;
@@ -495,11 +496,11 @@ playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()))
 debugText.setFont(menuFont);
 debugText.setCharacterSize(14);
 debugText.setFillColor(sf::Color::White);
-debugText.setPosition(10.f, 10.f);
+debugText.setPosition({10.f, 10.f});
 
 menuMusic.setVolume(gameSettings.musicVolume);
 gameMusic.setVolume(gameSettings.musicVolume);
-if (menuMusic.getStatus() != sf::Music::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) {
+if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) {
     menuMusic.play();
 }
 
@@ -508,18 +509,20 @@ while (running) {
     interactKeyPressedThisFrame = false;
     sf::Time frameDeltaTime = gameClock.restart();
 
-    sf::Event event;
-    while (window.pollEvent(event)) {
-        if (event.type == sf::Event::Closed) {
+    //sf::Event event;
+    while (const std::optional event = window.pollEvent()) {
+        if (event->is<sf::Event::Closed>()) {
             running = false; window.close();
         }
-         if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F4) {
-            if(currentState == GameState::PLAYING && levelManager.requestLoadNextLevel(currentLevelData)){
-                 currentState = GameState::TRANSITIONING; playSfx("goal");
-            } else if (currentState == GameState::PLAYING && !levelManager.hasNextLevel()) {
-                currentState = GameState::GAME_OVER_WIN;
-                if(gameMusic.getStatus() == sf::Music::Playing) gameMusic.stop();
-                if(menuMusic.getStatus() != sf::Music::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
+        if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){
+            if (keyPressed->scancode == sf::Keyboard::Scancode::P) {
+                if(currentState == GameState::PLAYING && levelManager.requestLoadNextLevel(currentLevelData)){
+                        currentState = GameState::TRANSITIONING; playSfx("goal");
+                } else if (currentState == GameState::PLAYING && !levelManager.hasNextLevel()) {
+                    currentState = GameState::GAME_OVER_WIN;
+                    if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop();
+                    if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
+                }
             }
         }
 
@@ -528,55 +531,64 @@ while (running) {
 
         switch(currentState) {
             case GameState::MENU:
-                if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
-                    playSfx("click");
-                    if (startButtonText.getGlobalBounds().contains(worldPosUi)) {
-                        levelManager.setCurrentLevelNumber(0);
-                        if (levelManager.requestLoadNextLevel(currentLevelData)) {
-                            currentState = GameState::TRANSITIONING;
-                            if(menuMusic.getStatus() == sf::Music::Playing) menuMusic.stop();
-                            if(gameMusic.getStatus() != sf::Music::Playing && gameMusic.openFromFile(AUDIO_MUSIC_GAME)) gameMusic.play();
-                        } else { std::cerr << "MENU: Failed request to load initial level." << std::endl; }
-                    } else if (settingsButtonText.getGlobalBounds().contains(worldPosUi)) {
-                        currentState = GameState::SETTINGS;
-                        updateResolutionDisplayText();
-                    } else if (creditsButtonText.getGlobalBounds().contains(worldPosUi)) {
-                        currentState = GameState::CREDITS;
-                    } else if (exitButtonText.getGlobalBounds().contains(worldPosUi)) {
-                        running = false; window.close();
+                if (const auto* mouseButtonReleased = event->getIf<sf::Event::MouseButtonReleased>()){
+                    if (mouseButtonReleased->button == sf::Mouse::Button::Left) {
+                        playSfx("click");
+                        if (startButtonText.getGlobalBounds().contains(worldPosUi)) {
+                            levelManager.setCurrentLevelNumber(0);
+                            if (levelManager.requestLoadNextLevel(currentLevelData)) {
+                                currentState = GameState::TRANSITIONING;
+                                if(menuMusic.getStatus() == sf::Music::Status::Playing) menuMusic.stop();
+                                if(gameMusic.getStatus() != sf::Music::Status::Playing && gameMusic.openFromFile(AUDIO_MUSIC_GAME)) gameMusic.play();
+                            } else { std::cerr << "MENU: Failed request to load initial level." << std::endl; }
+                        } else if (settingsButtonText.getGlobalBounds().contains(worldPosUi)) {
+                            currentState = GameState::SETTINGS;
+                            updateResolutionDisplayText();
+                        } else if (creditsButtonText.getGlobalBounds().contains(worldPosUi)) {
+                            currentState = GameState::CREDITS;
+                        } else if (exitButtonText.getGlobalBounds().contains(worldPosUi)) {
+                            running = false; window.close();
+                        }
                     }
                 }
-                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) { running = false; window.close(); }
+                if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Escape){
+                        running = false; 
+                        window.close(); 
+                    }
+                }
                 break;
             case GameState::SETTINGS:
-                 if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
-                    playSfx("click");
-                    if (settingsBackText.getGlobalBounds().contains(worldPosUi)) currentState = GameState::MENU;
-                    else if (musicVolDownText.getGlobalBounds().contains(worldPosUi)) {
-                        gameSettings.musicVolume = std::max(0.f, gameSettings.musicVolume - 10.f);
-                        menuMusic.setVolume(gameSettings.musicVolume); gameMusic.setVolume(gameSettings.musicVolume);
-                    } else if (musicVolUpText.getGlobalBounds().contains(worldPosUi)) {
-                        gameSettings.musicVolume = std::min(100.f, gameSettings.musicVolume + 10.f);
-                        menuMusic.setVolume(gameSettings.musicVolume); gameMusic.setVolume(gameSettings.musicVolume);
-                    }
-                    else if (sfxVolDownText.getGlobalBounds().contains(worldPosUi)) gameSettings.sfxVolume = std::max(0.f, gameSettings.sfxVolume - 10.f);
-                    else if (sfxVolUpText.getGlobalBounds().contains(worldPosUi)) gameSettings.sfxVolume = std::min(100.f, gameSettings.sfxVolume + 10.f);
-                    else if (resolutionPrevText.getGlobalBounds().contains(worldPosUi)) {
-                        if (!isFullscreen && !availableVideoModes.empty()) {
-                            currentResolutionIndex--; if (currentResolutionIndex < 0) currentResolutionIndex = static_cast<int>(availableVideoModes.size()) - 1;
+                if (const auto* mouseButtonReleased = event->getIf<sf::Event::MouseButtonReleased>()){
+                    if (mouseButtonReleased->button == sf::Mouse::Button::Left) {
+                        playSfx("click");
+                        if (settingsBackText.getGlobalBounds().contains(worldPosUi)) currentState = GameState::MENU;
+                        else if (musicVolDownText.getGlobalBounds().contains(worldPosUi)) {
+                            gameSettings.musicVolume = std::max(0.f, gameSettings.musicVolume - 10.f);
+                            menuMusic.setVolume(gameSettings.musicVolume); gameMusic.setVolume(gameSettings.musicVolume);
+                        } else if (musicVolUpText.getGlobalBounds().contains(worldPosUi)) {
+                            gameSettings.musicVolume = std::min(100.f, gameSettings.musicVolume + 10.f);
+                            menuMusic.setVolume(gameSettings.musicVolume); gameMusic.setVolume(gameSettings.musicVolume);
+                        }
+                        else if (sfxVolDownText.getGlobalBounds().contains(worldPosUi)) gameSettings.sfxVolume = std::max(0.f, gameSettings.sfxVolume - 10.f);
+                        else if (sfxVolUpText.getGlobalBounds().contains(worldPosUi)) gameSettings.sfxVolume = std::min(100.f, gameSettings.sfxVolume + 10.f);
+                        else if (resolutionPrevText.getGlobalBounds().contains(worldPosUi)) {
+                            if (!isFullscreen && !availableVideoModes.empty()) {
+                                currentResolutionIndex--; if (currentResolutionIndex < 0) currentResolutionIndex = static_cast<int>(availableVideoModes.size()) - 1;
+                                applyAndRecreateWindow(window, uiView, mainView); updateResolutionDisplayText();
+                            }
+                        } else if (resolutionNextText.getGlobalBounds().contains(worldPosUi)) {
+                                if (!isFullscreen && !availableVideoModes.empty()) {
+                                currentResolutionIndex++; if (currentResolutionIndex >= static_cast<int>(availableVideoModes.size())) currentResolutionIndex = 0;
+                                applyAndRecreateWindow(window, uiView, mainView); updateResolutionDisplayText();
+                            }
+                        } else if (fullscreenToggleText.getGlobalBounds().contains(worldPosUi)) {
+                            isFullscreen = !isFullscreen;
                             applyAndRecreateWindow(window, uiView, mainView); updateResolutionDisplayText();
                         }
-                    } else if (resolutionNextText.getGlobalBounds().contains(worldPosUi)) {
-                         if (!isFullscreen && !availableVideoModes.empty()) {
-                            currentResolutionIndex++; if (currentResolutionIndex >= static_cast<int>(availableVideoModes.size())) currentResolutionIndex = 0;
-                            applyAndRecreateWindow(window, uiView, mainView); updateResolutionDisplayText();
-                        }
-                    } else if (fullscreenToggleText.getGlobalBounds().contains(worldPosUi)) {
-                        isFullscreen = !isFullscreen;
-                        applyAndRecreateWindow(window, uiView, mainView); updateResolutionDisplayText();
                     }
-                 }
-                 if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) currentState = GameState::MENU;
+                }
+                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) currentState = GameState::MENU;
                 break;
             case GameState::CREDITS:
                 if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
