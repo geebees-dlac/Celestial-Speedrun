@@ -436,14 +436,14 @@ auto setupTextUI = [&](sf::Text& text, const sf::String& str, float yPos, unsign
     text.setCharacterSize(charSize);
     text.setFillColor(sf::Color::White);
     sf::FloatRect text_bounds = text.getLocalBounds();
-    text.setOrigin(text_bounds.left + text_bounds.size.x / 2.f, text_bounds.top + text_bounds.size.y / 2.f);
-    text.setPosition(LOGICAL_SIZE.x / 2.f + xOffset, yPos);
+    text.setOrigin({text_bounds.position.x + text_bounds.size.x / 2.f, text_bounds.position.y + text_bounds.size.y / 2.f});
+    text.setPosition({LOGICAL_SIZE.x / 2.f + xOffset, yPos});
 };
 
 if (menuBgTexture.loadFromFile(IMG_MENU_BG)) {
     menuBgSprite.setTexture(menuBgTexture);
     if (menuBgTexture.getSize().x > 0 && menuBgTexture.getSize().y > 0) {
-        menuBgSprite.setScale(LOGICAL_SIZE.x / static_cast<float>(menuBgTexture.getSize().x),
+        menuBgSprite.setScale({LOGICAL_SIZE.x / static_cast<float>(menuBgTexture.getSize().x}),
                               LOGICAL_SIZE.y / static_cast<float>(menuBgTexture.getSize().y));
     }
     menuBgSprite.setPosition(0.f,0.f);
@@ -946,7 +946,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
             // --- Interaction (Goal, Interactibles) ---
             if (interactKeyPressedThisFrame) {
                 for (const auto& platform_body_check_goal : bodies) {
-                    if (platform_body_check_goal.getType() == phys::bodyType::goal && playerBody.getAABB().intersects(platform_body_check_goal.getAABB())) {
+                    if (platform_body_check_goal.getType() == phys::bodyType::goal && playerBody.getAABB().findIntersection(platform_body_check_goal.getAABB())) {
                         playSfx("goal");
                         if (levelManager.hasNextLevel()) {
                             if (levelManager.requestLoadNextLevel(currentLevelData)) {
