@@ -128,7 +128,7 @@ private:
     float m_fadeDuration;
 
     sf::Texture m_loadingTexture;
-    sf::Sprite m_loadingSprite;
+    std::optional <sf::Sprite> m_loadingSprite;
     bool m_loadingScreenReady;
 
     std::string m_generalLoadingScreenPath;
