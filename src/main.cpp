@@ -392,6 +392,8 @@ sf::Text gameOverStatusText(menuFont), gameOverOption1Text(menuFont), gameOverOp
 sf::Text debugText(menuFont);
 sf::RectangleShape playerShape;
 
+bool menuBgSpriteLoaded = false;
+
 const float PLAYER_MOVE_SPEED = 200.f;
 const float JUMP_INITIAL_VELOCITY = -450.f;
 const float GRAVITY_ACCELERATION = 1200.f;
@@ -443,6 +445,7 @@ auto setupTextUI = [&](sf::Text& text, const sf::String& str, float yPos, unsign
 
 if (menuBgTexture.loadFromFile(IMG_MENU_BG)) {
     menuBgSprite.setTexture(menuBgTexture);
+    menuBgSpriteLoaded = true;
     if (menuBgTexture.getSize().x > 0 && menuBgTexture.getSize().y > 0) {
         menuBgSprite.setScale({LOGICAL_SIZE.x / static_cast<float>(menuBgTexture.getSize().x),
                               LOGICAL_SIZE.y / static_cast<float>(menuBgTexture.getSize().y)});
@@ -588,27 +591,35 @@ while (running) {
                         }
                     }
                 }
-                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) currentState = GameState::MENU;
+                if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Escape){
+                        currentState = GameState::MENU;
+                    }
+                }
                 break;
             case GameState::CREDITS:
-                if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
-                    playSfx("click");
-                    if (creditsBackText.getGlobalBounds().contains(worldPosUi)) currentState = GameState::MENU;
+                if (const auto* mouseButtonReleased = event->getIf<sf::Event::MouseButtonReleased>()){
+                    if (mouseButtonReleased->button == sf::Mouse::Button::Left){
+                        playSfx("click");
+                        if (creditsBackText.getGlobalBounds().contains(worldPosUi)) currentState = GameState::MENU;
+                    }
                 }
-                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) currentState = GameState::MENU;
+                if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) currentState = GameState::MENU;
+                }
                 break;
             case GameState::PLAYING:
-                if (event.type == sf::Event::KeyPressed) {
-                    if (event.key.code == sf::Keyboard::Escape) {
+                if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
                         currentState = GameState::MENU;
-                        if(gameMusic.getStatus() == sf::Music::Playing) gameMusic.pause();
-                        if(menuMusic.getStatus() != sf::Music::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
-                    } else if (event.key.code == sf::Keyboard::R) {
+                        if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.pause();
+                        if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
+                    } else if (keyPressed->scancode== sf::Keyboard::Scancode::R) {
                         playSfx("click");
                         if (levelManager.requestRespawnCurrentLevel(currentLevelData)) {
                             currentState = GameState::TRANSITIONING;
                         } else {std::cerr << "PLAYING: Failed respawn request.\n";}
-                    } else if (event.key.code == sf::Keyboard::E) {
+                    } else if (keyPressed->scancode == sf::Keyboard::Scancode::E) {
                         interactKeyPressedThisFrame = true;
                     }
                 }
@@ -616,36 +627,40 @@ while (running) {
              case GameState::GAME_OVER_WIN:
              case GameState::GAME_OVER_LOSE_FALL:
              case GameState::GAME_OVER_LOSE_DEATH:
-                if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
-                    playSfx("click");
-                    if (gameOverOption1Text.getGlobalBounds().contains(worldPosUi)) {
-                        if (currentState == GameState::GAME_OVER_LOSE_FALL || currentState == GameState::GAME_OVER_LOSE_DEATH) { // Retry
-                            if (levelManager.requestRespawnCurrentLevel(currentLevelData)) {
-                                currentState = GameState::TRANSITIONING;
-                                if(menuMusic.getStatus() == sf::Music::Playing) menuMusic.stop();
-                                if(gameMusic.getStatus() != sf::Music::Playing && gameMusic.openFromFile(AUDIO_MUSIC_GAME)) gameMusic.play();
-                            } else { currentState = GameState::MENU; if(gameMusic.getStatus() == sf::Music::Playing) gameMusic.stop(); if(menuMusic.getStatus() != sf::Music::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play(); levelManager.setCurrentLevelNumber(0); }
-                        } else if (currentState == GameState::GAME_OVER_WIN) { // Play Again (Level 1)
+                if (const auto* mouseButtonReleased = event->getIf<sf::Event::MouseButtonReleased>()){
+                    if (mouseButtonReleased->button == sf::Mouse::Button::Left) {
+                        playSfx("click");
+                        if (gameOverOption1Text.getGlobalBounds().contains(worldPosUi)) {
+                            if (currentState == GameState::GAME_OVER_LOSE_FALL || currentState == GameState::GAME_OVER_LOSE_DEATH) { // Retry
+                                if (levelManager.requestRespawnCurrentLevel(currentLevelData)) {
+                                    currentState = GameState::TRANSITIONING;
+                                    if(menuMusic.getStatus() == sf::Music::Status::Playing) menuMusic.stop();
+                                    if(gameMusic.getStatus() != sf::Music::Status::Playing && gameMusic.openFromFile(AUDIO_MUSIC_GAME)) gameMusic.play();
+                                } else { currentState = GameState::MENU; if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop(); if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play(); levelManager.setCurrentLevelNumber(0); }
+                            } else if (currentState == GameState::GAME_OVER_WIN) { // Play Again (Level 1)
+                                levelManager.setCurrentLevelNumber(0);
+                                if (levelManager.requestLoadNextLevel(currentLevelData)) {
+                                    currentState = GameState::TRANSITIONING;
+                                    if(menuMusic.getStatus() == sf::Music::Status::Playing) menuMusic.stop();
+                                    if(gameMusic.getStatus() != sf::Music::Status::Playing && gameMusic.openFromFile(AUDIO_MUSIC_GAME)) gameMusic.play();
+                                } else { currentState = GameState::MENU; if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play(); }
+                            }
+                        } else if (gameOverOption2Text.getGlobalBounds().contains(worldPosUi)) { // Main Menu
+                            currentState = GameState::MENU;
+                            if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop();
+                            if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
                             levelManager.setCurrentLevelNumber(0);
-                            if (levelManager.requestLoadNextLevel(currentLevelData)) {
-                                currentState = GameState::TRANSITIONING;
-                                if(menuMusic.getStatus() == sf::Music::Playing) menuMusic.stop();
-                                if(gameMusic.getStatus() != sf::Music::Playing && gameMusic.openFromFile(AUDIO_MUSIC_GAME)) gameMusic.play();
-                            } else { currentState = GameState::MENU; if(menuMusic.getStatus() != sf::Music::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play(); }
                         }
-                    } else if (gameOverOption2Text.getGlobalBounds().contains(worldPosUi)) { // Main Menu
+                    }
+                }
+                if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()){
+                    if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) { // Go to menu on Esc
                         currentState = GameState::MENU;
-                        if(gameMusic.getStatus() == sf::Music::Playing) gameMusic.stop();
-                        if(menuMusic.getStatus() != sf::Music::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
+                        if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop();
+                        if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
                         levelManager.setCurrentLevelNumber(0);
                     }
                 }
-                 if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) { // Go to menu on Esc
-                    currentState = GameState::MENU;
-                    if(gameMusic.getStatus() == sf::Music::Playing) gameMusic.stop();
-                    if(menuMusic.getStatus() != sf::Music::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
-                    levelManager.setCurrentLevelNumber(0);
-                 }
                 break;
             case GameState::TRANSITIONING:
                 break;
@@ -672,14 +687,14 @@ while (running) {
 
             // --- Handle Input for Player ---
             float horizontalInput = 0.f;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) turboMultiplier = 2;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RShift)) turboMultiplier = 2;
             else turboMultiplier = 1;
 
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) horizontalInput = -1.f;
-            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) horizontalInput = 1.f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) horizontalInput = -1.f;
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right)) horizontalInput = 1.f;
 
-            bool jumpIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space));
-            bool dropIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down));
+            bool jumpIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space));
+            bool dropIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Down));
             bool newJumpPressThisFrame = (jumpIntentThisFrame && playerBody.isOnGround() && currentJumpHoldDuration == sf::Time::Zero);
 
             if (newJumpPressThisFrame && !playerBody.getGroundPlatformTemporarilyIgnored()) {
@@ -815,7 +830,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
                         alpha_val = math::easing::sineEaseInOut(phaseTime, 0.f, 255.f, 1.f);
                     }
                     alpha_val = std::max(0.f, std::min(255.f, alpha_val)); // Clamp alpha
-                    sf::Uint8 finalAlphaByte = static_cast<sf::Uint8>(alpha_val);
+                    uint8_t finalAlphaByte = static_cast<uint8_t>(alpha_val);
 
                     if (alpha_val <= 10.f) { // Platform is "gone" or nearly gone (non-interactive phase)
                         if (current_body.getType() != phys::bodyType::none) { // If it's not already 'none'
@@ -942,7 +957,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
             // --- Trap Check ---
             bool trapHit = false;
             for (const auto& body_check_trap : bodies) {
-                if (body_check_trap.getType() == phys::bodyType::trap && body_check_trap.getAABB().intersects(playerBody.getAABB())) {
+                if (body_check_trap.getType() == phys::bodyType::trap && body_check_trap.getAABB().findIntersection(playerBody.getAABB())) {
                     trapHit = true;
                     break;
                 }
@@ -950,8 +965,8 @@ for (size_t i = 0; i < bodies.size(); ++i) {
             if (trapHit) {
                 playSfx("death");
                 currentState = GameState::GAME_OVER_LOSE_DEATH;
-                if(gameMusic.getStatus() == sf::Music::Playing) gameMusic.pause();
-                if(menuMusic.getStatus() != sf::Music::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
+                if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.pause();
+                if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
                 break;
             }
 
@@ -963,11 +978,11 @@ for (size_t i = 0; i < bodies.size(); ++i) {
                         if (levelManager.hasNextLevel()) {
                             if (levelManager.requestLoadNextLevel(currentLevelData)) {
                                 currentState = GameState::TRANSITIONING;
-                            } else { currentState = GameState::MENU; if(gameMusic.getStatus() == sf::Music::Playing) gameMusic.stop(); if(menuMusic.getStatus() != sf::Music::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play(); }
+                            } else { currentState = GameState::MENU; if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop(); if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play(); }
                         } else {
                             currentState = GameState::GAME_OVER_WIN;
-                            if(gameMusic.getStatus() == sf::Music::Playing) gameMusic.stop();
-                            if(menuMusic.getStatus() != sf::Music::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
+                            if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop();
+                            if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
                         }
                         goto end_fixed_update_for_interaction;
                     }
@@ -975,7 +990,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
 
                 for (size_t k = 0; k < bodies.size(); ++k) {
                     phys::PlatformBody& interact_body_ref = bodies[k];
-                    if (interact_body_ref.getType() == phys::bodyType::interactible && playerBody.getAABB().intersects(interact_body_ref.getAABB())) {
+                    if (interact_body_ref.getType() == phys::bodyType::interactible && playerBody.getAABB().findIntersection(interact_body_ref.getAABB())) {
                         auto it = activeInteractibles.find(interact_body_ref.getID());
                         if (it != activeInteractibles.end()) {
                             ActiveInteractiblePlatform& interactState = it->second;
@@ -1018,8 +1033,8 @@ for (size_t i = 0; i < bodies.size(); ++i) {
             if (playerBody.getPosition().y > PLAYER_DEATH_Y_LIMIT) {
                 playSfx("death");
                 currentState = GameState::GAME_OVER_LOSE_FALL;
-                if(gameMusic.getStatus() == sf::Music::Playing) gameMusic.pause();
-                if(menuMusic.getStatus() != sf::Music::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
+                if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.pause();
+                if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
                 break;
             }
 
@@ -1030,8 +1045,8 @@ for (size_t i = 0; i < bodies.size(); ++i) {
         if (!levelManager.isTransitioning()) {
             setupLevelAssets(currentLevelData, window);
             currentState = GameState::PLAYING;
-            if(menuMusic.getStatus() == sf::Music::Playing) menuMusic.stop();
-            if(gameMusic.getStatus() != sf::Music::Playing && gameMusic.openFromFile(AUDIO_MUSIC_GAME)) {
+            if(menuMusic.getStatus() == sf::Music::Status::Playing) menuMusic.stop();
+            if(gameMusic.getStatus() != sf::Music::Status::Playing && gameMusic.openFromFile(AUDIO_MUSIC_GAME)) {
                 gameMusic.setVolume(gameSettings.musicVolume);
                 gameMusic.play();
             }
@@ -1049,7 +1064,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
     switch(currentState) {
          case GameState::MENU:
             window.setView(uiView);
-            if(menuBgSprite.getTexture()) { window.draw(menuBgSprite); }
+            if(menuBgSpriteLoaded) { window.draw(menuBgSprite); }
             else { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,20,50)); window.draw(bg); }
 
             startButtonText.setFillColor(startButtonText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
@@ -1173,16 +1188,18 @@ for (size_t i = 0; i < bodies.size(); ++i) {
          default:
              window.setView(uiView);
              { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color::Magenta); window.draw(bg); }
-             sf::Text errorText("Unknown Game State!", menuFont, 20);
-             errorText.setOrigin(errorText.getLocalBounds().size.x/2.f, errorText.getLocalBounds().size.y/2.f);
-             errorText.setPosition(LOGICAL_SIZE.x/2.f, LOGICAL_SIZE.y/2.f);
+             sf::Text errorText(menuFont);
+             errorText.setString("Unknown game state!");
+             errorText.setCharacterSize(30);
+             errorText.setOrigin({errorText.getLocalBounds().size.x/2.f, errorText.getLocalBounds().size.y/2.f});
+             errorText.setPosition({LOGICAL_SIZE.x/2.f, LOGICAL_SIZE.y/2.f});
              window.draw(errorText);
              break;
     }
     window.display();
 }
 
-if (menuMusic.getStatus() == sf::Music::Playing) menuMusic.stop();
-if (gameMusic.getStatus() == sf::Music::Playing) gameMusic.stop();
+if (menuMusic.getStatus() == sf::Music::Status::Playing) menuMusic.stop();
+if (gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop();
 return 0;
 }
