@@ -20,7 +20,7 @@ public:
     bool hasFallen() const { return m_hasFallen; }
 
     void setFillColor(const sf::Color& color) { m_shape.setFillColor(color); }
-    sf::Color& getFillColor() const { return m_shape.getFillColor(); }
+    sf::Color getFillColor() const { return m_shape.getFillColor(); }
     void setTexture(const sf::Texture* texture, bool resetRect = false) { m_shape.setTexture(texture, resetRect); }
 
     sf::FloatRect getGlobalBounds() const;
