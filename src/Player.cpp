@@ -21,11 +21,11 @@ DynamicBody::DynamicBody(
 }
 
 sf::FloatRect DynamicBody::getAABB() const {
-    return sf::FloatRect(m_position.x, m_position.y, m_width, m_height);
+    return sf::FloatRect({m_position.x, m_position.y}, {m_width, m_height});
 }
 
 sf::FloatRect DynamicBody::getLastAABB() const {
-    return sf::FloatRect(m_lastPosition.x, m_lastPosition.y, m_width, m_height);
+    return sf::FloatRect({m_lastPosition.x, m_lastPosition.y}, {m_width, m_height});
 }
 
 void DynamicBody::setPosition(const sf::Vector2f& position) {

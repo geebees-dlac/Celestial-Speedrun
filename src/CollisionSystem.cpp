@@ -63,12 +63,12 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
 
             // Optional: AABB check for the sweep before detailed sweptAABB
             sf::FloatRect dynamicBroadAABB = dynamicBody.getAABB();
-            if (sweepVector.x < 0) dynamicBroadAABB.left += sweepVector.x;
-            dynamicBroadAABB.width += std::abs(sweepVector.x);
-            if (sweepVector.y < 0) dynamicBroadAABB.top += sweepVector.y;
-            dynamicBroadAABB.height += std::abs(sweepVector.y);
+            if (sweepVector.x < 0) dynamicBroadAABB.position.x += sweepVector.x;
+            dynamicBroadAABB.size.x += std::abs(sweepVector.x);
+            if (sweepVector.y < 0) dynamicBroadAABB.position.y += sweepVector.y;
+            dynamicBroadAABB.size.y += std::abs(sweepVector.y);
 
-            if (!dynamicBroadAABB.intersects(platform.getAABB())) {
+            if (!dynamicBroadAABB.findIntersection(platform.getAABB())) {
                 continue;
             }
 
@@ -83,7 +83,7 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
                     sf::FloatRect bodyAABBAtSweepStart = dynamicBody.getAABB(); // Player's AABB before this iteration's sweepVector application
                     bool canLandOnOneWay = (currentEventDetails.axis == 1 && // Y-axis collision normal (hit top/bottom of platform)
                                          currentFrameVelocity.y >= -JUMP_THROUGH_TOLERANCE && // Player moving down, or very slightly up but overlapping
-                                         (bodyAABBAtSweepStart.top + bodyAABBAtSweepStart.height) <= (currentEventDetails.hitPlatform->getAABB().top + JUMP_THROUGH_TOLERANCE));
+                                         (bodyAABBAtSweepStart.position.y + bodyAABBAtSweepStart.size.y) <= (currentEventDetails.hitPlatform->getAABB().position.y + JUMP_THROUGH_TOLERANCE));
 
                     // If player is trying to drop through this specific platform
                     if (dynamicBody.isTryingToDropFromPlatform() && dynamicBody.getGroundPlatform() == currentEventDetails.hitPlatform) {
@@ -161,22 +161,22 @@ CollisionResolutionInfo CollisionSystem::resolveCollisions(
                 sf::Vector2f correction = {0.f, 0.f};
 
                 // Calculate X penetration
-                float xOverlap = (bodyAABB.left < platAABB.left) ?
-                                 (bodyAABB.left + bodyAABB.width) - platAABB.left :
-                                 (platAABB.left + platAABB.width) - bodyAABB.left;
+                float xOverlap = (bodyAABB.position.x < platAABB.position.x) ?
+                                 (bodyAABB.position.x + bodyAABB.size.x) - platAABB.position.x :
+                                 (platAABB.position.x + platAABB.size.x) - bodyAABB.position.x;
                 // Calculate Y penetration
-                float yOverlap = (bodyAABB.top < platAABB.top) ?
-                                 (bodyAABB.top + bodyAABB.height) - platAABB.top :
-                                 (platAABB.top + platAABB.height) - bodyAABB.top;
+                float yOverlap = (bodyAABB.position.y < platAABB.position.y) ?
+                                 (bodyAABB.position.y + bodyAABB.size.y) - platAABB.position.y :
+                                 (platAABB.position.y + platAABB.size.y) - bodyAABB.position.y;
 
                 if (nearestCollisionEvent.axis == 1 && yOverlap > 0) { // Primary collision was Y
-                    if (dynamicBody.getPosition().y + bodyAABB.height / 2.f < platAABB.top + platAABB.height / 2.f) { // Player center above platform center (hit top)
+                    if (dynamicBody.getPosition().y + bodyAABB.size.y / 2.f < platAABB.position.y + platAABB.size.y / 2.f) { // Player center above platform center (hit top)
                         correction.y = -yOverlap - DEPENETRATION_BIAS; // Push player up
                     } else { // Player center below platform center (hit bottom)
                         correction.y = yOverlap + DEPENETRATION_BIAS;  // Push player down
                     }
                 } else if (nearestCollisionEvent.axis == 0 && xOverlap > 0) { // Primary collision was X
-                     if (dynamicBody.getPosition().x + bodyAABB.width / 2.f < platAABB.left + platAABB.width / 2.f) { // Player center left of platform center
+                    if (dynamicBody.getPosition().x + bodyAABB.size.x / 2.f < platAABB.position.x + platAABB.size.x / 2.f) { // Player center left of platform center
                         correction.x = -xOverlap - DEPENETRATION_BIAS; // Push player left
                     } else { // Player center right of platform center
                         correction.x = xOverlap + DEPENETRATION_BIAS;  // Push player right
@@ -223,15 +223,15 @@ bool CollisionSystem::sweptAABB(
 
     // Handle zero displacement case (static overlap check)
     if (std::abs(displacement.x) < 1e-5f && std::abs(displacement.y) < 1e-5f) {
-        if (bodyRect.intersects(platRect)) {
+        if (bodyRect.findIntersection(platRect)) {
             outCollisionEvent.time = 0.0f; // Immediate collision
             outCollisionEvent.hitPlatform = &platform;
 
             // Determine axis for static overlap: axis of MINIMUM penetration is preferred for depenetration
-            float dx1 = (platRect.left + platRect.width) - bodyRect.left; // Right edge of plat - left edge of body
-            float dx2 = (bodyRect.left + bodyRect.width) - platRect.left; // Right edge of body - left edge of plat
-            float dy1 = (platRect.top + platRect.height) - bodyRect.top;   // Bottom edge of plat - top edge of body
-            float dy2 = (bodyRect.top + bodyRect.height) - platRect.top;   // Bottom edge of body - top edge of plat
+            float dx1 = (platRect.position.x + platRect.size.x) - bodyRect.position.x; // Right edge of plat - left edge of body
+            float dx2 = (bodyRect.position.x + bodyRect.size.x) - platRect.position.x; // Right edge of body - left edge of plat
+            float dy1 = (platRect.position.y + platRect.size.y) - bodyRect.position.y;   // Bottom edge of plat - top edge of body
+            float dy2 = (bodyRect.position.y + bodyRect.size.y) - platRect.position.y;   // Bottom edge of body - top edge of plat
 
             float xOverlap = std::min(dx1, dx2);
             float yOverlap = std::min(dy1, dy2);
@@ -259,14 +259,15 @@ bool CollisionSystem::sweptAABB(
     // Calculate collision times for X axis
     if (std::abs(displacement.x) > 1e-5f) {
         if (displacement.x > 0.f) { // Moving Right
-            entryTime.x = (platRect.left - (bodyRect.left + bodyRect.width)) / displacement.x;
-            exitTime.x = ((platRect.left + platRect.width) - bodyRect.left) / displacement.x;
+            entryTime.x = (platRect.position.x - (bodyRect.position.x + bodyRect.size.x)) / displacement.x;
+            exitTime.x = ((platRect.position.x + platRect.size.x) - bodyRect.position.x) / displacement.x;
         } else { // Moving Left
-            entryTime.x = ((platRect.left + platRect.width) - bodyRect.left) / displacement.x;
-            exitTime.x = (platRect.left - (bodyRect.left + bodyRect.width)) / displacement.x;
+            entryTime.x = ((platRect.position.x + platRect.size.x) - bodyRect.position.x) / displacement.x;
+            exitTime.x = (platRect.position.x - (bodyRect.position.x + bodyRect.size.x)) / displacement.x;
         }
     } else { // Static in X: check for current overlap in X
-        if (!(bodyRect.left + bodyRect.width <= platRect.left || bodyRect.left >= platRect.left + platRect.width)) { // Overlapping in X
+        if (!(bodyRect.position.x + bodyRect.size.x <= platRect.position.x
+            || bodyRect.position.x >= platRect.position.x + platRect.size.x)) { // Overlapping in X
             entryTime.x = -std::numeric_limits<float>::infinity(); // Can collide at any time during Y move
             exitTime.x = std::numeric_limits<float>::infinity();
         } // else, they are separate in X and not moving in X, so no X collision possible
@@ -275,14 +276,15 @@ bool CollisionSystem::sweptAABB(
     // Calculate collision times for Y axis
     if (std::abs(displacement.y) > 1e-5f) {
         if (displacement.y > 0.f) { // Moving Down
-            entryTime.y = (platRect.top - (bodyRect.top + bodyRect.height)) / displacement.y;
-            exitTime.y = ((platRect.top + platRect.height) - bodyRect.top) / displacement.y;
+            entryTime.y = (platRect.position.y - (bodyRect.position.y + bodyRect.size.y)) / displacement.y;
+            exitTime.y = ((platRect.position.y + platRect.size.y) - bodyRect.position.y) / displacement.y;
         } else { // Moving Up
-            entryTime.y = ((platRect.top + platRect.height) - bodyRect.top) / displacement.y;
-            exitTime.y = (platRect.top - (bodyRect.top + bodyRect.height)) / displacement.y;
+            entryTime.y = ((platRect.position.y + platRect.size.y) - bodyRect.position.y) / displacement.y;
+            exitTime.y = (platRect.position.y - (bodyRect.position.y + bodyRect.size.y)) / displacement.y;
         }
     } else { // Static in Y: check for current overlap in Y
-         if (!(bodyRect.top + bodyRect.height <= platRect.top || bodyRect.top >= platRect.top + platRect.height)) { // Overlapping in Y
+         if (!(bodyRect.position.y + bodyRect.size.y <= platRect.position.y
+            || bodyRect.position.y >= platRect.position.y + platRect.size.y)) { // Overlapping in Y
             entryTime.y = -std::numeric_limits<float>::infinity();
             exitTime.y = std::numeric_limits<float>::infinity();
         }
@@ -337,10 +339,10 @@ bool CollisionSystem::sweptAABB(
         } else {
             // Fallback for very ambiguous corners, e.g., check overlaps
              // Determine axis for static overlap: axis of MINIMUM penetration is preferred for depenetration
-            float dx1 = (platRect.left + platRect.width) - bodyRect.left; 
-            float dx2 = (bodyRect.left + bodyRect.width) - platRect.left; 
-            float dy1 = (platRect.top + platRect.height) - bodyRect.top;   
-            float dy2 = (bodyRect.top + bodyRect.height) - platRect.top;  
+            float dx1 = (platRect.position.x + platRect.size.x) - bodyRect.position.x; 
+            float dx2 = (bodyRect.position.x + bodyRect.size.x) - platRect.position.x; 
+            float dy1 = (platRect.position.y + platRect.size.y) - bodyRect.position.y;   
+            float dy2 = (bodyRect.position.y + bodyRect.size.y) - platRect.position.y;  
 
             float xOverlap = std::min(dx1, dx2);
             float yOverlap = std::min(dy1, dy2);

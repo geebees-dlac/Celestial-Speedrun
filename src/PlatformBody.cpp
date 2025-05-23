@@ -27,7 +27,7 @@ void PlatformBody::update(float deltaTime) {
 }
 
 sf::FloatRect PlatformBody::getAABB() const {
-    return sf::FloatRect(m_position.x, m_position.y, m_width, m_height);
+    return sf::FloatRect({m_position.x, m_position.y}, {m_width, m_height});
 }
 
 } // namespace phys

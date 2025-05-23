@@ -99,7 +99,7 @@ void LevelManager::update(float dt, sf::RenderWindow& window) {
     switch (m_transitionState) {
         case TransitionState::FADING_OUT: {
             float alpha = std::min(255.f, (elapsedTime / m_fadeDuration) * 255.f);
-            color.a = static_cast<sf::Uint8>(alpha);
+            color.a = alpha;
             m_fadeOverlay.setFillColor(color);
             if (elapsedTime >= m_fadeDuration) {
                 color.a = 255;
@@ -118,7 +118,7 @@ void LevelManager::update(float dt, sf::RenderWindow& window) {
                         m_loadingTexture.setSmooth(true);
                         m_loadingSprite.setTexture(m_loadingTexture, true);
                         sf::FloatRect bounds = m_loadingSprite.getLocalBounds();
-                        m_loadingSprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
+                        m_loadingSprite.setOrigin({bounds.size.x / 2.f, bounds.size.y / 2.f});
                         m_loadingScreenReady = true;
                         std::cout << "LevelManager: Loaded image " << imageToLoadPath << std::endl;
                     } else {
@@ -152,7 +152,7 @@ void LevelManager::update(float dt, sf::RenderWindow& window) {
             break;
         case TransitionState::FADING_IN: {
             float alpha = std::max(0.f, 255.f - (elapsedTime / m_fadeDuration) * 255.f);
-            color.a = static_cast<sf::Uint8>(alpha);
+            color.a = alpha;
             m_fadeOverlay.setFillColor(color);
             if (elapsedTime >= m_fadeDuration) {
                 color.a = 0;
@@ -175,7 +175,7 @@ void LevelManager::draw(sf::RenderWindow& window) {
                                 (m_transitionState == TransitionState::FADING_OUT && m_transitionClock.getElapsedTime().asSeconds() >= m_fadeDuration) ||
                                 (m_transitionState == TransitionState::FADING_IN && m_transitionClock.getElapsedTime().asSeconds() < m_fadeDuration));
     if (showLoadingScreenArt && m_loadingScreenReady) {
-        m_loadingSprite.setPosition(window.getSize().x / 2.f, window.getSize().y / 2.f);
+        m_loadingSprite.setPosition({window.getSize().x / 2.f, window.getSize().y / 2.f});
         window.draw(m_loadingSprite);
     }
     if (m_fadeOverlay.getFillColor().a > 0) {
@@ -291,11 +291,11 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
 
     if (d.HasMember("backgroundColor") && d["backgroundColor"].IsObject()) {
         const auto& bc = d["backgroundColor"];
-        sf::Uint8 r = 20, g_json = 20, b_json = 40, a_json = 255; 
-        if (bc.HasMember("r") && bc["r"].IsUint()) r = static_cast<sf::Uint8>(bc["r"].GetUint());
-        if (bc.HasMember("g") && bc["g"].IsUint()) g_json = static_cast<sf::Uint8>(bc["g"].GetUint());
-        if (bc.HasMember("b") && bc["b"].IsUint()) b_json = static_cast<sf::Uint8>(bc["b"].GetUint());
-        if (bc.HasMember("a") && bc["a"].IsUint()) a_json = static_cast<sf::Uint8>(bc["a"].GetUint());
+        uint8_t r = 20, g_json = 20, b_json = 40, a_json = 255; 
+        if (bc.HasMember("r") && bc["r"].IsUint()) r = bc["r"].GetUint();
+        if (bc.HasMember("g") && bc["g"].IsUint()) g_json = bc["g"].GetUint();
+        if (bc.HasMember("b") && bc["b"].IsUint()) b_json = bc["b"].GetUint();
+        if (bc.HasMember("a") && bc["a"].IsUint()) a_json = bc["a"].GetUint();
         outLevelData.backgroundColor = sf::Color(r, g_json, b_json, a_json);
     } else {
         std::cerr << "LevelManager Parse Warning: 'backgroundColor' missing. Using default." << std::endl;
@@ -429,11 +429,11 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
 
                 if (inter.HasMember("targetTileColor") && inter["targetTileColor"].IsObject()) {
                     const auto& tc = inter["targetTileColor"];
-                    sf::Uint8 r_tc = 0, g_tc = 0, b_tc = 0, a_tc = 255;
-                    if (tc.HasMember("r") && tc["r"].IsUint()) r_tc = static_cast<sf::Uint8>(tc["r"].GetUint());
-                    if (tc.HasMember("g") && tc["g"].IsUint()) g_tc = static_cast<sf::Uint8>(tc["g"].GetUint());
-                    if (tc.HasMember("b") && tc["b"].IsUint()) b_tc = static_cast<sf::Uint8>(tc["b"].GetUint());
-                    if (tc.HasMember("a") && tc["a"].IsUint()) a_tc = static_cast<sf::Uint8>(tc["a"].GetUint());
+                    uint8_t r_tc = 0, g_tc = 0, b_tc = 0, a_tc = 255;
+                    if (tc.HasMember("r") && tc["r"].IsUint()) r_tc = tc["r"].GetUint();
+                    if (tc.HasMember("g") && tc["g"].IsUint()) g_tc = tc["g"].GetUint();
+                    if (tc.HasMember("b") && tc["b"].IsUint()) b_tc = tc["b"].GetUint();
+                    if (tc.HasMember("a") && tc["a"].IsUint()) a_tc = tc["a"].GetUint();
                     ipi.targetTileColor = sf::Color(r_tc, g_tc, b_tc, a_tc);
                     ipi.hasTargetTileColor = true;
                 }

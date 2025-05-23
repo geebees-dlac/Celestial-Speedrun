@@ -23,7 +23,7 @@ void Tile::update(sf::Time deltaTime) {
     
     if (m_isFalling && !m_hasFallen) {
         float dy = m_fallSpeed * deltaTime.asSeconds();
-        move(0.f, dy); 
+        move({0.f, dy}); 
 
         
         if (getPosition().y > 600.f) { 
