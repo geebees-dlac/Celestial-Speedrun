@@ -260,7 +260,47 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
     outLevelData.movingPlatformDetails.clear();
     outLevelData.interactiblePlatformDetails.clear();
     outLevelData.portalPlatformDetails.clear();  
+    if (d.HasMember("levelName") && d["levelName"].IsString()) {
+        outLevelData.levelName = d["levelName"].GetString();
+    } else {
+        outLevelData.levelName = "Unnamed Level";
+         std::cerr << "LevelManager Parse Warning: 'levelName' missing or not string." << std::endl;
+    }
 
+    if (d.HasMember("levelNumber") && d["levelNumber"].IsInt()) {
+           int jsonLevelNum = d["levelNumber"].GetInt();
+           if (jsonLevelNum != m_targetLevelNumber && m_targetLevelNumber !=0 ) {
+               std::cerr << "LevelManager Parse Warning: JSON levelNumber (" << jsonLevelNum
+                         << ") mismatches target load (" << m_targetLevelNumber << ")." << std::endl;
+           }
+        outLevelData.levelNumber = d["levelNumber"].GetInt();
+    } else {
+        std::cerr << "LevelManager Parse Warning: 'levelNumber' missing or not an int." << std::endl;
+    }
+
+    if (d.HasMember("playerStart") && d["playerStart"].IsObject()) {
+        const auto& ps = d["playerStart"];
+        if (ps.HasMember("x") && ps["x"].IsNumber()) outLevelData.playerStartPosition.x = ps["x"].GetFloat();
+        else std::cerr << "LevelManager Parse Warning: playerStart.x missing/not number." << std::endl;
+        if (ps.HasMember("y") && ps["y"].IsNumber()) outLevelData.playerStartPosition.y = ps["y"].GetFloat();
+        else std::cerr << "LevelManager Parse Warning: playerStart.y missing/not number." << std::endl;
+    } else {
+        std::cerr << "LevelManager Parse Warning: 'playerStart' missing or not object." << std::endl;
+        outLevelData.playerStartPosition = {100.f, 100.f};
+    }
+
+    if (d.HasMember("backgroundColor") && d["backgroundColor"].IsObject()) {
+        const auto& bc = d["backgroundColor"];
+        sf::Uint8 r = 20, g_json = 20, b_json = 40, a_json = 255; 
+        if (bc.HasMember("r") && bc["r"].IsUint()) r = static_cast<sf::Uint8>(bc["r"].GetUint());
+        if (bc.HasMember("g") && bc["g"].IsUint()) g_json = static_cast<sf::Uint8>(bc["g"].GetUint());
+        if (bc.HasMember("b") && bc["b"].IsUint()) b_json = static_cast<sf::Uint8>(bc["b"].GetUint());
+        if (bc.HasMember("a") && bc["a"].IsUint()) a_json = static_cast<sf::Uint8>(bc["a"].GetUint());
+        outLevelData.backgroundColor = sf::Color(r, g_json, b_json, a_json);
+    } else {
+        std::cerr << "LevelManager Parse Warning: 'backgroundColor' missing. Using default." << std::endl;
+         outLevelData.backgroundColor = sf::Color(20, 20, 40);
+    }
     if (d.HasMember("platforms") && d["platforms"].IsArray()) {
         const auto& platformsArray = d["platforms"];
         outLevelData.platforms.reserve(platformsArray.Size());
@@ -277,7 +317,6 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
                 id = static_cast<unsigned int>(outLevelData.platforms.size() + 1000);
                 std::cerr << "Auto-assigned ID: " << id << " to missing ID platform\n";
             }
-
             // Parse Position
             sf::Vector2f pos{0, 0};
             if (platJson.HasMember("position") && platJson["position"].IsObject()) {
@@ -287,24 +326,34 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
             }
 
             // Parse Size 
-            float width = 50.f, height = 50.f;
+            float width = 50.f, height = 50.f; // Default values if not specified
             if (platJson.HasMember("size") && platJson["size"].IsObject()) {
                 const auto& sizeJson = platJson["size"];
                 width = sizeJson.HasMember("width") ? sizeJson["width"].GetFloat() : width;
                 height = sizeJson.HasMember("height") ? sizeJson["height"].GetFloat() : height;
+            } else { std::cerr << "Platform ID " << id << " missing size, using defaults.\n"; } // Added warning for missing size
+
+            sf::Vector2f surfaceVel = {0.f, 0.f};
+            if (platJson.HasMember("surfaceVelocity") && platJson["surfaceVelocity"].IsObject()) {
+                const auto& sv = platJson["surfaceVelocity"];
+                if (sv.HasMember("x") && sv["x"].IsNumber()) surfaceVel.x = sv["x"].GetFloat();
+                if (sv.HasMember("y") && sv["y"].IsNumber()) surfaceVel.y = sv["y"].GetFloat();
+            }
+
+            bool initiallyFalling = false;
+            if (platJson.HasMember("initiallyFalling") && platJson["initiallyFalling"].IsBool()) {
+               initiallyFalling = platJson["initiallyFalling"].GetBool();
             }
 
             // Parse Body Type
-            phys::bodyType type = phys::bodyType::solid;
+            phys::bodyType type = phys::bodyType::solid; 
             if (platJson.HasMember("type") && platJson["type"].IsString()) {
                 type = stringToBodyType(platJson["type"].GetString());
             }
 
             // Create Base Platform
             outLevelData.platforms.emplace_back(
-                id, pos, width, height, type,
-                /* initiallyFalling */ false, 
-                /* surfaceVel */ sf::Vector2f{0, 0}
+                id, pos, width, height, type, initiallyFalling, surfaceVel //checkpoint
             );
 
             // Handle Special Types
@@ -326,32 +375,102 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
                     ppi.offset.x = offset.HasMember("x") ? offset["x"].GetFloat() : 10.f;
                     ppi.offset.y = offset.HasMember("y") ? offset["y"].GetFloat() : 0.f;
                 }
-
                 outLevelData.portalPlatformDetails.push_back(ppi);
+            }
+            if (type == phys::bodyType::moving && platJson.HasMember("movement") && platJson["movement"].IsObject()) {
+                const auto& mov = platJson["movement"];
+                LevelData::MovingPlatformInfo mpi;
+                mpi.id = id;
+                mpi.startPosition = pos; // Use the platform's general 'pos' as default start, override if specified in 'movement'
+                if (mov.HasMember("startPosition") && mov["startPosition"].IsObject()) { 
+                    const auto& msp = mov["startPosition"];
+                    if (msp.HasMember("x") && msp["x"].IsNumber()) mpi.startPosition.x = msp["x"].GetFloat();
+                    if (msp.HasMember("y") && msp["y"].IsNumber()) mpi.startPosition.y = msp["y"].GetFloat();
+                }
+                if (mov.HasMember("axis") && mov["axis"].IsString()) {
+                    std::string axisStr = mov["axis"].GetString();
+                    if (!axisStr.empty()) mpi.axis = std::tolower(axisStr[0]);
+                    else std::cerr << "Warning: Moving platform ID " << id << " has empty axis." << std::endl;
+                }
+                if (mov.HasMember("distance") && mov["distance"].IsNumber()) {
+                    mpi.distance = mov["distance"].GetFloat();
+                }
+                if (mov.HasMember("cycleDuration") && mov["cycleDuration"].IsNumber()) {
+                    mpi.cycleDuration = mov["cycleDuration"].GetFloat();
+                     if (mpi.cycleDuration <= 0.f) {
+                        std::cerr << "Warning: Non-positive cycleDuration for moving platform " << id << ". Defaulting to 4s." << std::endl;
+                        mpi.cycleDuration = 4.f;
+                     }
+                }
+                 if (mov.HasMember("initialDirection") && mov["initialDirection"].IsInt()) {
+                    mpi.initialDirection = mov["initialDirection"].GetInt();
+                    if(mpi.initialDirection != 1 && mpi.initialDirection != -1) {
+                        std::cerr << "Warning: Invalid initialDirection for moving platform " << id << ". Defaulting to 1." << std::endl;
+                        mpi.initialDirection = 1;
+                    }
+                }
+                outLevelData.movingPlatformDetails.push_back(mpi);
+            }
+            // PARSE INTERACTIBLE DETAILS
+            else if (type == phys::bodyType::interactible && platJson.HasMember("interaction") && platJson["interaction"].IsObject()) {
+                const auto& inter = platJson["interaction"];
+                LevelData::InteractiblePlatformInfo ipi;
+                ipi.id = id;
+
+                if (inter.HasMember("type") && inter["type"].IsString()) {
+                    ipi.interactionType = inter["type"].GetString();
+                }
+                if (inter.HasMember("targetBodyType") && inter["targetBodyType"].IsString()) {
+                    ipi.targetBodyTypeStr = inter["targetBodyType"].GetString();
+                } else {
+                    std::cerr << "LevelManager Parse Error: Interactible platform ID " << id << " 'interaction' block missing 'targetBodyType' string. Defaulting to 'solid'." << std::endl;
+                    ipi.targetBodyTypeStr = "solid"; 
+                }
+
+                if (inter.HasMember("targetTileColor") && inter["targetTileColor"].IsObject()) {
+                    const auto& tc = inter["targetTileColor"];
+                    sf::Uint8 r_tc = 0, g_tc = 0, b_tc = 0, a_tc = 255;
+                    if (tc.HasMember("r") && tc["r"].IsUint()) r_tc = static_cast<sf::Uint8>(tc["r"].GetUint());
+                    if (tc.HasMember("g") && tc["g"].IsUint()) g_tc = static_cast<sf::Uint8>(tc["g"].GetUint());
+                    if (tc.HasMember("b") && tc["b"].IsUint()) b_tc = static_cast<sf::Uint8>(tc["b"].GetUint());
+                    if (tc.HasMember("a") && tc["a"].IsUint()) a_tc = static_cast<sf::Uint8>(tc["a"].GetUint());
+                    ipi.targetTileColor = sf::Color(r_tc, g_tc, b_tc, a_tc);
+                    ipi.hasTargetTileColor = true;
+                }
+
+                if (inter.HasMember("oneTime") && inter["oneTime"].IsBool()) {
+                    ipi.oneTime = inter["oneTime"].GetBool();
+                }
+                if (inter.HasMember("cooldown") && inter["cooldown"].IsNumber()) {
+                    ipi.cooldown = inter["cooldown"].GetFloat();
+                }
+                 if (inter.HasMember("linkedID") && inter["linkedID"].IsUint()) { // Added linkedID parsing
+                    ipi.linkedID = inter["linkedID"].GetUint();
+                }
+                outLevelData.interactiblePlatformDetails.push_back(ipi); // Ensure this is added for interactibles
             
             }
-                else if (type == phys::bodyType::portal) {
-                    LevelData::PortalPlatformInfo ppi;
-                    ppi.id = id;
+            else if (type == phys::bodyType::portal) { // Was nested, should be 'else if'
+                LevelData::PortalPlatformInfo ppi;
+                ppi.id = id;
 
-                    // Parse portalID (required)
-                    if (platJson.HasMember("portalID") && platJson["portalID"].IsUint()) {
-                        ppi.portalID = platJson["portalID"].GetUint();
-                    } else {
-                        std::cerr << "Portal ID " << id << " missing portalID\n";
-                        continue;
-                    }
-
-                    // Parse offset (optional)
-                    if (platJson.HasMember("teleportOffset") && platJson["teleportOffset"].IsObject()) {
-                        const auto& offset = platJson["teleportOffset"];
-                        if (offset.HasMember("x")) ppi.offset.x = offset["x"].GetFloat();
-                        if (offset.HasMember("y")) ppi.offset.y = offset["y"].GetFloat();
-                    }
-
-                    outLevelData.portalPlatformDetails.push_back(ppi);
+                // Parse portalID (required)
+                if (platJson.HasMember("portalID") && platJson["portalID"].IsUint()) {
+                    ppi.portalID = platJson["portalID"].GetUint();
+                } else {
+                    std::cerr << "Portal ID " << id << " missing portalID, skipping portal details.\n";
+                    continue; 
                 }
-        }
+
+                // Parse offset (optional, defaults provided in struct)
+                if (platJson.HasMember("teleportOffset") && platJson["teleportOffset"].IsObject()) {
+                    const auto& offset = platJson["teleportOffset"];
+                    if (offset.HasMember("x") && offset["x"].IsNumber()) ppi.offset.x = offset["x"].GetFloat();
+                    if (offset.HasMember("y") && offset["y"].IsNumber()) ppi.offset.y = offset["y"].GetFloat();
+                }
+                outLevelData.portalPlatformDetails.push_back(ppi);
+            }
+        } 
     } else {
         std::cerr << "LevelManager Error: Missing platforms array\n";
         return false;
