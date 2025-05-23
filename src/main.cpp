@@ -106,21 +106,28 @@ const std::string SFX_SPRING = "../assets/audio/sfx_spring.wav";
 void populateAvailableResolutions() {
 availableVideoModes = sf::VideoMode::getFullscreenModes();
 std::sort(availableVideoModes.begin(), availableVideoModes.end(), [](const sf::VideoMode& a, const sf::VideoMode& b) {
-if (a.width != b.width) return a.width < b.width;
-return a.height < b.height;
+if (a.size.x != b.size.x) return a.size.x < b.size.x;
+return a.size.y < b.size.y;
 });
 availableVideoModes.erase(std::unique(availableVideoModes.begin(), availableVideoModes.end(), [](const sf::VideoMode& a, const sf::VideoMode& b){
-return a.width == b.width && a.height == b.height;
+return a.size.x == b.size.x && a.size.y == b.size.y;
 }), availableVideoModes.end());
 
-std::vector<sf::VideoMode> commonWindowed = {
-    {800, 600, 32}, {1024, 768, 32}, {1280, 720, 32},
-    {1366, 768, 32}, {1600, 900, 32}, {1920, 1080, 32}
-};
+std::vector<sf::VideoMode> commonWindowed;
+    commonWindowed.emplace_back(800, 600, 32);
+    commonWindowed.emplace_back(1024, 768, 32);
+    commonWindowed.emplace_back(1280, 720, 32);
+    commonWindowed.emplace_back(1366, 768, 32);
+    commonWindowed.emplace_back(1600, 900, 32);
+    commonWindowed.emplace_back(1920, 1080, 32);
+ /*{
+    (800, 600, 32), (1024, 768, 32), (1280, 720, 32),
+    (1366, 768, 32), (1600, 900, 32), (1920, 1080, 32)
+};*/
 for(const auto& mode : commonWindowed) {
     bool found = false;
     for(const auto& existing : availableVideoModes) {
-        if(existing.width == mode.width && existing.height == mode.height) {
+        if(existing.size.x == mode.size.x && existing.size.y == mode.size.y) {
             found = true;
             break;
         }
@@ -128,18 +135,18 @@ for(const auto& mode : commonWindowed) {
     if(!found) availableVideoModes.push_back(mode);
 }
  std::sort(availableVideoModes.begin(), availableVideoModes.end(), [](const sf::VideoMode& a, const sf::VideoMode& b) {
-    if (a.width != b.width) return a.width < b.width;
-    return a.height < b.height;
+    if (a.size.x != b.size.x) return a.size.x < b.size.x;
+    return a.size.y < b.size.y;
 });
 availableVideoModes.erase(std::unique(availableVideoModes.begin(), availableVideoModes.end(), [](const sf::VideoMode& a, const sf::VideoMode& b){
-    return a.width == b.width && a.height == b.height;
+    return a.size.x == b.size.x && a.size.y == b.size.y;
 }), availableVideoModes.end());
 
 currentResolutionIndex = -1;
 if (!availableVideoModes.empty()) {
     for (size_t i = 0; i < availableVideoModes.size(); ++i) {
-        if (availableVideoModes[i].width == static_cast<unsigned int>(LOGICAL_SIZE.x) &&
-            availableVideoModes[i].height == static_cast<unsigned int>(LOGICAL_SIZE.y)) {
+        if (availableVideoModes[i].size.x == static_cast<unsigned int>(LOGICAL_SIZE.x) &&
+            availableVideoModes[i].size.y == static_cast<unsigned int>(LOGICAL_SIZE.y)) {
             currentResolutionIndex = static_cast<int>(i);
             break;
         }
@@ -150,7 +157,7 @@ if (!availableVideoModes.empty()) {
 
 void applyAndRecreateWindow(sf::RenderWindow& window, sf::View& uiView, sf::View& mainView) {
 sf::VideoMode mode;
-sf::Uint32 style;
+sf::Unit32 style;
 
 if (isFullscreen) {
     if (!sf::VideoMode::getFullscreenModes().empty()) {
@@ -344,7 +351,7 @@ resolutionCurrentText.setString("Fullscreen");
 } else {
 if (!availableVideoModes.empty() && currentResolutionIndex >= 0 && currentResolutionIndex < static_cast<int>(availableVideoModes.size())) {
 const auto& mode = availableVideoModes[currentResolutionIndex];
-resolutionCurrentText.setString(std::to_string(mode.width) + "x" + std::to_string(mode.height));
+resolutionCurrentText.setString(std::to_string(mode.size.x) + "x" + std::to_string(mode.size.y));
 } else {
 resolutionCurrentText.setString(
 std::to_string(static_cast<int>(LOGICAL_SIZE.x)) + "x" +
@@ -353,7 +360,7 @@ std::to_string(static_cast<int>(LOGICAL_SIZE.y)) + " (Default)"
 }
 }
 sf::FloatRect bounds = resolutionCurrentText.getLocalBounds();
-resolutionCurrentText.setOrigin(bounds.left + bounds.width / 2.f, bounds.top + bounds.height / 2.f);
+resolutionCurrentText.setOrigin(bounds.position.x + bounds.size.x / 2.f, bounds.position.y + bounds.size.y / 2.f);
 resolutionCurrentText.setPosition(LOGICAL_SIZE.x / 2.f, 320.f);
 }
 
@@ -373,14 +380,14 @@ sf::Time currentJumpHoldDuration = sf::Time::Zero;
 int turboMultiplier = 1;
 
 sf::Font menuFont;
-sf::Text menuTitleText, startButtonText, settingsButtonText, creditsButtonText, exitButtonText;
-sf::Texture menuBgTexture; sf::Sprite menuBgSprite;
-sf::Text settingsTitleText, musicVolumeLabelText, musicVolValText, sfxVolumeLabelText, sfxVolValText, settingsBackText;
-sf::Text musicVolDownText, musicVolUpText, sfxVolDownText, sfxVolUpText;
-sf::Text resolutionLabelText, resolutionPrevText, resolutionNextText, fullscreenToggleText;
-sf::Text creditsTitleText, creditsNamesText, creditsBackText;
-sf::Text gameOverStatusText, gameOverOption1Text, gameOverOption2Text;
-sf::Text debugText;
+sf::Text menuTitleText(menuFont), startButtonText(menuFont), settingsButtonText(menuFont), creditsButtonText(menuFont), exitButtonText(menuFont);
+sf::Texture menuBgTexture; sf::Sprite menuBgSprite(menuBgTexture);
+sf::Text settingsTitleText(menuFont), musicVolumeLabelText(menuFont), musicVolValText(menuFont), sfxVolumeLabelText(menuFont), sfxVolValText(menuFont), settingsBackText(menuFont);
+sf::Text musicVolDownText(menuFont), musicVolUpText(menuFont), sfxVolDownText(menuFont), sfxVolUpText(menuFont);
+sf::Text resolutionLabelText(menuFont), resolutionPrevText(menuFont), resolutionNextText(menuFont), fullscreenToggleText(menuFont);
+sf::Text creditsTitleText(menuFont), creditsNamesText(menuFont), creditsBackText(menuFont);
+sf::Text gameOverStatusText(menuFont), gameOverOption1Text(menuFont), gameOverOption2Text(menuFont);
+sf::Text debugText(menuFont);
 sf::RectangleShape playerShape;
 
 const float PLAYER_MOVE_SPEED = 200.f;
@@ -428,7 +435,7 @@ auto setupTextUI = [&](sf::Text& text, const sf::String& str, float yPos, unsign
     text.setCharacterSize(charSize);
     text.setFillColor(sf::Color::White);
     sf::FloatRect text_bounds = text.getLocalBounds();
-    text.setOrigin(text_bounds.left + text_bounds.width / 2.f, text_bounds.top + text_bounds.height / 2.f);
+    text.setOrigin(text_bounds.left + text_bounds.size.x / 2.f, text_bounds.top + text_bounds.size.y / 2.f);
     text.setPosition(LOGICAL_SIZE.x / 2.f + xOffset, yPos);
 };
 
@@ -1154,7 +1161,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
              window.setView(uiView);
              { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color::Magenta); window.draw(bg); }
              sf::Text errorText("Unknown Game State!", menuFont, 20);
-             errorText.setOrigin(errorText.getLocalBounds().width/2.f, errorText.getLocalBounds().height/2.f);
+             errorText.setOrigin(errorText.getLocalBounds().size.x/2.f, errorText.getLocalBounds().size.y/2.f);
              errorText.setPosition(LOGICAL_SIZE.x/2.f, LOGICAL_SIZE.y/2.f);
              window.draw(errorText);
              break;
