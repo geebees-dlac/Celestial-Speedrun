@@ -1,21 +1,48 @@
 This is The Start of the Documentation of The Code of Celestial Speedrun
 as the main code (jess) i tend to mix up everything and because i dont want to make any more file extensions, things get a bit wanky on where which goes to which.
 as for the sprite loading (to be finished later) gian will be the one contnuing this sequence
+===========================================================================================================================================================================
 
 
+--Table of Contents-- 
 
-Table of Contents 
+Core Game Systems Overview
+Core Data Structures & Enums
+PhysicsTypes.hpp - Understanding bodyType
+CollisionSystem.hpp - CollisionEvent & CollisionResolutionInfo
+LevelManager.hpp - LevelData and its sub-structs
+Body Types Debugging
+Identifying Body Types in Game
+Expected Behaviors & Common Issues
+Player Debugging
+Player State Variables
+Movement & Collision Issues
+Interaction Problems
+Level Debugging
+Level Loading Process
+Common JSON Configuration Errors
+Platform-Specific Setup Issues (Moving, Interactible, Portal etc.)
+Game State Debugging
+Understanding Game States
+Transitions & UI
+Music & SFX States
+Optimizer (Easing Functions)
+What are Easing Functions?
+How They're Used in This Game (e.g., Moving Platforms)
+The Optimizer.hpp File
+Detailed System Explanations
+CollisionSystem.hpp and .cpp
+LevelManager.hpp and .cpp
+PlatformBody.hpp and .cpp
+Player.hpp and .cpp (DynamicBody)
+Tile.hpp and .cpp
+Main Game Loop (main.cpp) Overview
+Game Initialization
+Event Handling
+Fixed Update Loop (Physics & Game Logic)
+Drawing
+
+
+===========================================================================================================================================================================
 
 Body Types Debugging
-Player Debugging
-Level Debugging
-Game State Debugging
-Optimizer (i dont know what this is)
-Everything about Collision System hpp and Cpp
-Everything about Level Manager hpp and cpp
-Everything about platformbody hpp and cpp
-Everything about player hpp and cpp 
-Everything about tile hpp and cpp
-
-
-
