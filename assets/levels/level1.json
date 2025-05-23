@@ -82,7 +82,7 @@
       "id": 18, "type": "vanishing", "position": {"x": 600, "y": -510}, "size": {"width": 32, "height": 32}},  
 
     {
-      "id": 11,
+      "id": 11  ,
       "type": "solid",
       "position": { "x": 252, "y": -510 },
       "size": { "width": 128, "height": 32 }
