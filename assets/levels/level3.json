@@ -11,6 +11,15 @@
     "b": 50
   },
   "platforms": [
+
+    {
+    "id": 2,
+    "type": "portal",
+    "position": { "x": 300, "y": 200 },
+    "portalID": 1,
+    "teleportOffset": { "x": 0, "y": -20 },
+    "direction": "up" 
+  },
     {
       "comment": "floor 1",
       "id": 100,

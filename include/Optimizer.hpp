@@ -3,7 +3,8 @@
 
 #include <cmath>   // For std::pow, std::cos, std::sin
 #include <numbers> // For std::numbers::pi_v (C++20)
-
+//i am not touching anything here cuz idk anything here
+// just note none of this is ai but a snippet from a code i found online
 // this has gone kaput and i will not be using this until further notice and realized its effects alr
 // --- Robert Penner Easing Functions (t, b, c, d pattern) ---
 //ty robert penner for da easing functions

@@ -19,12 +19,14 @@
 namespace phys {}
 
 struct LevelData {
+    // level handler of the intial rules
     std::string levelName;
     int levelNumber = 0;
     sf::Vector2f playerStartPosition = {100.f, 100.f};
     sf::Color backgroundColor = sf::Color(20, 20, 40);
     std::vector<phys::PlatformBody> platforms;
 
+    //moving platform rules
     struct MovingPlatformInfo {
         unsigned int id;
         sf::Vector2f startPosition;
@@ -35,18 +37,26 @@ struct LevelData {
     };
     std::vector<MovingPlatformInfo> movingPlatformDetails;
 
-    // ADDED for Interactible Platforms
+    //interactible platform rules
     struct InteractiblePlatformInfo {
         unsigned int id;
-        std::string interactionType = "changeSelf"; // For now, only "changeSelf"
-        std::string targetBodyTypeStr;              // String name of the target phys::bodyType
-        // phys::bodyType targetBodyTypeEnum; // This will be resolved in main.cpp using LevelManager instance
-        sf::Color targetTileColor = sf::Color::Transparent; // Default if not specified
+        std::string interactionType = "changeSelf"; 
+        std::string targetBodyTypeStr;             
+        sf::Color targetTileColor = sf::Color::Transparent; 
         bool hasTargetTileColor = false;
         bool oneTime = false;
-        float cooldown = 0.0f; // Time before it can be interacted with again (if not oneTime)
+        float cooldown = 0.0f;
+        unsigned int linkedID = 0;
     };
-    std::vector<InteractiblePlatformInfo> interactiblePlatformDetails; // <-- ADDED THIS
+    std::vector<InteractiblePlatformInfo> interactiblePlatformDetails; 
+
+    //portal rules
+    struct PortalPlatformInfo {
+    unsigned int id; 
+    unsigned int portalID; 
+    sf::Vector2f offset{10.f, 0.f}; 
+};
+    std::vector<PortalPlatformInfo> portalPlatformDetails;
 };
 
 class LevelManager {

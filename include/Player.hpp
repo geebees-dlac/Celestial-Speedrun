@@ -20,7 +20,7 @@ namespace phys {
 		const sf::Vector2f& getPosition() const { return m_position; }
 		const sf::Vector2f& getVelocity() const { return m_velocity; }
 		const sf::Vector2f& getLastPosition() const { return m_lastPosition; }
-        sf::FloatRect getLastAABB() const; // platform logic zzzz
+        sf::FloatRect getLastAABB() const; 
 		float getWidth() const { return m_width; }
 		float getHeight() const { return m_height; }
 		sf::FloatRect getAABB() const;
@@ -60,7 +60,7 @@ namespace phys {
         bool m_isTryingToDrop = false;
         const PlatformBody* m_tempIgnoredPlatform = nullptr;
 
-        // m_maxSpeed, m_acceleration (not directly used by collision system, but good to keep)
+        // m_maxSpeed, m_acceleration 
         float m_maxSpeed = 200.f;
         float m_acceleration = 500.f;
 	};

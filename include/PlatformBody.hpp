@@ -19,6 +19,10 @@ namespace phys {
             const sf::Vector2f& surfaceVelocity = {0.f, 0.f}
         );
 
+        void setPortalID(unsigned int id) { m_portalID = id; }
+        unsigned int getPortalID() const { return m_portalID; }
+        void setTeleportOffset(const sf::Vector2f& offset) { m_teleportOffset = offset; }
+        const sf::Vector2f& getTeleportOffset() const { return m_teleportOffset; }
         void update(float deltaTime);
 
         unsigned int getID() const { return m_id; }
@@ -43,6 +47,8 @@ namespace phys {
         bodyType m_type;
         bool m_falling;
         sf::Vector2f m_surfaceVelocity;
+        unsigned int m_portalID = 0;
+        sf::Vector2f m_teleportOffset = {10.f, 0.f};
     };
 
 }

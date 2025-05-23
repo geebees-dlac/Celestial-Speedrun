@@ -26,8 +26,6 @@ public:
     sf::FloatRect getGlobalBounds() const;
     sf::FloatRect getLocalBounds() const;
 
-    // Optional: If you reuse Tile objects, add a reset method
-    // void resetState(const sf::Vector2f& newPosition, const sf::Color& newColor = sf::Color::White);
 
 private:
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

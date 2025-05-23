@@ -74,6 +74,7 @@ bool oneTime;
 float cooldown;
 bool hasBeenInteractedThisSession;
 float currentCooldownTimer;
+unsigned int linkedID = 0;
 };
 std::map<unsigned int, ActiveInteractiblePlatform> activeInteractibles;
 
@@ -171,7 +172,7 @@ if (isFullscreen) {
     style = sf::Style::Default;
 }
 
-window.create(mode, "Project - T", style);
+window.create(mode, "Celestial Speedrun", style);
 window.setKeyRepeatEnabled(false);
 window.setVerticalSyncEnabled(true);
 
