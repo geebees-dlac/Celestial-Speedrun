@@ -117,7 +117,7 @@ return a.size.x == b.size.x && a.size.y == b.size.y;
 }), availableVideoModes.end());
 
 std::vector<sf::VideoMode> commonWindowed;
-    commonWindowed.emplace_back(sf::VideoMode({800, 600}, 32)); // temp remove bpp since it's apparently not required in SFML3.0
+    commonWindowed.emplace_back(sf::VideoMode({800, 600}, 32));
     commonWindowed.emplace_back(sf::VideoMode({1024, 768}, 32));
     commonWindowed.emplace_back(sf::VideoMode({1280, 720}, 32));
     commonWindowed.emplace_back(sf::VideoMode({1366, 768}, 32));
