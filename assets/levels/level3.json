@@ -2,8 +2,8 @@
   "levelName": "The Switch & Warp Tower v2",
   "levelNumber": 2,
   "playerStart": {
-    "x": 144,
-    "y": 512
+    "x": 0,
+    "y": 0
   },
   "backgroundColor": {
     "r": 25,
@@ -16,7 +16,7 @@
       "id": 100,
       "type": "solid",
       "position": { "x": 128, "y": 560 },
-      "size": { "width": 128, "height": 32 }
+      "size": { "width": 5000, "height": 32 }
     },
     {
       "id": 110,

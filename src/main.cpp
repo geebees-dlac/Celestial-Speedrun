@@ -521,7 +521,7 @@ int main(void) {
             if (event.type == sf::Event::Closed) {
                 running = false; window.close();
             }
-             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F4) {
+             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::P) {
                 if(currentState == GameState::PLAYING && levelManager.hasNextLevel()){
                      if(levelManager.requestLoadNextLevel(currentLevelData)){
                         currentState = GameState::TRANSITIONING;
