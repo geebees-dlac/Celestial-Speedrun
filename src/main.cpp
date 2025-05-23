@@ -958,7 +958,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
             // --- Interaction (Goal, Interactibles) ---
             if (interactKeyPressedThisFrame) {
                 for (const auto& platform_body_check_goal : bodies) {
-                    if (platform_body_check_goal.getType() == phys::bodyType::goal && playerBody.getAABB().intersects(platform_body_check_goal.getAABB())) {
+                    if (platform_body_check_goal.getType() == phys::bodyType::goal && playerBody.getAABB().findIntersection(platform_body_check_goal.getAABB())) {
                         playSfx("goal");
                         if (levelManager.hasNextLevel()) {
                             if (levelManager.requestLoadNextLevel(currentLevelData)) {
