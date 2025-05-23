@@ -158,29 +158,29 @@ if (!availableVideoModes.empty()) {
 
 void applyAndRecreateWindow(sf::RenderWindow& window, sf::View& uiView, sf::View& mainView) {
 sf::VideoMode mode;
-sf::Unit32 style;
+sf::State windowState;
 
 if (isFullscreen) {
     if (!sf::VideoMode::getFullscreenModes().empty()) {
          mode = sf::VideoMode::getFullscreenModes()[0];
     } else {
-        mode = sf::VideoMode(static_cast<unsigned int>(LOGICAL_SIZE.x), static_cast<unsigned int>(LOGICAL_SIZE.y));
+        mode = sf::VideoMode({static_cast<unsigned int>(LOGICAL_SIZE.x), static_cast<unsigned int>(LOGICAL_SIZE.y)});
         std::cerr << "Warning: No fullscreen modes available, falling back to windowed." << std::endl;
         isFullscreen = false;
     }
-    style = sf::Style::Fullscreen;
+    windowState = sf::State::Fullscreen;
 } else {
     if (!availableVideoModes.empty() && currentResolutionIndex >= 0 && currentResolutionIndex < static_cast<int>(availableVideoModes.size())) {
         mode = availableVideoModes[currentResolutionIndex];
     } else {
-        mode = sf::VideoMode(static_cast<unsigned int>(LOGICAL_SIZE.x), static_cast<unsigned int>(LOGICAL_SIZE.y));
+        mode = sf::VideoMode({static_cast<unsigned int>(LOGICAL_SIZE.x), static_cast<unsigned int>(LOGICAL_SIZE.y)});
         if (availableVideoModes.empty()) currentResolutionIndex = -1;
         else currentResolutionIndex = 0;
     }
-    style = sf::Style::Default;
+    windowState = sf::State::Windowed; // sfml3 migrate: assuming sfml2 default = windowed mode
 }
 
-window.create(mode, "Celestial Speedrun", style);
+window.create(mode, "Celestial Speedrun", windowState);
 window.setKeyRepeatEnabled(false);
 window.setVerticalSyncEnabled(true);
 
