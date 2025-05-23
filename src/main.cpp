@@ -111,21 +111,19 @@ std::sort(availableVideoModes.begin(), availableVideoModes.end(), [](const sf::V
 if (a.size.x != b.size.x) return a.size.x < b.size.x;
 return a.size.y < b.size.y;
 });
+
 availableVideoModes.erase(std::unique(availableVideoModes.begin(), availableVideoModes.end(), [](const sf::VideoMode& a, const sf::VideoMode& b){
 return a.size.x == b.size.x && a.size.y == b.size.y;
 }), availableVideoModes.end());
 
 std::vector<sf::VideoMode> commonWindowed;
-    commonWindowed.emplace_back(800, 600, 32);
-    commonWindowed.emplace_back(1024, 768, 32);
-    commonWindowed.emplace_back(1280, 720, 32);
-    commonWindowed.emplace_back(1366, 768, 32);
-    commonWindowed.emplace_back(1600, 900, 32);
-    commonWindowed.emplace_back(1920, 1080, 32);
- /*{
-    (800, 600, 32), (1024, 768, 32), (1280, 720, 32),
-    (1366, 768, 32), (1600, 900, 32), (1920, 1080, 32)
-};*/
+    commonWindowed.emplace_back(sf::VideoMode({800, 600}, 32)); // temp remove bpp since it's apparently not required in SFML3.0
+    commonWindowed.emplace_back(sf::VideoMode({1024, 768}, 32));
+    commonWindowed.emplace_back(sf::VideoMode({1280, 720}, 32));
+    commonWindowed.emplace_back(sf::VideoMode({1366, 768}, 32));
+    commonWindowed.emplace_back(sf::VideoMode({1600, 900}, 32));
+    commonWindowed.emplace_back(sf::VideoMode({1920, 1080}, 32));
+
 for(const auto& mode : commonWindowed) {
     bool found = false;
     for(const auto& existing : availableVideoModes) {
