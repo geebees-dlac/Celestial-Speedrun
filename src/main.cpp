@@ -381,7 +381,7 @@ int turboMultiplier = 1;
 
 sf::Font menuFont;
 sf::Text menuTitleText(menuFont), startButtonText(menuFont), settingsButtonText(menuFont), creditsButtonText(menuFont), exitButtonText(menuFont);
-sf::Texture menuBgTexture; sf::Sprite menuBgSprite(menuBgTexture);
+sf::Texture menuBgTexture(IMG_MENU_BG); sf::Sprite menuBgSprite(menuBgTexture);
 sf::Text settingsTitleText(menuFont), musicVolumeLabelText(menuFont), musicVolValText(menuFont), sfxVolumeLabelText(menuFont), sfxVolValText(menuFont), settingsBackText(menuFont);
 sf::Text musicVolDownText(menuFont), musicVolUpText(menuFont), sfxVolDownText(menuFont), sfxVolUpText(menuFont);
 sf::Text resolutionLabelText(menuFont), resolutionPrevText(menuFont), resolutionNextText(menuFont), fullscreenToggleText(menuFont);
