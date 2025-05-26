@@ -445,10 +445,11 @@ if (menuBgTexture.loadFromFile(IMG_MENU_BG)) {
     menuBgSprite.setTexture(menuBgTexture);
     menuBgSpriteLoaded = true;
     if (menuBgTexture.getSize().x > 0 && menuBgTexture.getSize().y > 0) {
-        menuBgSprite.setScale({LOGICAL_SIZE.x / static_cast<float>(menuBgTexture.getSize().x),
-                              LOGICAL_SIZE.y / static_cast<float>(menuBgTexture.getSize().y)});
+        menuBgSprite.setScale({LOGICAL_SIZE.x / (menuBgTexture.getSize().x),
+                              LOGICAL_SIZE.y / (menuBgTexture.getSize().y)});
     }
     menuBgSprite.setPosition({0.f,0.f});
+    std::cout << "Loaded " << IMG_MENU_BG << std::endl;
 }
 else {
     std::cerr << "Warning: Menu BG image not found: " << IMG_MENU_BG << std::endl;
@@ -1062,8 +1063,8 @@ for (size_t i = 0; i < bodies.size(); ++i) {
     switch(currentState) {
          case GameState::MENU:
             window.setView(uiView);
-            if(menuBgSpriteLoaded) { window.draw(menuBgSprite); }
-            else { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,20,50)); window.draw(bg); }
+            if(menuBgSpriteLoaded) window.draw(menuBgSprite);
+            else {sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,20,50)); window.draw(bg);}
 
             startButtonText.setFillColor(startButtonText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
             settingsButtonText.setFillColor(settingsButtonText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
