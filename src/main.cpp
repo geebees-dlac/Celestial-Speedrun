@@ -1134,7 +1134,7 @@ int main(void) {
         }
 
         // --- Drawing ---
-        window.setTitle("Project - T");
+        window.setTitle("Celestial Speedrun");
         window.clear( (currentState == GameState::PLAYING ||
                         currentState == GameState::TRANSITIONING ||
                         currentState == GameState::GAME_OVER_LOSE_DEATH ||

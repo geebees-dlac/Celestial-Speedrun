@@ -11,6 +11,18 @@
       "size": { "width": 2500, "height": 32 }
     },
     {
+      "id": 1,
+      "type": "solid",
+      "position": { "x": 0, "y": 560},
+      "size" : {"width": 32, "height": -5000 }
+    },
+    {
+      "id": 2,
+      "type": "solid",
+      "position": { "x": 2500, "y": 560},
+      "size" : {"width": 32, "height": -5000 }
+    },
+    {
       "id": 1000,
       "type": "portal",
       "position": { "x": 250, "y": 464 },
