@@ -1,7 +1,7 @@
 {
   "levelName": "The Monochromatic Maze",
   "levelNumber": 3,
-  "playerStart": { "x": 1250, "y": 0 },
+  "playerStart": { "x": 1250, "y": 560 },
   "backgroundColor": { "r": 15, "g": 15, "b": 30 },
   "platforms": [
     {
@@ -19,11 +19,17 @@
     {
       "id": 2,
       "type": "solid",
-      "position": { "x": 2500, "y": 560},
+      "position": { "x": 2500, "y": 592},
       "size" : {"width": 32, "height": -5000 }
     },
     {
-      "id": 1000,
+      "id" : 3,
+      "type": "solid",
+      "position": {"x": 0, "y": 328},
+      "size": { "width": 2500, "height": 32 }
+    },
+    {
+      "id": 11,
       "type": "portal",
       "position": { "x": 250, "y": 464 },
       "size": { "width": 64, "height": 96 },
@@ -31,52 +37,36 @@
       "teleportOffset": { "x": 0, "y": -192 }
     },
     {
-      "id": 1001,
+      "id": 12,
       "type": "portal",
-      "position": { "x": 250, "y": 272 },
-      "size": { "width": 64, "height": 96 },
-      "portalID": 1,
-      "teleportOffset": { "x": 0, "y": 192 }
-    },
-    {
-      "id": 200,
-      "type": "portal",
-      "position": { "x": 850, "y": 464 },
+      "position": { "x": 750, "y": 464 },
       "size": { "width": 64, "height": 96 },
       "portalID": 200,
       "teleportOffset": { "x": 500, "y": 0 }
     },
     {
-      "id": 100,
+      "id": 13,
       "type": "portal",
-      "position": { "x": 1600, "y": 464 },
+      "position": { "x": 1250, "y": 464 },
       "size": { "width": 64, "height": 96 },
       "portalID": 100,
       "teleportOffset": { "x": 0, "y": 440 }
     },
     {
-      "id": 101,
+      "id": 14,
       "type": "portal",
-      "position": { "x": 300, "y": 904 },
+      "position": { "x": 1750, "y": 464 },
       "size": { "width": 64, "height": 96 },
       "portalID": 100,
       "teleportOffset": { "x": 0, "y": -440 }
     },
     {
-      "id": 102,
+      "id": 15,
       "type": "portal",
-      "position": { "x": 1728, "y": 464 },
+      "position": { "x": 2250, "y": 464 },
       "size": { "width": 64, "height": 96 },
       "portalID": 102,
       "teleportOffset": { "x": 0, "y": 440 }
-    },
-    {
-      "id": 103,
-      "type": "portal",
-      "position": { "x": 428, "y": 904 },
-      "size": { "width": 64, "height": 96 },
-      "portalID": 102,
-      "teleportOffset": { "x": 0, "y": -440 }
     },
     {
       "id": 9990,
