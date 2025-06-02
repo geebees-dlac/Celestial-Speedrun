@@ -10,7 +10,8 @@ PlatformBody::PlatformBody(
     float height,
     bodyType type,
     bool initiallyFalling,
-    const sf::Vector2f& surfaceVelocity)
+    const sf::Vector2f& surfaceVelocity,
+    const std::string texturePath)
     : m_id(id),
       m_position(position),
       m_velocity({0.f, 0.f}),
@@ -18,7 +19,8 @@ PlatformBody::PlatformBody(
       m_height(height),
       m_type(type),
       m_falling(initiallyFalling),
-      m_surfaceVelocity(surfaceVelocity) {}
+      m_surfaceVelocity(surfaceVelocity),
+      m_texturePath(texturePath) {}
 
 void PlatformBody::update(float deltaTime) {
     if (m_falling && m_type == bodyType::falling) { // Example for self-managed falling

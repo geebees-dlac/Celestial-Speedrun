@@ -1,4 +1,5 @@
 #include "LevelManager.hpp"
+#include "SpriteManager.hpp"
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/error/en.h"
 #include <cstdio>
@@ -352,9 +353,15 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
                 type = stringToBodyType(platJson["type"].GetString());
             }
 
+            // Parse individual texture (path)
+            std::string texturePath = DEFAULT_TEXTURE_FILEPATH;
+            if (platJson.HasMember("texture") && platJson["texture"].IsString()){
+                texturePath = platJson["texture"].GetString();
+            }
+
             // Create Base Platform
             outLevelData.platforms.emplace_back(
-                id, pos, width, height, type, initiallyFalling, surfaceVel //checkpoint
+                id, pos, width, height, type, initiallyFalling, surfaceVel, texturePath //checkpoint
             );
 
             // Handle Special Types
@@ -472,9 +479,53 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
                 outLevelData.portalPlatformDetails.push_back(ppi);
             }
         } 
+
+        if (!parseLevelTextures(d, outLevelData)){
+            std::cerr << "Error loading textures\n";
+            return false;
+        }
+        else std::cout << "Loaded textures?\n";
     } else {
         std::cerr << "LevelManager Error: Missing platforms array\n";
         return false;
     }
     return true;
+}
+
+bool LevelManager::parseLevelTextures(const rapidjson::Document& d, LevelData& outLevelData){
+    std::vector<std::string> TexturePathsList;
+
+    TexturePathsList.push_back(DEFAULT_TEXTURE_FILEPATH);
+
+    if (d.HasMember("platforms") && d["platforms"].IsArray()){
+        const auto& platformsArray = d["platforms"];
+        TexturePathsList.reserve(platformsArray.Size());
+
+        for (rapidjson::SizeType i = 0; i < platformsArray.Size(); ++i) {
+            const auto& platJson = platformsArray[i];
+            if (!platJson.IsObject()) continue;
+
+            if (platJson.HasMember("texture") && platJson["texture"].IsString()){
+                TexturePathsList.push_back(platJson["texture"].GetString());
+            }
+            // if no texture filepath, will default
+        }
+    }
+
+    if (TexturePathsList.size() > 0) {
+        for (std::string newTexturePath : TexturePathsList){
+            std::cout<<newTexturePath<<std::endl;
+            sf::Texture newTexture(DEFAULT_TEXTURE_FILEPATH);
+            if (!newTexture.loadFromFile(newTexturePath)){
+                std::cout << "Failed to load texture: " << newTexturePath << std::endl;
+                newTexture.loadFromFile(DEFAULT_TEXTURE_FILEPATH);
+            }
+            if (outLevelData.TexturesList.find(newTexturePath) == outLevelData.TexturesList.end())
+                std::cout << "Added new: " << newTexturePath << std::endl; 
+                outLevelData.TexturesList.emplace(newTexturePath, std::move(newTexture));
+        }
+    }
+
+    return true;
+
 }

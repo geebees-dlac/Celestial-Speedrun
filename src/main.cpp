@@ -335,9 +335,34 @@ for (const auto& p_body_template : data.platforms) {
 
 tiles.reserve(bodies.size());
 for (const auto& body : bodies) {
+    // get body texture first
+    std::string bodyTexturePath = body.getTexturePath();
+    // find texture in loaded textures
+
+
+    // then pass into newtile declaration
     Tile newTile(sf::Vector2f(body.getWidth(), body.getHeight()));
     newTile.setPosition(body.getPosition());
-    newTile.setFillColor(getTileColorForBodyType(body.getType()));
+    //newTile.setFillColor(getTileColorForBodyType(body.getType()));
+
+
+
+    // find texture in loaded textures
+    if (!bodyTexturePath.empty()){
+        auto textureLiIt = currentLevelData.TexturesList.find(bodyTexturePath);
+        if (textureLiIt != currentLevelData.TexturesList.end()){
+            // texture is loaded in list
+            newTile.setTexture(&(textureLiIt->second));
+            std::cout << "Loaded object of texture: " << textureLiIt->first << std::endl;
+        }
+        else {
+            // texture not found; load default texture instead
+            sf::Texture d(DEFAULT_TEXTURE_FILEPATH);
+            newTile.setTexture(&d);
+            std::cout << "Failed to load texture " << textureLiIt -> first << std::endl;
+        }
+    }
+
     tiles.push_back(newTile);
 }
 
@@ -1105,6 +1130,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
             mainView.setCenter(playerBody.getPosition() + sf::Vector2f(playerBody.getWidth() / 2.f, playerBody.getHeight() / 2.f - 50.f));
             window.setView(mainView);
             // Background cleared globally
+
 
             playerShape.setPosition(playerBody.getPosition());
             for (const auto& t : tiles) {

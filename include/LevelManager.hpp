@@ -57,6 +57,9 @@ struct LevelData {
     sf::Vector2f offset{10.f, 0.f}; 
 };
     std::vector<PortalPlatformInfo> portalPlatformDetails;
+
+    // Sprites and textures
+    std::map<std::string, sf::Texture> TexturesList;
 };
 
 class LevelManager {
@@ -113,6 +116,7 @@ private:
     void freeJsonDocument(rapidjson::Document* doc);
     // phys::bodyType stringToBodyType(const std::string& typeStr); // Moved to public
     bool parseLevelData(const rapidjson::Document& doc, LevelData& outLevelData);
+    bool parseLevelTextures(const rapidjson::Document& doc, LevelData& outLevelData);
 
     int m_currentLevelNumber;
     int m_targetLevelNumber;

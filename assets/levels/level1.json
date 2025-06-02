@@ -14,84 +14,105 @@
       "id": 1,
       "type": "platform",
       "position": { "x": 500, "y": 410 },
-      "size": { "width": 96, "height": 8 }
+      "size": { "width": 96, "height": 8 },
+      "texture": "../assets/sprites/Bgsoul(1)1.png"
     },
     {
-      "id": 2, "type": "falling", "position": {"x": 700, "y": 320}, "size": {"width": 32, "height": 32}},
+      "id": 2, "type": "falling", "position": {"x": 700, "y": 320}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/Bgsoul(1)2.png"
+    },
     {
       "id": 3,
       "type": "platform",
       "position": { "x": 900, "y": 230 },
-      "size": { "width": 96, "height": 8 }
+      "size": { "width": 96, "height": 8 },
+      "texture": "../assets/sprites/Bgsoul(2)1.png"
     },
     {
-      "id": 4, "type": "falling", "position": {"x": 1100, "y": 140}, "size": {"width": 32, "height": 32}},
+      "id": 4, "type": "falling", "position": {"x": 1100, "y": 140}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/Mc1_left_side.png"},
     {
       "id": 5,
       "type": "platform",
       "position": { "x": 1068, "y": 20 },
-      "size": { "width": 96, "height": 8 }
+      "size": { "width": 96, "height": 8 },
+      "texture": "../assets/sprites/Mc1_left_side.png"
     },
     {
       "id": 6,
       "type": "conveyorBelt",
       "position": { "x": 536, "y": 20 },
       "size": { "width": 320, "height": 32 },
-      "surfaceVelocity": { "x": 70, "y": 0 }
+      "surfaceVelocity": { "x": 70, "y": 0 },
+      "texture": "../assets/sprites/Mc1_left_side.png"
     },
     {
       "id": 7,
       "type": "platform",
       "position": { "x": 536, "y": -80 },
-      "size": { "width": 96, "height": 8 }
+      "size": { "width": 96, "height": 8 },
+      "texture": "../assets/sprites/default.png"
     },
     {
-      "id": 8, "type": "falling", "position": {"x": 640, "y": -170}, "size": {"width": 32, "height": 32}},
+      "id": 8, "type": "falling", "position": {"x": 640, "y": -170}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},
     {
-      "id": 8, "type": "falling", "position": {"x": 740, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 8, "type": "falling", "position": {"x": 740, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},
     {
-      "id": 10, "type": "vanishing", "position": {"x": 840, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 10, "type": "vanishing", "position": {"x": 840, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},
     {
-      "id": 11, "type": "vanishing", "position": {"x": 940, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 11, "type": "vanishing", "position": {"x": 940, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},
     {
-      "id": 12, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32}},  
+      "id": 12, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},  
     {
       "id": 13,
       "type": "solid",
       "position": { "x": 1250, "y": -260 },
-      "size": { "width": 192, "height": 32 }
+      "size": { "width": 192, "height": 32 },
+      "texture": "../assets/sprites/default.png"
     },
     {
       "id": 14,
       "type": "solid",
       "position": { "x": 1450, "y": -420 },
-      "size": { "width": 128, "height": 32 }
+      "size": { "width": 128, "height": 32 },
+      "texture": "../assets/sprites/default.png"
     },
  
     {
       "id": 15,
       "type": "solid",
       "position": { "x": 1240, "y": -510 },
-      "size": { "width": 128, "height": 32 }
+      "size": { "width": 128, "height": 32 },
+      "texture": "../assets/sprites/default.png"
     },
     {
-      "id": 16, "type": "vanishing", "position": {"x": 1040, "y": -510}, "size": {"width": 32, "height": 32}},  
+      "id": 16, "type": "vanishing", "position": {"x": 1040, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},  
     {
-      "id": 17, "type": "vanishing", "position": {"x": 820, "y": -510}, "size": {"width": 32, "height": 32}},  
+      "id": 17, "type": "vanishing", "position": {"x": 820, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},  
     {
-      "id": 18, "type": "vanishing", "position": {"x": 600, "y": -510}, "size": {"width": 32, "height": 32}},  
+      "id": 18, "type": "vanishing", "position": {"x": 600, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},  
 
     {
       "id": 19  ,
       "type": "solid",
       "position": { "x": 252, "y": -510 },
-      "size": { "width": 128, "height": 32 }
+      "size": { "width": 128, "height": 32 },
+      "texture": "../assets/sprites/default.png"
     },
     {
     "id": 20, 
     "type": "goal", 
     "position": {"x": 252, "y": -574},  
-    "size": {"width": 64, "height": 64} 
+    "size": {"width": 64, "height": 64} ,
+      "texture": "../assets/sprites/default.png"
     }
   ]
 }
