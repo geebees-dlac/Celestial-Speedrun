@@ -1,6 +1,5 @@
 #include "LevelManager.hpp"
 #include "SpriteManager.hpp"
-#include "SpriteManager.hpp"
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/error/en.h"
 #include <cstdio>

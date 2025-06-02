@@ -3,8 +3,6 @@
 
 namespace phys {
 
-const sprite::Sprite DEFAULT_SPRITE("../assets/sprites/default.png");
-
 PlatformBody::PlatformBody(
     unsigned int id,
     const sf::Vector2f& position,
