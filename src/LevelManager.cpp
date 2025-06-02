@@ -1,4 +1,5 @@
 #include "LevelManager.hpp"
+#include "SpriteManager.hpp"
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/error/en.h"
 #include <cstdio>
@@ -352,9 +353,15 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
                 type = stringToBodyType(platJson["type"].GetString());
             }
 
+            // Sprite loading
+            sprite::Sprite objSprite;
+            if (platJson.HasMember("sprite") && platJson["sprite"].IsString()){
+                objSprite.setTexture(platJson["sprite"].GetString());
+            }
+
             // Create Base Platform
             outLevelData.platforms.emplace_back(
-                id, pos, width, height, type, initiallyFalling, surfaceVel //checkpoint
+                id, pos, width, height, type, initiallyFalling, surfaceVel, objSprite //checkpoint
             );
 
             // Handle Special Types

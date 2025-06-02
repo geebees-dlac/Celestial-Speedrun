@@ -1,4 +1,5 @@
 #include "Tile.hpp"
+#include <iostream>
 const float FALLEN_Y_LIMIT = 2000.f;
 
 Tile::Tile(const sf::Vector2f& size, const sf::Color& color)
@@ -10,6 +11,22 @@ Tile::Tile(const sf::Vector2f& size, const sf::Color& color)
       {
     m_shape.setFillColor(color);
     m_shape.setSize(size);
+}
+
+Tile::Tile(const sf::Vector2f& size, const sprite::Sprite& sprite):
+    m_shape(size),
+    m_isFalling(false),
+    m_fallDelayTimer(sf::Time::Zero),
+    m_hasFallen(false),
+    m_fallSpeed(200.f),
+    m_sprite(sprite) {
+    
+    m_shape.setSize(size);
+
+    m_texture = sprite.getTexture();
+    std::cout << "ATTEMPTING LOAD OF " << m_sprite.getTexturePath() << std::endl;
+    //const sf::Texture& tex = m_sprite.getTexture();
+    m_shape.setTexture(&m_texture);
 }
 
 void Tile::update(sf::Time deltaTime) {

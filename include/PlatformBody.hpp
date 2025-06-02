@@ -3,9 +3,12 @@
 
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Rect.hpp>
+#include "Sprite.hpp"
 #include "PhysicsTypes.hpp"
 
 namespace phys {
+
+    extern const sprite::Sprite DEFAULT_SPRITE;
 
     class PlatformBody {
     public:
@@ -16,7 +19,8 @@ namespace phys {
             float height = 32.f,
             bodyType type = bodyType::platform,
             bool initiallyFalling = false,
-            const sf::Vector2f& surfaceVelocity = {0.f, 0.f}
+            const sf::Vector2f& surfaceVelocity = {0.f, 0.f},
+            sprite::Sprite bodySprite = DEFAULT_SPRITE
         );
 
         void setPortalID(unsigned int id) { m_portalID = id; }
@@ -31,6 +35,8 @@ namespace phys {
         float getHeight() const { return m_height; }
         sf::FloatRect getAABB() const;
         bodyType getType() const { return m_type; }
+        sprite::Sprite getSprite() const { return m_bodySprite;}
+        sf::Texture getSpriteTexture() const { return m_bodySprite.getTexture();}
         bool isFalling() const { return m_falling; }
         const sf::Vector2f& getSurfaceVelocity() const { return m_surfaceVelocity; }
 
@@ -49,6 +55,7 @@ namespace phys {
         sf::Vector2f m_surfaceVelocity;
         unsigned int m_portalID = 0;
         sf::Vector2f m_teleportOffset = {10.f, 0.f};
+        sprite::Sprite m_bodySprite;
     };
 
 }

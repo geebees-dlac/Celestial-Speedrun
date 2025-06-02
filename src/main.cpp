@@ -18,6 +18,7 @@
 #include "PhysicsTypes.hpp"
 #include "LevelManager.hpp"
 #include "Optimizer.hpp"
+#include "SpriteManager.hpp"
 
 enum class GameState {
 MENU,
@@ -81,6 +82,9 @@ std::map<unsigned int, ActiveInteractiblePlatform> activeInteractibles;
 
 sf::Time vanishingPlatformCycleTimer = sf::Time::Zero;
 int oddEvenVanishing = 1;
+
+sprite::Sprite testSprite("../assets/sprites/default.png");
+sf::Texture tx = testSprite.getTexture();
 
 GameSettings gameSettings;
 
@@ -335,9 +339,12 @@ for (const auto& p_body_template : data.platforms) {
 
 tiles.reserve(bodies.size());
 for (const auto& body : bodies) {
-    Tile newTile(sf::Vector2f(body.getWidth(), body.getHeight()));
+    //Tile newTile(sf::Vector2f(body.getWidth(), body.getHeight()), sf::Color::White);
+
+    Tile newTile(sf::Vector2f(body.getWidth(), body.getHeight()), testSprite);
     newTile.setPosition(body.getPosition());
-    newTile.setFillColor(getTileColorForBodyType(body.getType()));
+    newTile.setTexture(&tx);
+    //newTile.setFillColor(getTileColorForBodyType(body.getType()));
     tiles.push_back(newTile);
 }
 
@@ -1053,7 +1060,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
     }
 
     // --- Drawing ---
-    window.setTitle("Project - T");
+    window.setTitle("Celestial Speedrun");
     window.clear((currentState == GameState::PLAYING || currentState == GameState::TRANSITIONING || currentState == GameState::GAME_OVER_LOSE_DEATH || currentState == GameState::GAME_OVER_LOSE_FALL || currentState == GameState::GAME_OVER_WIN) && currentLevelData.platforms.size() > 0 ? currentLevelData.backgroundColor : sf::Color::Black);
 
 
@@ -1109,6 +1116,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
             playerShape.setPosition(playerBody.getPosition());
             for (const auto& t : tiles) {
                 if (t.getFillColor().a > 0 && !t.hasFallen()) { // Only draw if alpha > 0 and not fallen
+                    std::cout << t.getTexturePath() << std::endl;
                      window.draw(t);
                 }
             }

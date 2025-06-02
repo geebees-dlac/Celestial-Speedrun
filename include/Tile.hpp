@@ -7,11 +7,16 @@
 #include <SFML/Graphics/RenderStates.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Transformable.hpp>
+#include "Sprite.hpp"
+
+
 
 class Tile : public sf::Drawable, public sf::Transformable {
 public:
     Tile(const sf::Vector2f& size = {32.f, 32.f},
          const sf::Color& color = sf::Color::White);
+    Tile(const sf::Vector2f& size,
+         const sprite::Sprite& sprite);
 
     void startFalling(sf::Time delay);
     void update(sf::Time deltaTime);
@@ -22,6 +27,9 @@ public:
     void setFillColor(const sf::Color& color) { m_shape.setFillColor(color); }
     sf::Color getFillColor() const { return m_shape.getFillColor(); }
     void setTexture(const sf::Texture* texture, bool resetRect = false) { m_shape.setTexture(texture, resetRect); }
+    std::string getTexturePath() const {return m_sprite.getTexturePath();}
+
+    void setSpriteTexture(const sf::Texture texture);
 
     sf::FloatRect getGlobalBounds() const;
     sf::FloatRect getLocalBounds() const;
@@ -35,6 +43,9 @@ private:
     sf::Time m_fallDelayTimer;
     bool m_hasFallen;
     float m_fallSpeed;
+
+    sprite::Sprite m_sprite;
+    sf::Texture m_texture;
 };
 
 #endif
