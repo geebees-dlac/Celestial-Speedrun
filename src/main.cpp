@@ -18,6 +18,7 @@
 #include "PhysicsTypes.hpp"
 #include "LevelManager.hpp"
 #include "Optimizer.hpp"
+#include "SpriteManager.hpp"
 
 enum class GameState {
 MENU,
@@ -81,6 +82,9 @@ std::map<unsigned int, ActiveInteractiblePlatform> activeInteractibles;
 
 sf::Time vanishingPlatformCycleTimer = sf::Time::Zero;
 int oddEvenVanishing = 1;
+
+sprite::Sprite testSprite("../assets/sprites/default.png");
+sf::Texture tx = testSprite.getTexture();
 
 GameSettings gameSettings;
 
@@ -1078,7 +1082,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
     }
 
     // --- Drawing ---
-    window.setTitle("Project - T");
+    window.setTitle("Celestial Speedrun");
     window.clear((currentState == GameState::PLAYING || currentState == GameState::TRANSITIONING || currentState == GameState::GAME_OVER_LOSE_DEATH || currentState == GameState::GAME_OVER_LOSE_FALL || currentState == GameState::GAME_OVER_WIN) && currentLevelData.platforms.size() > 0 ? currentLevelData.backgroundColor : sf::Color::Black);
 
 
@@ -1135,6 +1139,7 @@ for (size_t i = 0; i < bodies.size(); ++i) {
             playerShape.setPosition(playerBody.getPosition());
             for (const auto& t : tiles) {
                 if (t.getFillColor().a > 0 && !t.hasFallen()) { // Only draw if alpha > 0 and not fallen
+                    std::cout << t.getTexturePath() << std::endl;
                      window.draw(t);
                 }
             }

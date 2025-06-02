@@ -3,10 +3,13 @@
 
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Rect.hpp>
+#include "Sprite.hpp"
 #include "PhysicsTypes.hpp"
 #include "SpriteManager.hpp"
 
 namespace phys {
+
+    extern const sprite::Sprite DEFAULT_SPRITE;
 
     class PlatformBody {
     public:
