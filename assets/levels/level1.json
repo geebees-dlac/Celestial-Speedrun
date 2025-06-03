@@ -25,55 +25,58 @@
       "size": { "width": 96, "height": 8 }
     },
     {
-      "id": 4, "type": "falling", "position": {"x": 1200, "y": 140}, "size": {"width": 32, "height": 32}},
-    {
-      "id": 5,
-      "type": "platform",
-      "position": { "x": 1368, "y": 20 },
-      "size": { "width": 96, "height": 8 }
-    },
+      "id": 4, "type": "falling", "position": {"x": 1300, "y": 140}, "size": {"width": 32, "height": 32}},
+
     {
       "id": 6,
       "type": "conveyorBelt",
-      "position": { "x": 0, "y": 20 },
+      "position": { "x": -16, "y": 20 },
       "size": { "width": 1056, "height": 32 },
       "surfaceVelocity": { "x": 70, "y": 0 }
     },
     {
       "id": 7,
-      "type": "platform",
-      "position": { "x": 0, "y": -80 },
-      "size": { "width": 96, "height": 8 }
+      "type": "solid",
+      "position": { "x": 0, "y": -40 },
+      "size": { "width": 1032, "height": 16 }
     },
     {
-      "id": 8, "type": "falling", "position": {"x": 640, "y": -170}, "size": {"width": 32, "height": 32}},
+      "id": 8, "type": "falling", "position": {"x": 240, "y": -170}, "size": {"width": 32, "height": 32}},
     {
-      "id": 8, "type": "falling", "position": {"x": 740, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 9, "type": "falling", "position": {"x": 340, "y": -260}, "size": {"width": 32, "height": 32}},
     {
-      "id": 10, "type": "vanishing", "position": {"x": 840, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 10, "type": "vanishing", "position": {"x": 440, "y": -260}, "size": {"width": 32, "height": 32}},
     {
-      "id": 11, "type": "vanishing", "position": {"x": 940, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 11, "type": "vanishing", "position": {"x": 540, "y": -260}, "size": {"width": 32, "height": 32}},
     {
-      "id": 12, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32}},  
+      "id": 12, "type": "vanishing", "position": {"x": 640, "y": -260}, "size": {"width": 32, "height": 32}},
     {
-      "id": 13,
+      "id": 13, "type": "vanishing", "position": {"x": 740, "y": -260}, "size": {"width": 32, "height": 32}},
+    {
+      "id": 14, "type": "vanishing", "position": {"x": 840, "y": -260}, "size": {"width": 32, "height": 32}},
+    {
+      "id": 15, "type": "vanishing", "position": {"x": 940, "y": -260}, "size": {"width": 32, "height": 32}},
+    {
+      "id": 16, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32}},  
+    {
+      "id": 17,
       "type": "solid",
       "position": { "x": 1250, "y": -260 },
       "size": { "width": 192, "height": 32 }
     },
     {
 
-      "id": 12, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32},
+      "id": 18, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32},
       "texture": "../assets/sprites/default.png"},  
           {
-      "id": 13,
+      "id": 19,
       "type": "solid",
       "position": { "x": 1250, "y": -260 },
       "size": { "width": 192, "height": 32 },
       "texture": "../assets/sprites/default.png"
     },
     {
-      "id": 14,
+      "id": 20,
       "type": "solid",
       "position": { "x": 1450, "y": -420 },
       "size": { "width": 128, "height": 32 },
@@ -81,32 +84,45 @@
     },
  
     {
-      "id": 15,
+      "id": 21,
       "type": "solid",
       "position": { "x": 1240, "y": -510 },
       "size": { "width": 128, "height": 32 },
       "texture": "../assets/sprites/default.png"
     },
     {
-      "id": 16, "type": "vanishing", "position": {"x": 1040, "y": -510}, "size": {"width": 32, "height": 32},
-      "texture": "../assets/sprites/default.png"},  
-    {
-      "id": 17, "type": "vanishing", "position": {"x": 820, "y": -510}, "size": {"width": 32, "height": 32},
-      "texture": "../assets/sprites/default.png"},  
-    {
-      "id": 18, "type": "vanishing", "position": {"x": 600, "y": -510}, "size": {"width": 32, "height": 32},
+      "id": 22, "type": "vanishing", "position": {"x": 1040, "y": -510}, "size": {"width": 32, "height": 32},
       "texture": "../assets/sprites/default.png"},  
 
     {
-      "id": 19  ,
+      "id": 23, "type": "falling", "position": {"x": 600, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},  
+    {
+      "id": 24, "type": "vanishing", "position": {"x": 160, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},  
+    {
+      "id": 25, "type": "falling", "position": {"x": -280, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},
+      {
+      "id": 26, "type": "vanishing", "position": {"x": -720, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},  
+    {
+      "id": 27, "type": "falling", "position": {"x": -1160, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},    
+      {
+      "id": 28, "type": "vanishing", "position": {"x": -1600, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "../assets/sprites/default.png"},  
+
+    {
+      "id": 29  ,
       "type": "solid",
-      "position": { "x": 252, "y": -510 },
+      "position": { "x": -2040, "y": -510 },
       "size": { "width": 128, "height": 32 }
     },
     {
-    "id": 20, 
+    "id": 30, 
     "type": "goal", 
-    "position": {"x": 252, "y": -574},  
+    "position": {"x": -2040, "y": -574},  
     "size": {"width": 64, "height": 64}
     }
   ]

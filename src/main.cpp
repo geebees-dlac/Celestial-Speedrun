@@ -343,11 +343,11 @@ for (const auto& body : bodies) {
     // then pass into newtile declaration
     Tile newTile(sf::Vector2f(body.getWidth(), body.getHeight()));
     newTile.setPosition(body.getPosition());
-    //newTile.setFillColor(getTileColorForBodyType(body.getType()));
+    newTile.setFillColor(getTileColorForBodyType(body.getType()));
 
 
 
-    // find texture in loaded textures
+    /* find texture in loaded textures
     if (!bodyTexturePath.empty()){
         auto textureLiIt = currentLevelData.TexturesList.find(bodyTexturePath);
         if (textureLiIt != currentLevelData.TexturesList.end()){
@@ -361,7 +361,7 @@ for (const auto& body : bodies) {
             newTile.setTexture(&d);
             std::cout << "Failed to load texture " << textureLiIt -> first << std::endl;
         }
-    }
+    }*/
 
     tiles.push_back(newTile);
 }
