@@ -19,91 +19,91 @@
     {
       "id": 2,
       "type": "platform",
-      "position": { "x": 536, "y": -96 },
+      "position": { "x": 736, "y": -96 },
       "size": { "width": 32, "height": 32 }
     },
     {
       "id": 3,
       "type": "platform",
-      "position": {"x": 664, "y": -160},
+      "position": {"x": 1164, "y": -160},
       "size": {"width": 32, "height": 32}
     },
     {
       "id": 4,
       "type": "platform",
-      "position": {"x": 914, "y": -160},
+      "position": {"x": 1514, "y": -160},
       "size": {"width": 32, "height": 32}
     },
     {
       "id": 5,
       "type": "solid",
-      "position": {"x": 1200, "y": 0},
+      "position": {"x": 1900, "y": 0},
       "size": {"width": 32, "height": 32}
     },
     {
       "id": 6,
       "type": "solid",
-      "position": {"x": 1232, "y": -32},
+      "position": {"x": 1932, "y": -32},
       "size": {"width": 128, "height": 64}
     },
     {
       "id": 7,
       "type": "platform",
-      "position": {"x": 1550, "y": -48},
+      "position": {"x": 2350, "y": -48},
       "size": {"width": 96, "height": 16}
     },
     {
       "id": 8,
       "type": "platform",
-      "position": {"x": 1350, "y": -208},
+      "position": {"x": 2650, "y": -208},
       "size": {"width": 96, "height": 16}
     },
     {
       "id": 9,
       "type": "platform",
-      "position": {"x": 1550, "y": -368},
+      "position": {"x": 2350, "y": -368},
       "size": {"width": 96, "height": 16}
     },
     {
       "id": 10,
-      "type": "platform",
-      "position": {"x": 1350, "y": -528},
+      "type": "falling",
+      "position": {"x": 2650, "y": -528},
       "size": {"width": 64, "height": 16}
     },
     {
       "id": 11,
-      "type": "platform",
-      "position": {"x": 1350, "y": -688},
+      "type": "falling",
+      "position": {"x": 2350, "y": -688},
       "size": {"width": 64, "height": 16}
     },
     {
       "id": 12,
       "type": "falling",
-      "position": {"x": 1350, "y": -848},
+      "position": {"x": 2650, "y": -848},
       "size": {"width": 64, "height": 16}
     },
     {
       "id": 13,
-      "type": "platform",
-      "position": {"x": 1350, "y": -1008},
+      "type": "falling",
+      "position": {"x": 2350, "y": -1008},
       "size": {"width": 64, "height": 16}
     },
     {
       "id": 14,
       "type": "falling",
-      "position": {"x": 1550, "y": -1148},
+      "position": {"x": 2650, "y": -1148},
       "size": {"width": 64, "height": 16}
     },
     {
       "id": 15,
       "type": "platform",
-      "position": {"x":1250, "y": -1280},
+      "position": {"x":2350, "y": -1280},
       "size":{"width": 400, "height": 32}
     },
     {
       "id": 16,
       "type": "goal",
-      "position": {"x": 1350, "y": -1330},
+      "position": {"x": 2450, "y": -1330},
       "size": {"width": 200, "height": 64}
     }
   ]
