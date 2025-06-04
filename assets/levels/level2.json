@@ -55,7 +55,7 @@
     {
       "id": 8,
       "type": "platform",
-      "position": {"x": 2650, "y": -208},
+      "position": {"x": 2550, "y": -208},
       "size": {"width": 96, "height": 16}
     },
     {
@@ -67,7 +67,7 @@
     {
       "id": 10,
       "type": "falling",
-      "position": {"x": 2650, "y": -528},
+      "position": {"x": 2550, "y": -528},
       "size": {"width": 64, "height": 16}
     },
     {
@@ -79,7 +79,7 @@
     {
       "id": 12,
       "type": "falling",
-      "position": {"x": 2650, "y": -848},
+      "position": {"x": 2550, "y": -848},
       "size": {"width": 64, "height": 16}
     },
     {
@@ -91,7 +91,7 @@
     {
       "id": 14,
       "type": "falling",
-      "position": {"x": 2650, "y": -1148},
+      "position": {"x": 2550, "y": -1148},
       "size": {"width": 64, "height": 16}
     },
     {
