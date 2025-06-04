@@ -1,7 +1,7 @@
 {
   "levelName": "The Seraphic Servers",
   "levelNumber": 5,
-  "playerStart": { "x": 6049, "y": 0 },
+  "playerStart": { "x": 0, "y": 0 },
   "backgroundColor": { "r": 20, "g": 20, "b": 40 },
   "platforms": [
     {
@@ -375,12 +375,6 @@
     "type": "platform",
     "position": {"x": 6924, "y": -144},
     "size": {"width": 64, "height": 176}
-  },
-  {
-    "id": 114222,
-    "type": "platform",
-    "position": {"x": 6409, "y": -128},
-    "size": {"width": 64, "height": 160}
   },
     {
       "id": 1311,
