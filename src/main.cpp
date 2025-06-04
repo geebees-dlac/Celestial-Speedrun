@@ -53,6 +53,9 @@ phys::DynamicBody playerBody;
 std::vector<phys::PlatformBody> bodies;
 std::vector<Tile> tiles;
 
+// PLAYER SPRITE LOADING (basic functionality, to be replaced later)
+sf::Texture playerTexture(DEFAULT_TEXTURE_FILEPATH);
+
 struct ActiveMovingPlatform {
     unsigned int id;
     sf::Vector2f movementAnchorPosition;
@@ -528,7 +531,14 @@ else {
     sf::Color hoverBtnColor = sf::Color::Yellow;
     sf::Color exitBtnHoverColor = sf::Color::Red;
 
-    playerShape.setFillColor(sf::Color(220, 220, 250, 255));
+    //playerShape.setFillColor(sf::Color(220, 220, 250, 255));
+    // PLAYER TEXTURE LOADING (to be moved/replaced later)
+    if (!playerTexture.loadFromFile("../assets/sprites/Mc1_left_side.png")){
+        std::cerr << "Cannot load player texture." << std::endl;
+        playerTexture.loadFromFile(DEFAULT_TEXTURE_FILEPATH);
+    }
+    playerShape.setTexture(&playerTexture);
+
     playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
 
 debugText.setFont(menuFont);
