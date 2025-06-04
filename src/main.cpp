@@ -348,23 +348,35 @@ tiles.reserve(bodies.size());
 for (const auto& body : bodies) {
     // get body texture first
     std::string bodyTexturePath = body.getTexturePath();
+    std::cout << bodyTexturePath << std::endl;
     // find texture in loaded textures
 
 
     // then pass into newtile declaration
     Tile newTile(sf::Vector2f(body.getWidth(), body.getHeight()));
     newTile.setPosition(body.getPosition());
-    newTile.setFillColor(getTileColorForBodyType(body.getType()));
+    //newTile.setFillColor(getTileColorForBodyType(body.getType()));
 
 
 
-    /* find texture in loaded textures
+    //find texture in loaded textures
     if (!bodyTexturePath.empty()){
         auto textureLiIt = currentLevelData.TexturesList.find(bodyTexturePath);
         if (textureLiIt != currentLevelData.TexturesList.end()){
             // texture is loaded in list
             newTile.setTexture(&(textureLiIt->second));
             std::cout << "Loaded object of texture: " << textureLiIt->first << std::endl;
+
+            // adjust object dimensions
+            auto textureDiIt = currentLevelData.TexturesDimensions.find(body.getID());
+            if (textureDiIt != currentLevelData.TexturesDimensions.end()){
+                // object has custom dimensions
+                newTile.setTextureRect(textureDiIt->second);
+                std::cout << "Adjusted obj " << body.getID() << " dimensions to: ["
+                << textureDiIt->second.position.x << "," << textureDiIt->second.position.y << "] x ["
+                << (textureDiIt->second.size.x + textureDiIt->second.position.x) << ","
+                << (textureDiIt->second.size.y + textureDiIt->second.position.y) << "]" << std::endl;
+            }
         }
         else {
             // texture not found; load default texture instead
@@ -372,7 +384,7 @@ for (const auto& body : bodies) {
             newTile.setTexture(&d);
             std::cout << "Failed to load texture " << textureLiIt -> first << std::endl;
         }
-    }*/
+    }
 
     tiles.push_back(newTile);
 }
@@ -538,6 +550,8 @@ else {
         playerTexture.loadFromFile(DEFAULT_TEXTURE_FILEPATH);
     }
     playerShape.setTexture(&playerTexture);
+    sf::IntRect playerDimensions({474, 125}, {989-474, 810-125});
+    playerShape.setTextureRect(playerDimensions);
 
     playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
 

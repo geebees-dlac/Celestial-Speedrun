@@ -32,4 +32,11 @@ sf::FloatRect PlatformBody::getAABB() const {
     return sf::FloatRect({m_position.x, m_position.y}, {m_width, m_height});
 }
 
+std::string PlatformBody::getTexturePath() const {
+    if (m_texturePath.find(TEXTURE_DIRECTORY) == std::string::npos){
+        return TEXTURE_DIRECTORY+m_texturePath;
+    }
+    return m_texturePath;
+}
+
 } // namespace phys

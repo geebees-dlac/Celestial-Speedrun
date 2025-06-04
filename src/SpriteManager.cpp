@@ -15,7 +15,7 @@ std::vector<sf::Texture> LoadLevelTextures(std::vector<std::string> texturePaths
 
     for (std::string txPath : texturePaths){
         sf::Texture newTexture(DEFAULT_TEXTURE_FILEPATH);
-        if (!newTexture.loadFromFile(txPath)){
+        if (!newTexture.loadFromFile(TEXTURE_DIRECTORY+txPath) && !newTexture.loadFromFile(txPath)){
             std::cerr << "Erorr loading texture: " << txPath << std::endl;
             newTexture.loadFromFile(DEFAULT_TEXTURE_FILEPATH);
         }

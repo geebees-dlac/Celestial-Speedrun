@@ -9,6 +9,7 @@ namespace sprites {
 
     class SpriteManager{
         #define DEFAULT_TEXTURE_FILEPATH "../assets/sprites/default.png"
+        #define TEXTURE_DIRECTORY "../assets/sprites/"
 
         public:
             SpriteManager();

@@ -511,20 +511,42 @@ bool LevelManager::parseLevelTextures(const rapidjson::Document& d, LevelData& o
                 TexturePathsList.push_back(platJson["texture"].GetString());
             }
             // if no texture filepath, will default
+
+            // check if platform has specific dimensions (default: will render entire image)
+            if (platJson.HasMember("dimensions") && platJson["dimensions"].IsObject()){
+                const auto& dimensions = platJson["dimensions"];
+                unsigned int id = 0;
+                if (platJson.HasMember("id") && platJson["id"].IsUint()) {
+                    id = platJson["id"].GetUint();
+                } else {
+                    id = static_cast<unsigned int>(outLevelData.platforms.size() + 1000);
+                }
+                if (dimensions.HasMember("top-left-x") && dimensions["top-left-x"].IsInt()
+                    && dimensions.HasMember("top-left-y") && dimensions["top-left-y"].IsInt()
+                    && dimensions.HasMember("bottom-right-x") && dimensions["bottom-right-x"].IsInt()
+                    && dimensions.HasMember("bottom-right-y") && dimensions["bottom-right-y"].IsInt())
+                    outLevelData.TexturesDimensions.emplace(id,
+                        sf::IntRect({dimensions["top-left-x"].GetInt(), dimensions["top-left-y"].GetInt()},
+                            {dimensions["bottom-right-x"].GetInt()-dimensions["top-left-x"].GetInt(),
+                            dimensions["bottom-right-y"].GetInt()-dimensions["top-left-y"].GetInt()}));
+            }
         }
     }
 
     if (TexturePathsList.size() > 0) {
         for (std::string newTexturePath : TexturePathsList){
+            if (newTexturePath.find(TEXTURE_DIRECTORY) == std::string::npos)
+                newTexturePath = TEXTURE_DIRECTORY+newTexturePath;
             std::cout<<newTexturePath<<std::endl;
             sf::Texture newTexture(DEFAULT_TEXTURE_FILEPATH);
             if (!newTexture.loadFromFile(newTexturePath)){
                 std::cout << "Failed to load texture: " << newTexturePath << std::endl;
                 newTexture.loadFromFile(DEFAULT_TEXTURE_FILEPATH);
             }
-            if (outLevelData.TexturesList.find(newTexturePath) == outLevelData.TexturesList.end())
+            if (outLevelData.TexturesList.find(newTexturePath) == outLevelData.TexturesList.end()){
                 std::cout << "Added new: " << newTexturePath << std::endl; 
                 outLevelData.TexturesList.emplace(newTexturePath, std::move(newTexture));
+            }
         }
     }
 

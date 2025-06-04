@@ -59,7 +59,9 @@ struct LevelData {
     std::vector<PortalPlatformInfo> portalPlatformDetails;
 
     // Sprites and textures
-    std::map<std::string, sf::Texture> TexturesList;
+    std::map<std::string, sf::Texture> TexturesList; // parameters: filepath : texture
+    std::map<int, sf::IntRect> TexturesDimensions; // parameters: object id : dimensions
+    bool animated;
 };
 
 class LevelManager {
