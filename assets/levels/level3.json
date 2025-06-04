@@ -1,7 +1,7 @@
 {
   "levelName": "The Monochromatic Maze",
   "levelNumber": 3,
-  "playerStart": { "x": 1250, "y": 560 },
+  "playerStart": { "x": 1250, "y": 400 },
   "backgroundColor": { "r": 15, "g": 15, "b": 30 },
   "platforms": [
     {
