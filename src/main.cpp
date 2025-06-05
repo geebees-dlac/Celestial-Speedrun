@@ -464,7 +464,7 @@ bool menuBgSpriteLoaded = false;
 
     loadAudio();
 
-    playerBody = phys::DynamicBody({0,0}, tileSize.x, tileSize.y);
+    playerBody = phys::DynamicBody({0,0}, tileSize.x+16, tileSize.y*2);
 
 if (!menuFont.openFromFile(FONT_PATH)) {
     std::cerr << "FATAL: Failed to load font: " << FONT_PATH << ". Trying fallback." << std::endl;
