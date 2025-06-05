@@ -1026,38 +1026,94 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                 break;
             }
 
-            // --- Interaction (Goal, Interactibles) ---
-            if (interactKeyPressedThisFrame) {
+            //Interaction (Goal, Interactibles, Portals)
+            if (interactKeyPressedThisFrame) { 
+                bool interaction_occurred_this_frame = false; 
+
+                // --- Portal Interaction ---
+                for (const auto& entered_portal_body : bodies) {
+                    if (entered_portal_body.getType() == phys::bodyType::portal &&
+                        playerBody.getAABB().findIntersection(entered_portal_body.getAABB())) {
+                        
+                        playSfx("portal"); 
+                        
+                        unsigned int targetPortalPlatformID = entered_portal_body.getPortalID(); 
+                        sf::Vector2f teleportOffset = entered_portal_body.getTeleportOffset();   
+
+                        if (targetPortalPlatformID == 0) { 
+                            std::cerr << "Player entered unlinked portal (ID: " << entered_portal_body.getID() 
+              << ", targetPortalPlatformID is 0)." << std::endl;
+                            interaction_occurred_this_frame = true;
+                            break; 
+                        }
+
+                        phys::PlatformBody* destination_portal_ptr = nullptr;
+                        for (auto& potential_target_body : bodies) {
+                            if (potential_target_body.getID() == targetPortalPlatformID) {
+                                if (potential_target_body.getType() == phys::bodyType::portal) {
+                                    destination_portal_ptr = &potential_target_body;
+                                } else {
+                                    std::cerr << "Error: Portal ID " << entered_portal_body.getID()
+                                              << " links to ID " << targetPortalPlatformID
+                                              << ", but the target entity is not a portal (actual type: "
+                                              << static_cast<int>(potential_target_body.getType()) << ").\n";
+                                }
+                                break; 
+                            }
+                        }
+
+                        if (destination_portal_ptr) {
+                            sf::Vector2f final_pos = destination_portal_ptr->getPosition() + teleportOffset;
+                            
+                            playerBody.setPosition(final_pos); 
+                            playerBody.setVelocity({0.f, 0.f});
+                            
+                            std::cout << "Player teleported from portal " << entered_portal_body.getID() 
+                                      << " to portal " << destination_portal_ptr->getID() 
+                                      << " at (" << final_pos.x << ", " << final_pos.y << ")\n";
+
+                        } else {
+                            // Destination portal was not found (or targetPortalPlatformID was invalid)
+                            std::cerr << "Error: Portal ID " << entered_portal_body.getID()
+                                      << " attempted to link to non-existent/invalid portal ID: " 
+                                      << targetPortalPlatformID << std::endl;
+                        }
+                        interaction_occurred_this_frame = true; 
+                        break;
+                    }
+                }
+                if(interaction_occurred_this_frame) {
+                    goto end_fixed_update_for_interaction;
+                }
+
+
+                // --- Goal Interaction ---
                 for (const auto& platform_body_check_goal : bodies) {
                     if (platform_body_check_goal.getType() == phys::bodyType::goal && playerBody.getAABB().findIntersection(platform_body_check_goal.getAABB())) {
                         playSfx("goal");
                         if (levelManager.hasNextLevel()) {
                             if (levelManager.requestLoadNextLevel(currentLevelData)) {
                                 currentState = GameState::TRANSITIONING;
-                            } else { currentState = GameState::MENU; if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop(); if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play(); }
+                            } else { 
+                                currentState = GameState::MENU; 
+                                if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop(); 
+                                if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play(); 
+                            }
                         } else {
                             currentState = GameState::GAME_OVER_WIN;
                             if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop();
                             if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
                         }
+                        interaction_occurred_this_frame = true;
                         goto end_fixed_update_for_interaction;
                     }
                 }
-
-                for (const auto& platform_body_check_portal : bodies) {
-                    if (platform_body_check_portal.getType() == phys::bodyType::portal && playerBody.getAABB().findIntersection(platform_body_check_portal.getAABB())) {
-                        playSfx("portal");
-                        // Teleport to the other portal (if any)
-                        for (const auto& body_ref : bodies) {
-                            if (body_ref.getType() == phys::bodyType::portal && body_ref.getID() != platform_body_check_portal.getID()) {
-                                playerBody.setPosition(body_ref.getPosition());
-                                break;
-                            }
-                        }
-                        goto end_fixed_update_for_interaction;
-                    }
+                if(interaction_occurred_this_frame) { 
+                    goto end_fixed_update_for_interaction;
                 }
 
+
+                // --- Interactible Platform Interaction ---
                 for (size_t k = 0; k < bodies.size(); ++k) {
                     phys::PlatformBody& interact_body_ref = bodies[k];
                     if (interact_body_ref.getType() == phys::bodyType::interactible && playerBody.getAABB().findIntersection(interact_body_ref.getAABB())) {
@@ -1065,7 +1121,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                         if (it != activeInteractibles.end()) {
                             ActiveInteractiblePlatform& interactState = it->second;
                             if (interactState.currentCooldownTimer > 0.f || (interactState.oneTime && interactState.hasBeenInteractedThisSession)) {
-                                continue;
+                                continue; 
                             }
 
                                 if (interactState.interactionType == "changeSelf") {
@@ -1085,7 +1141,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                                             playerBody.setOnGround(false);
                                             playerBody.setGroundPlatform(nullptr);
                                         }
-                                        interact_body_ref.setPosition({-10000.f, -10000.f});
+                                        interact_body_ref.setPosition({-10000.f, -10000.f}); 
                                         if (tiles.size() > k) tiles[k].setFillColor(sf::Color::Transparent);
                                     }
 
@@ -1093,68 +1149,62 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                                         for (size_t linked_idx = 0; linked_idx < bodies.size(); ++linked_idx) {
                                             if (bodies[linked_idx].getID() == interactState.linkedID) {
                                                 phys::PlatformBody& linked_body_ref = bodies[linked_idx];
-                                                Tile& linked_tile_ref = tiles[linked_idx];
+                                                
+                                                Tile* linked_tile_ref_ptr = nullptr;
+                                                if (linked_idx < tiles.size()) {
+                                                    linked_tile_ref_ptr = &tiles[linked_idx];
+                                                }
+
 
                                                 if (linked_body_ref.getType() == phys::bodyType::solid || linked_body_ref.getType() == phys::bodyType::platform ) {
                                                     if (playerBody.getGroundPlatform() == &linked_body_ref) {
                                                         playerBody.setOnGround(false);
                                                         playerBody.setGroundPlatform(nullptr);
                                                     }
-                                                    linked_body_ref.setType(phys::bodyType::none);
+                                                    linked_body_ref.setType(phys::bodyType::none); 
                                                     linked_body_ref.setPosition({-10000.f, -10000.f});
-                                                    linked_tile_ref.setFillColor(sf::Color::Transparent);
-                                                    linked_tile_ref.setPosition({-10000.f, -10000.f});
+                                                    if(linked_tile_ref_ptr) {
+                                                        linked_tile_ref_ptr->setFillColor(sf::Color::Transparent);
+                                                        linked_tile_ref_ptr->setPosition({-10000.f, -10000.f});
+                                                    }
 
                                                 } else if (linked_body_ref.getType() == phys::bodyType::none) {
                                                     sf::Vector2f originalLinkedPos = {-9999.f, -9999.f};
-                                                    phys::bodyType originalLinkedType = phys::bodyType::solid;
+                                                    phys::bodyType originalLinkedType = phys::bodyType::solid; 
                                                     
                                                     for(const auto& templ : currentLevelData.platforms){
                                                         if(templ.getID() == linked_body_ref.getID()){
                                                             originalLinkedPos = templ.getPosition();
-                                                            originalLinkedType = templ.getType();
+                                                            originalLinkedType = templ.getType(); 
                                                             break;
                                                         }
                                                     }
 
-                                                    if(originalLinkedPos.x > -9998.f){
+                                                    if(originalLinkedPos.x > -9998.f){ 
                                                        linked_body_ref.setPosition(originalLinkedPos);
                                                        linked_body_ref.setType(originalLinkedType);
-                                                       linked_tile_ref.setPosition(originalLinkedPos);
-                                                       linked_tile_ref.setFillColor(getTileColorForBodyType(originalLinkedType));
+                                                       if(linked_tile_ref_ptr){
+                                                           linked_tile_ref_ptr->setPosition(originalLinkedPos);
+                                                           linked_tile_ref_ptr->setFillColor(getTileColorForBodyType(originalLinkedType));
+                                                       }
                                                     }
-                                                } else if (linked_body_ref.getType() != phys::bodyType::portal &&
-                                                           interactState.targetBodyTypeEnum == phys::bodyType::portal &&
-                                                           linked_body_ref.getID() == interactState.linkedID) {
-                                                    sf::Vector2f originalLinkedPos = {-9999.f, -9999.f};
-                                                    for(const auto& templ : currentLevelData.platforms){
-                                                        if(templ.getID() == linked_body_ref.getID()){
-                                                            originalLinkedPos = templ.getPosition();
-                                                            break;
-                                                        }
-                                                    }
-                                                    if(originalLinkedPos.x > -9998.f){
-                                                       linked_body_ref.setPosition(originalLinkedPos);
-                                                       linked_body_ref.setType(phys::bodyType::portal);
-                                                       linked_tile_ref.setPosition(originalLinkedPos);
-                                                       linked_tile_ref.setFillColor(getTileColorForBodyType(phys::bodyType::portal));
-                                                    }
-                                                }
-                                                break;
+                                                } 
+                                                break; // Found and processed linked body
                                             }
                                         }
                                     }
 
-
                                     if (interactState.oneTime) interactState.hasBeenInteractedThisSession = true;
                                     else interactState.currentCooldownTimer = interactState.cooldown;
+                                    
+                                    interaction_occurred_this_frame = true; 
                                     goto end_fixed_update_for_interaction;
                                 }
-                            }
                         }
                     }
                 }
                 end_fixed_update_for_interaction:;
+            }
 
             // --- Death by Falling ---
             if (playerBody.getPosition().y > PLAYER_DEATH_Y_LIMIT) {

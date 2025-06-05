@@ -8,13 +8,13 @@
       "id": -1,
       "type": "solid",
       "position": { "x": 0, "y": 560},
-      "size" : {"width": 32, "height": -5000 }
+      "size" : {"width": 32, "height": -1178 }
     },
     {
       "id": -2,
       "type": "solid",
       "position": { "x": 2500, "y": 592},
-      "size" : {"width": 32, "height": -5000 }
+      "size" : {"width": 32, "height": -1178 }
     },
     {
       "id": 0,
@@ -27,16 +27,14 @@
       "type": "portal",
       "position": { "x": 250, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 1,
-      "teleportOffset": { "x": 0, "y": -192 }
+      "portalID": 23
     },
     {
       "id": 12,
       "type": "portal",
       "position": { "x": 750, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 14,
-      "teleportOffset": { "x": 500, "y": 0 }
+      "portalID": 1010
     },
     {
       "id": 13,
@@ -49,16 +47,14 @@
       "type": "portal",
       "position": { "x": 1750, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 1003,
-      "teleportOffset": { "x": 0, "y": -440 }
+      "portalID": 1010
     },
     {
       "id": 15,
       "type": "portal",
       "position": { "x": 2250, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 1004,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "portalID": 1010
     },
     {
       "id" : 1,
@@ -71,16 +67,14 @@
       "type": "portal",
       "position": { "x": 250, "y": 232 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 1,
-      "teleportOffset": { "x": 0, "y": -192 }
+      "portalID": 1010
     },
     {
       "id": 22,
       "type": "portal",
       "position": { "x": 750, "y": 232 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 200,
-      "teleportOffset": { "x": 500, "y": 0 }
+      "portalID": 1010
     },
     {
       "id": 23,
@@ -93,16 +87,14 @@
       "type": "portal",
       "position": { "x": 1750, "y": 232 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 100,
-      "teleportOffset": { "x": 0, "y": -440 }
+      "portalID": 33
     },
     {
       "id": 25,
       "type": "portal",
       "position": { "x": 2250, "y": 232 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 102,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "portalID": 1010
     },
     {
       "id" : 2,
@@ -115,16 +107,14 @@
       "type": "portal",
       "position": { "x": 250, "y": 0 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 1,
-      "teleportOffset": { "x": 0, "y": -192 }
+      "portalID": 1010
     },
     {
       "id": 32,
       "type": "portal",
       "position": { "x": 750, "y": 0},
       "size": { "width": 64, "height": 96 },
-      "portalID": 200,
-      "teleportOffset": { "x": 500, "y": 0 }
+      "portalID": 43
     },
     {
       "id": 33,
@@ -137,16 +127,14 @@
       "type": "portal",
       "position": { "x": 1750, "y": 0 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 100,
-      "teleportOffset": { "x": 0, "y": -440 }
+      "portalID": 1010
     },
     {
       "id": 35,
       "type": "portal",
       "position": { "x": 2250, "y": 0 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 102,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "portalID": 1010
     },
     {
       "id" : 3,
@@ -159,16 +147,14 @@
       "type": "portal",
       "position": { "x": 250, "y": -232 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 1,
-      "teleportOffset": { "x": 0, "y": -192 }
+      "portalID": 1010
     },
     {
       "id": 42,
       "type": "portal",
       "position": { "x": 750, "y": -232 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 200,
-      "teleportOffset": { "x": 500, "y": 0 }
+      "portalID": 1010
     },
     {
       "id": 43,
@@ -181,16 +167,14 @@
       "type": "portal",
       "position": { "x": 1750, "y": -232 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 100,
-      "teleportOffset": { "x": 0, "y": -440 }
+      "portalID": 1010
     },
     {
       "id": 45,
       "type": "portal",
       "position": { "x": 2250, "y": -232 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 102,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "portalID": 53
     },
     {
       "id" : 4,
@@ -203,16 +187,14 @@
       "type": "portal",
       "position": { "x": 250, "y": -482 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 1,
-      "teleportOffset": { "x": 0, "y": -192 }
+      "portalID": 1010
     },
     {
       "id": 52,
       "type": "portal",
       "position": { "x": 750, "y": -482 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 200,
-      "teleportOffset": { "x": 500, "y": 0 }
+      "portalID": 1010
     },
     {
       "id": 53,
@@ -225,22 +207,39 @@
       "type": "portal",
       "position": { "x": 1750, "y": -482 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 100,
-      "teleportOffset": { "x": 0, "y": -440 }
+      "portalID": 63
     },
     {
       "id": 55,
       "type": "portal",
       "position": { "x": 2250, "y": -482 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 102,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "portalID": 1010
     },
     {
       "id" : 5,
       "type": "solid",
       "position": { "x": 0, "y": -618 },
       "size": { "width": 2500, "height": 32}
+    },
+    {
+      "id" : 63,
+      "type": "portal",
+      "position": { "x": 250, "y": -714 },
+      "size": { "width": 64, "height": 96 }
+    },
+    {
+      "id" : 64,
+      "type": "goal",
+      "position": { "x": 1250, "y": -714 },
+      "size": { "width": 64, "height": 96 }
+    },
+    {
+      "id" : 1010,
+      "type": "portal",
+      "position": { "x": 1250, "y": 1999 },
+      "size": { "width": 64, "height": 96 },
+      "portalID" : 1003
     }
   ]
 }
