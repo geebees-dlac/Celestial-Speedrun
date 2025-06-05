@@ -1026,6 +1026,20 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                     }
                 }
 
+                for (const auto& platform_body_check_portal : bodies) {
+                    if (platform_body_check_portal.getType() == phys::bodyType::portal && playerBody.getAABB().findIntersection(platform_body_check_portal.getAABB())) {
+                        playSfx("portal");
+                        // Teleport to the other portal (if any)
+                        for (const auto& body_ref : bodies) {
+                            if (body_ref.getType() == phys::bodyType::portal && body_ref.getID() != platform_body_check_portal.getID()) {
+                                playerBody.setPosition(body_ref.getPosition());
+                                break;
+                            }
+                        }
+                        goto end_fixed_update_for_interaction;
+                    }
+                }
+
                 for (size_t k = 0; k < bodies.size(); ++k) {
                     phys::PlatformBody& interact_body_ref = bodies[k];
                     if (interact_body_ref.getType() == phys::bodyType::interactible && playerBody.getAABB().findIntersection(interact_body_ref.getAABB())) {
