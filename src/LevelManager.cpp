@@ -258,6 +258,8 @@ void LevelManager::freeJsonDocument(rapidjson::Document* doc) {
 }
 
 bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLevelData) {
+    int jsonLevelNum = 0;
+
     outLevelData.platforms.clear();
     outLevelData.movingPlatformDetails.clear();
     outLevelData.interactiblePlatformDetails.clear();
@@ -270,7 +272,7 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
     }
 
     if (d.HasMember("levelNumber") && d["levelNumber"].IsInt()) {
-           int jsonLevelNum = d["levelNumber"].GetInt();
+           jsonLevelNum = d["levelNumber"].GetInt();
            if (jsonLevelNum != m_targetLevelNumber && m_targetLevelNumber !=0 ) {
                std::cerr << "LevelManager Parse Warning: JSON levelNumber (" << jsonLevelNum
                          << ") mismatches target load (" << m_targetLevelNumber << ")." << std::endl;
@@ -291,6 +293,29 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
         outLevelData.playerStartPosition = {100.f, 100.f};
     }
 
+    if (d.HasMember("backgroundTexture") && d["backgroundTexture"].IsString()){
+        // Found a custom background
+        std::string btPath = d["backgroundTexture"].GetString();
+
+        if (btPath.find(IMAGE_DIRECTORY) == std::string::npos){
+            // adjust to add image directory to filepath
+            btPath = IMAGE_DIRECTORY + btPath;
+        }
+
+        // Add texture to TexturesList
+        sf::Texture levelbg(DEFAULT_TEXTURE_FILEPATH);
+        if (levelbg.loadFromFile(btPath)){
+            // Successfully loaded custom background
+            std::cout << "Level Manager: Loaded custom level background: " << jsonLevelNum << " - " << 
+            btPath << std::endl;
+            outLevelData.TexturesList.emplace(LEVEL_BG_ID, std::move(levelbg));
+        }
+        else {
+            // Failed to load custom background; will eventually default to color background in main
+            std::cerr << "Level Manager: Failed to load custom level background: " << jsonLevelNum << " - "
+            << btPath << std::endl;
+        }
+    }
     if (d.HasMember("backgroundColor") && d["backgroundColor"].IsObject()) {
         const auto& bc = d["backgroundColor"];
         uint8_t r = 20, g_json = 20, b_json = 40, a_json = 255; 

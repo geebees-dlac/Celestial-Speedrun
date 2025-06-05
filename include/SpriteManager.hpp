@@ -10,6 +10,8 @@ namespace sprites {
     class SpriteManager{
         #define DEFAULT_TEXTURE_FILEPATH "../assets/sprites/default.png"
         #define TEXTURE_DIRECTORY "../assets/sprites/"
+        #define IMAGE_DIRECTORY "../assets/images/"
+        #define LEVEL_BG_ID "LEVEL_BG"
 
         public:
             SpriteManager();
