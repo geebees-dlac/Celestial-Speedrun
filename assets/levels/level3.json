@@ -1,31 +1,25 @@
 {
   "levelName": "The Monochromatic Maze",
   "levelNumber": 3,
-  "playerStart": { "x": 1250, "y": 400 },
+  "playerStart": { "x": 1250, "y": 480 },
   "backgroundColor": { "r": 15, "g": 15, "b": 30 },
   "platforms": [
     {
-      "id": 0,
-      "type": "solid",
-      "position": { "x": 0, "y": 560 },
-      "size": { "width": 2500, "height": 32 }
-    },
-    {
-      "id": 1,
+      "id": -1,
       "type": "solid",
       "position": { "x": 0, "y": 560},
       "size" : {"width": 32, "height": -5000 }
     },
     {
-      "id": 2,
+      "id": -2,
       "type": "solid",
       "position": { "x": 2500, "y": 592},
       "size" : {"width": 32, "height": -5000 }
     },
     {
-      "id" : 3,
+      "id": 0,
       "type": "solid",
-      "position": {"x": 0, "y": 328},
+      "position": { "x": 0, "y": 560 },
       "size": { "width": 2500, "height": 32 }
     },
     {
@@ -69,100 +63,194 @@
       "teleportOffset": { "x": 0, "y": 440 }
     },
     {
-      "id": 9990,
+      "id" : 1,
       "type": "solid",
-      "position": { "x": 0, "y": 1000 },
-      "size": { "width": 1500, "height": 32 }
+      "position": { "x": 0, "y": 328 },
+      "size": { "width": 2500, "height": 32}
     },
     {
-      "id": 9800,
-      "type": "trap",
-      "position": { "x": 0, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 21,
+      "type": "portal",
+      "position": { "x": 250, "y": 232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1,
+      "teleportOffset": { "x": 0, "y": -192 }
     },
     {
-      "id": 9801,
-      "type": "trap",
-      "position": { "x": 64, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 22,
+      "type": "portal",
+      "position": { "x": 750, "y": 232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 200,
+      "teleportOffset": { "x": 500, "y": 0 }
     },
     {
-      "id": 9802,
-      "type": "trap",
-      "position": { "x": 128, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 23,
+      "type": "portal",
+      "position": { "x": 1250, "y": 232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 100,
+      "teleportOffset": { "x": 0, "y": 440 }
     },
     {
-      "id": 9803,
-      "type": "trap",
-      "position": { "x": 192, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 24,
+      "type": "portal",
+      "position": { "x": 1750, "y": 232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 100,
+      "teleportOffset": { "x": 0, "y": -440 }
     },
     {
-      "id": 9804,
-      "type": "trap",
-      "position": { "x": 256, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 25,
+      "type": "portal",
+      "position": { "x": 2250, "y": 232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 102,
+      "teleportOffset": { "x": 0, "y": 440 }
     },
     {
-      "id": 9805,
-      "type": "trap",
-      "position": { "x": 320, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id" : 2,
+      "type": "solid",
+      "position": { "x": 0, "y": 96 },
+      "size": { "width": 2500, "height": 32}
     },
     {
-      "id": 9806,
-      "type": "trap",
-      "position": { "x": 384, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 31,
+      "type": "portal",
+      "position": { "x": 250, "y": 0 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1,
+      "teleportOffset": { "x": 0, "y": -192 }
     },
     {
-      "id": 9807,
-      "type": "trap",
-      "position": { "x": 448, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 32,
+      "type": "portal",
+      "position": { "x": 750, "y": 0},
+      "size": { "width": 64, "height": 96 },
+      "portalID": 200,
+      "teleportOffset": { "x": 500, "y": 0 }
     },
     {
-      "id": 9808,
-      "type": "trap",
-      "position": { "x": 512, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 33,
+      "type": "portal",
+      "position": { "x": 1250, "y": 0 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 100,
+      "teleportOffset": { "x": 0, "y": 440 }
     },
     {
-      "id": 9809,
-      "type": "trap",
-      "position": { "x": 576, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 34,
+      "type": "portal",
+      "position": { "x": 1750, "y": 0 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 100,
+      "teleportOffset": { "x": 0, "y": -440 }
     },
     {
-      "id": 9810,
-      "type": "trap",
-      "position": { "x": 640, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 35,
+      "type": "portal",
+      "position": { "x": 2250, "y": 0 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 102,
+      "teleportOffset": { "x": 0, "y": 440 }
     },
     {
-      "id": 9811,
-      "type": "trap",
-      "position": { "x": 704, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id" : 3,
+      "type": "solid",
+      "position": { "x": 0, "y": -136 },
+      "size": { "width": 2500, "height": 32}
     },
     {
-      "id": 9812,
-      "type": "trap",
-      "position": { "x": 768, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 41,
+      "type": "portal",
+      "position": { "x": 250, "y": -232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1,
+      "teleportOffset": { "x": 0, "y": -192 }
     },
     {
-      "id": 9813,
-      "type": "trap",
-      "position": { "x": 832, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 42,
+      "type": "portal",
+      "position": { "x": 750, "y": -232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 200,
+      "teleportOffset": { "x": 500, "y": 0 }
     },
     {
-      "id": 9814,
-      "type": "trap",
-      "position": { "x": 896, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 43,
+      "type": "portal",
+      "position": { "x": 1250, "y": -232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 100,
+      "teleportOffset": { "x": 0, "y": 440 }
+    },
+    {
+      "id": 44,
+      "type": "portal",
+      "position": { "x": 1750, "y": -232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 100,
+      "teleportOffset": { "x": 0, "y": -440 }
+    },
+    {
+      "id": 45,
+      "type": "portal",
+      "position": { "x": 2250, "y": -232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 102,
+      "teleportOffset": { "x": 0, "y": 440 }
+    },
+    {
+      "id" : 4,
+      "type": "solid",
+      "position": { "x": 0, "y": -386 },
+      "size": { "width": 2500, "height": 32}
+    },
+    {
+      "id": 51,
+      "type": "portal",
+      "position": { "x": 250, "y": -482 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1,
+      "teleportOffset": { "x": 0, "y": -192 }
+    },
+    {
+      "id": 52,
+      "type": "portal",
+      "position": { "x": 750, "y": -482 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 200,
+      "teleportOffset": { "x": 500, "y": 0 }
+    },
+    {
+      "id": 53,
+      "type": "portal",
+      "position": { "x": 1250, "y": -482 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 100,
+      "teleportOffset": { "x": 0, "y": 440 }
+    },
+    {
+      "id": 54,
+      "type": "portal",
+      "position": { "x": 1750, "y": -482 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 100,
+      "teleportOffset": { "x": 0, "y": -440 }
+    },
+    {
+      "id": 55,
+      "type": "portal",
+      "position": { "x": 2250, "y": -482 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 102,
+      "teleportOffset": { "x": 0, "y": 440 }
+    },
+    {
+      "id" : 5,
+      "type": "solid",
+      "position": { "x": 0, "y": -618 },
+      "size": { "width": 2500, "height": 32}
     }
   ]
 }
