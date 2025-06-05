@@ -378,18 +378,25 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
                     ppi.portalID = platJson["portalID"].GetUint();
                 } else {
                     std::cerr << "Portal missing portalID, ID: " << id << "\n";
+                    ppi.portalID = 0;
                     continue;
                 }
 
                 // Parse Teleport Offset (Optional)
                 if (platJson.HasMember("teleportOffset") && platJson["teleportOffset"].IsObject()) {
-                    const auto& offset = platJson["teleportOffset"];
-                    ppi.offset.x = offset.HasMember("x") ? offset["x"].GetFloat() : 10.f;
-                    ppi.offset.y = offset.HasMember("y") ? offset["y"].GetFloat() : 0.f;
+                    const auto& offsetJson = platJson["teleportOffset"];
+                    ppi.offset.x = offsetJson.HasMember("x") && offsetJson["x"].IsNumber() ? offsetJson["x"].GetFloat() : 10.f;
+                    ppi.offset.y = offsetJson.HasMember("y") && offsetJson["y"].IsNumber() ? offsetJson["y"].GetFloat() : 0.f;
+                } else {
+                     ppi.offset = {10.f, 0.f}; 
                 }
+                justAddedBody.setPortalID(ppi.portalID);
+                justAddedBody.setTeleportOffset(ppi.offset);
+
                 outLevelData.portalPlatformDetails.push_back(ppi);
             }
-            if (type == phys::bodyType::moving && platJson.HasMember("movement") && platJson["movement"].IsObject()) {
+
+            else if (type == phys::bodyType::moving && platJson.HasMember("movement") && platJson["movement"].IsObject()) {
                 const auto& mov = platJson["movement"];
                 LevelData::MovingPlatformInfo mpi;
                 mpi.id = id;
@@ -461,26 +468,6 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
                 }
                 outLevelData.interactiblePlatformDetails.push_back(ipi); // Ensure this is added for interactibles
             
-            }
-            else if (type == phys::bodyType::portal) { 
-                LevelData::PortalPlatformInfo ppi;
-                ppi.id = id;
-
-                // Parse portalID (required)
-                if (platJson.HasMember("portalID") && platJson["portalID"].IsUint()) {
-                    ppi.portalID = platJson["portalID"].GetUint();
-                } else {
-                    std::cerr << "Portal ID " << id << " missing portalID, skipping portal details.\n";
-                    continue; 
-                }
-
-                // Parse offset (optional, defaults provided in struct)
-                if (platJson.HasMember("teleportOffset") && platJson["teleportOffset"].IsObject()) {
-                    const auto& offset = platJson["teleportOffset"];
-                    if (offset.HasMember("x") && offset["x"].IsNumber()) ppi.offset.x = offset["x"].GetFloat();
-                    if (offset.HasMember("y") && offset["y"].IsNumber()) ppi.offset.y = offset["y"].GetFloat();
-                }
-                outLevelData.portalPlatformDetails.push_back(ppi);
             }
         } 
 
