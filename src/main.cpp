@@ -53,9 +53,6 @@ phys::DynamicBody playerBody;
 std::vector<phys::PlatformBody> bodies;
 std::vector<Tile> tiles;
 
-// PLAYER SPRITE LOADING (basic functionality, to be replaced later)
-sf::Texture playerTexture(DEFAULT_TEXTURE_FILEPATH);
-
 struct ActiveMovingPlatform {
     unsigned int id;
     sf::Vector2f movementAnchorPosition;
@@ -107,6 +104,12 @@ const std::string SFX_GOAL = "../assets/audio/sfx_goal.wav";
 const std::string SFX_CLICK = "../assets/audio/sfx_click.wav";
 const std::string SFX_SPRING = "../assets/audio/sfx_spring.wav";
 const std::string SFX_PORTAL = "../assets/audio/sfx_portal.wav";
+
+// Sprites
+std::map<int, sf::Texture> LevelBackgrounds;
+std::map<int, sf::Sprite> LevelBackgroundSprites;
+// PLAYER SPRITE LOADING (basic functionality, to be replaced later)
+sf::Texture playerTexture(DEFAULT_TEXTURE_FILEPATH);
 
 // --- Function to populate available resolutions ---
 void populateAvailableResolutions() {
@@ -277,6 +280,13 @@ void setupLevelAssets(const LevelData& data, sf::RenderWindow& window) {
     playerBody.setOnGround(false);
     playerBody.setGroundPlatform(nullptr);
     playerBody.setLastPosition(data.playerStartPosition);
+
+    // Load custom background, if existing
+    if (data.TexturesList.find(LEVEL_BG_ID) != data.TexturesList.end()){
+        // Level has custom background
+        sf::Texture levelbg = data.TexturesList.find(LEVEL_BG_ID)->second;
+        LevelBackgrounds.emplace(data.levelNumber, std::move(levelbg));
+    }
 
     bodies.reserve(data.platforms.size());
     for (const auto& p_body_template : data.platforms) {
@@ -739,6 +749,14 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
             playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
 
             while (timeSinceLastFixedUpdate >= TIME_PER_FIXED_UPDATE) {
+                // LOAD ALL LEVEL BACKGROUND SPRITES HERE
+                for (auto i = LevelBackgrounds.begin(); i != LevelBackgrounds.end(); i++){\
+                    if (LevelBackgroundSprites.find(i->first) == LevelBackgroundSprites.end()){
+                        sf::Sprite levelbgsprite(i->second);
+                        LevelBackgroundSprites.emplace(i->first, levelbgsprite);
+                    }
+                }
+
                 timeSinceLastFixedUpdate -= TIME_PER_FIXED_UPDATE;
                 const float fixed_dt_seconds = TIME_PER_FIXED_UPDATE.asSeconds();
 
@@ -1159,6 +1177,14 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                        ? currentLevelData.backgroundColor
                        : sf::Color::Black);
 
+        // Load level background sprite, if level background sprite exists
+        int currentLevelNo = currentLevelData.levelNumber;
+        if (LevelBackgroundSprites.find(currentLevelNo) != LevelBackgroundSprites.end()){
+            // Level custom background sprite exists
+            sf::Sprite levelbg = LevelBackgroundSprites.find(currentLevelNo)->second;
+            window.draw(levelbg);
+        }
+        
 
         sf::Vector2i currentMousePixelPos = sf::Mouse::getPosition(window);
         sf::Vector2f currentMouseWorldUiPos = window.mapPixelToCoords(currentMousePixelPos, uiView);
