@@ -35,23 +35,21 @@
       "type": "portal",
       "position": { "x": 750, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 200,
+      "portalID": 14,
       "teleportOffset": { "x": 500, "y": 0 }
     },
     {
       "id": 13,
-      "type": "portal",
+      "type": "platform",
       "position": { "x": 1250, "y": 464 },
-      "size": { "width": 64, "height": 96 },
-      "portalID": 100,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "size": { "width": 64, "height": 96 }
     },
     {
       "id": 14,
       "type": "portal",
       "position": { "x": 1750, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 100,
+      "portalID": 1003,
       "teleportOffset": { "x": 0, "y": -440 }
     },
     {
@@ -59,7 +57,7 @@
       "type": "portal",
       "position": { "x": 2250, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 102,
+      "portalID": 1004,
       "teleportOffset": { "x": 0, "y": 440 }
     },
     {
@@ -86,11 +84,9 @@
     },
     {
       "id": 23,
-      "type": "portal",
+      "type": "platform",
       "position": { "x": 1250, "y": 232 },
-      "size": { "width": 64, "height": 96 },
-      "portalID": 100,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "size": { "width": 64, "height": 96 }
     },
     {
       "id": 24,
@@ -132,11 +128,9 @@
     },
     {
       "id": 33,
-      "type": "portal",
+      "type": "platform",
       "position": { "x": 1250, "y": 0 },
-      "size": { "width": 64, "height": 96 },
-      "portalID": 100,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "size": { "width": 64, "height": 96 }
     },
     {
       "id": 34,
@@ -178,11 +172,9 @@
     },
     {
       "id": 43,
-      "type": "portal",
+      "type": "platform",
       "position": { "x": 1250, "y": -232 },
-      "size": { "width": 64, "height": 96 },
-      "portalID": 100,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "size": { "width": 64, "height": 96 }
     },
     {
       "id": 44,
@@ -224,11 +216,9 @@
     },
     {
       "id": 53,
-      "type": "portal",
+      "type": "platform",
       "position": { "x": 1250, "y": -482 },
-      "size": { "width": 64, "height": 96 },
-      "portalID": 100,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "size": { "width": 64, "height": 96 }
     },
     {
       "id": 54,

@@ -485,7 +485,7 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
                 outLevelData.interactiblePlatformDetails.push_back(ipi); // Ensure this is added for interactibles
             
             }
-            else if (type == phys::bodyType::portal) { // Was nested, should be 'else if'
+            else if (type == phys::bodyType::portal) { 
                 LevelData::PortalPlatformInfo ppi;
                 ppi.id = id;
 
