@@ -107,7 +107,6 @@ const std::string SFX_PORTAL = "../assets/audio/sfx_portal.wav";
 
 // Sprites
 std::map<int, sf::Texture> LevelBackgrounds;
-std::map<int, sf::Sprite> LevelBackgroundSprites;
 // PLAYER SPRITE LOADING (basic functionality, to be replaced later)
 sf::Texture playerTexture(DEFAULT_TEXTURE_FILEPATH);
 
@@ -281,11 +280,23 @@ void setupLevelAssets(const LevelData& data, sf::RenderWindow& window) {
     playerBody.setGroundPlatform(nullptr);
     playerBody.setLastPosition(data.playerStartPosition);
 
+    std::cout << "Level " << data.levelNumber << " - TexturesList contains keys: ";
+    for (const auto& [id, tex] : data.TexturesList) {
+        std::cout << id << " ";
+    }
+    std::cout << std::endl;
+
+
     // Load custom background, if existing
+    std::cout << "CHECKING FOR LEVEL BACKGROUND: " << data.levelNumber << std::endl;
     if (data.TexturesList.find(LEVEL_BG_ID) != data.TexturesList.end()){
         // Level has custom background
-        sf::Texture levelbg = data.TexturesList.find(LEVEL_BG_ID)->second;
-        LevelBackgrounds.emplace(data.levelNumber, std::move(levelbg));
+        std::cout << "FOUND LEVEL " << data.levelNumber << " BACKGROUND!" << std::endl;
+        if (LevelBackgrounds.find(data.levelNumber) == LevelBackgrounds.end()){
+            sf::Texture levelbg = data.TexturesList.find(LEVEL_BG_ID)->second;
+            LevelBackgrounds.emplace(data.levelNumber, std::move(levelbg));
+            std::cout << "LOADED LEVEL BACKGROUND: " << data.levelNumber << std::endl;
+        }
     }
 
     bodies.reserve(data.platforms.size());
@@ -447,6 +458,8 @@ sf::Text creditsTitleText(menuFont), creditsNamesText(menuFont), creditsBackText
 sf::Text gameOverStatusText(menuFont), gameOverOption1Text(menuFont), gameOverOption2Text(menuFont);
 sf::Text debugText(menuFont);
 sf::RectangleShape playerShape;
+
+std::optional<sf::Sprite> levelBgSprite;
 
 bool menuBgSpriteLoaded = false;
 
@@ -749,14 +762,6 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
             playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
 
             while (timeSinceLastFixedUpdate >= TIME_PER_FIXED_UPDATE) {
-                // LOAD ALL LEVEL BACKGROUND SPRITES HERE
-                for (auto i = LevelBackgrounds.begin(); i != LevelBackgrounds.end(); i++){\
-                    if (LevelBackgroundSprites.find(i->first) == LevelBackgroundSprites.end()){
-                        sf::Sprite levelbgsprite(i->second);
-                        LevelBackgroundSprites.emplace(i->first, levelbgsprite);
-                    }
-                }
-
                 timeSinceLastFixedUpdate -= TIME_PER_FIXED_UPDATE;
                 const float fixed_dt_seconds = TIME_PER_FIXED_UPDATE.asSeconds();
 
@@ -1221,6 +1226,13 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
         levelManager.update(frameDeltaTime.asSeconds(), window);
         if (!levelManager.isTransitioning()) {
             setupLevelAssets(currentLevelData, window);
+
+            // Check for custom background
+            if (LevelBackgrounds.find(currentLevelData.levelNumber) != LevelBackgrounds.end()){
+                // Has custom background
+                levelBgSprite = sf::Sprite(LevelBackgrounds.find(currentLevelData.levelNumber)->second);
+            } else levelBgSprite = std::nullopt;
+
             currentState = GameState::PLAYING;
             if(menuMusic.getStatus() == sf::Music::Status::Playing) menuMusic.stop();
             if(gameMusic.getStatus() != sf::Music::Status::Playing && gameMusic.openFromFile(AUDIO_MUSIC_GAME)) {
@@ -1241,14 +1253,9 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                        ? currentLevelData.backgroundColor
                        : sf::Color::Black);
 
-        // Load level background sprite, if level background sprite exists
-        int currentLevelNo = currentLevelData.levelNumber;
-        if (LevelBackgroundSprites.find(currentLevelNo) != LevelBackgroundSprites.end()){
-            // Level custom background sprite exists
-            sf::Sprite levelbg = LevelBackgroundSprites.find(currentLevelNo)->second;
-            window.draw(levelbg);
+        if (levelBgSprite.has_value()){
+            window.draw(levelBgSprite.value());
         }
-        
 
         sf::Vector2i currentMousePixelPos = sf::Mouse::getPosition(window);
         sf::Vector2f currentMouseWorldUiPos = window.mapPixelToCoords(currentMousePixelPos, uiView);

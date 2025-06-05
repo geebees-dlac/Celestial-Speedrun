@@ -293,29 +293,6 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
         outLevelData.playerStartPosition = {100.f, 100.f};
     }
 
-    if (d.HasMember("backgroundTexture") && d["backgroundTexture"].IsString()){
-        // Found a custom background
-        std::string btPath = d["backgroundTexture"].GetString();
-
-        if (btPath.find(IMAGE_DIRECTORY) == std::string::npos){
-            // adjust to add image directory to filepath
-            btPath = IMAGE_DIRECTORY + btPath;
-        }
-
-        // Add texture to TexturesList
-        sf::Texture levelbg(DEFAULT_TEXTURE_FILEPATH);
-        if (levelbg.loadFromFile(btPath)){
-            // Successfully loaded custom background
-            std::cout << "Level Manager: Loaded custom level background: " << jsonLevelNum << " - " << 
-            btPath << std::endl;
-            outLevelData.TexturesList.emplace(LEVEL_BG_ID, std::move(levelbg));
-        }
-        else {
-            // Failed to load custom background; will eventually default to color background in main
-            std::cerr << "Level Manager: Failed to load custom level background: " << jsonLevelNum << " - "
-            << btPath << std::endl;
-        }
-    }
     if (d.HasMember("backgroundColor") && d["backgroundColor"].IsObject()) {
         const auto& bc = d["backgroundColor"];
         uint8_t r = 20, g_json = 20, b_json = 40, a_json = 255; 
@@ -507,6 +484,9 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
 }
 
 bool LevelManager::parseLevelTextures(const rapidjson::Document& d, LevelData& outLevelData){
+    outLevelData.TexturesList.clear();
+    outLevelData.TexturesDimensions.clear();
+
     std::vector<std::string> TexturePathsList;
 
     TexturePathsList.push_back(DEFAULT_TEXTURE_FILEPATH);
@@ -559,6 +539,27 @@ bool LevelManager::parseLevelTextures(const rapidjson::Document& d, LevelData& o
                 std::cout << "Added new: " << newTexturePath << std::endl; 
                 outLevelData.TexturesList.emplace(newTexturePath, std::move(newTexture));
             }
+        }
+    }
+
+    if (d.HasMember("backgroundTexture") && d["backgroundTexture"].IsString()){
+        // Found a custom background
+        std::string btPath = d["backgroundTexture"].GetString();
+        std::cout << "FOUND BACKGROUND TEXTURE " << btPath << std::endl;
+
+        if (btPath.find(IMAGE_DIRECTORY) == std::string::npos){
+            // adjust to add image directory to filepath
+            btPath = IMAGE_DIRECTORY + btPath;
+        }
+
+        // Add texture to TexturesList
+        sf::Texture levelbg(DEFAULT_TEXTURE_FILEPATH);
+        if (levelbg.loadFromFile(btPath)){
+            // Successfully loaded custom background
+            outLevelData.TexturesList.emplace(LEVEL_BG_ID, std::move(levelbg));
+        }
+        else {
+            // Failed to load custom background; will eventually default to color background in main
         }
     }
 
