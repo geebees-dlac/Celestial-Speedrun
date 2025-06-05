@@ -8,13 +8,17 @@
       "id": 0,
       "type": "solid",
       "position": { "x": 0, "y": 568 },
-      "size": { "width": 1000, "height": 32 }
+      "size": { "width": 1000, "height": 32 },
+      "animation": "static"
     },
     {
       "id": 1,
       "type": "platform",
       "position": { "x": 500, "y": 410 },
-            "size": { "width": 96, "height": 8 }
+      "size": { "width": 96, "height": 8 },
+      "animation": "static",
+      "texture": "Desk.png",
+      "dimensions": {"top-left-x": 86, "top-left-y": 268, "bottom-right-x": 900, "bottom-right-y": 867 }
     },
     {
       "id": 2, "type": "falling", "position": {"x": 800, "y": 320}, "size": {"width": 32, "height": 32}},

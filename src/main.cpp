@@ -20,25 +20,25 @@
 #include "Optimizer.hpp"
 
 enum class GameState {
-MENU,
-SETTINGS,
-CREDITS,
-PLAYING,
-TRANSITIONING,
-GAME_OVER_WIN,
-GAME_OVER_LOSE_FALL,
-GAME_OVER_LOSE_DEATH
+    MENU,
+    SETTINGS,
+    CREDITS,
+    PLAYING,
+    TRANSITIONING,
+    GAME_OVER_WIN,
+    GAME_OVER_LOSE_FALL,
+    GAME_OVER_LOSE_DEATH
 };
 
 // --- Game Settings Struct ---
 struct GameSettings {
-float musicVolume = 50.f;
-float sfxVolume = 70.f;
+    float musicVolume = 50.f;
+    float sfxVolume = 70.f;
 };
 
 // --- Global Variables for Window/Resolution Management ---
 const sf::Vector2f LOGICAL_SIZE(800.f, 600.f);
-std::vector<sf::VideoMode> availableVideoModes; // Corrected typo
+std::vector<sf::VideoMode> availableVideoModes;
 int currentResolutionIndex = 0;
 bool isFullscreen = true;
 
@@ -50,32 +50,35 @@ void updateResolutionDisplayText();
 LevelManager levelManager;
 LevelData currentLevelData;
 phys::DynamicBody playerBody;
-std::vector<phys::PlatformBody> bodies; 
+std::vector<phys::PlatformBody> bodies;
 std::vector<Tile> tiles;
 
+// PLAYER SPRITE LOADING (basic functionality, to be replaced later)
+sf::Texture playerTexture(DEFAULT_TEXTURE_FILEPATH);
+
 struct ActiveMovingPlatform {
-unsigned int id;
-sf::Vector2f movementAnchorPosition;
-char axis;
-float distance;
-float cycleTime;
-float cycleDuration;
-int initialDirection;
-sf::Vector2f lastFrameActualPosition;
+    unsigned int id;
+    sf::Vector2f movementAnchorPosition;
+    char axis;
+    float distance;
+    float cycleTime;
+    float cycleDuration;
+    int initialDirection;
+    sf::Vector2f lastFrameActualPosition;
 };
 std::vector<ActiveMovingPlatform> activeMovingPlatforms;
 
 struct ActiveInteractiblePlatform {
-unsigned int id;
-std::string interactionType;
-phys::bodyType targetBodyTypeEnum;
-sf::Color targetTileColor;
-bool hasTargetTileColor;
-bool oneTime;
-float cooldown;
-bool hasBeenInteractedThisSession;
-float currentCooldownTimer;
-unsigned int linkedID = 0;
+    unsigned int id;
+    std::string interactionType;
+    phys::bodyType targetBodyTypeEnum;
+    sf::Color targetTileColor;
+    bool hasTargetTileColor;
+    bool oneTime;
+    float cooldown;
+    bool hasBeenInteractedThisSession;
+    float currentCooldownTimer;
+    unsigned int linkedID = 0;
 };
 std::map<unsigned int, ActiveInteractiblePlatform> activeInteractibles;
 
@@ -103,6 +106,7 @@ const std::string SFX_DEATH = "../assets/audio/sfx_death.wav";
 const std::string SFX_GOAL = "../assets/audio/sfx_goal.wav";
 const std::string SFX_CLICK = "../assets/audio/sfx_click.wav";
 const std::string SFX_SPRING = "../assets/audio/sfx_spring.wav";
+const std::string SFX_PORTAL = "../assets/audio/sfx_portal.wav";
 
 // --- Function to populate available resolutions ---
 void populateAvailableResolutions() {
@@ -183,12 +187,12 @@ window.create(mode, "Celestial Speedrun", windowState);
 window.setKeyRepeatEnabled(false);
 window.setVerticalSyncEnabled(true);
 
-float windowWidth = static_cast<float>(window.getSize().x);
-float windowHeight = static_cast<float>(window.getSize().y);
-float windowAspectRatio = (windowHeight == 0.f) ? 1.f : windowWidth / windowHeight;
-float logicalAspectRatio = LOGICAL_SIZE.x / LOGICAL_SIZE.y;
+    float windowWidth = static_cast<float>(window.getSize().x);
+    float windowHeight = static_cast<float>(window.getSize().y);
+    float windowAspectRatio = (windowHeight == 0.f) ? 1.f : windowWidth / windowHeight;
+    float logicalAspectRatio = LOGICAL_SIZE.x / LOGICAL_SIZE.y;
 
-float viewportX = 0.f, viewportY = 0.f, viewportWidthRatio = 1.f, viewportHeightRatio = 1.f;
+    float viewportX = 0.f, viewportY = 0.f, viewportWidthRatio = 1.f, viewportHeightRatio = 1.f;
 
 if (windowAspectRatio > logicalAspectRatio) {
     viewportWidthRatio = logicalAspectRatio / windowAspectRatio;
@@ -199,23 +203,23 @@ if (windowAspectRatio > logicalAspectRatio) {
 }
 sf::FloatRect viewportRect({viewportX, viewportY}, {viewportWidthRatio, viewportHeightRatio});
 
-uiView.setSize(LOGICAL_SIZE);
-uiView.setCenter(LOGICAL_SIZE / 2.f);
-uiView.setViewport(viewportRect);
+    uiView.setSize(LOGICAL_SIZE);
+    uiView.setCenter(LOGICAL_SIZE / 2.f);
+    uiView.setViewport(viewportRect);
 
-mainView.setSize(LOGICAL_SIZE);
-mainView.setViewport(viewportRect);
+    mainView.setSize(LOGICAL_SIZE);
+    mainView.setViewport(viewportRect);
 }
 
 void playSfx(const std::string& sfxName) {
-auto it = soundBuffers.find(sfxName);
-if (it != soundBuffers.end()) {
-sfxPlayer.setBuffer(it->second);
-sfxPlayer.setVolume(gameSettings.sfxVolume);
-sfxPlayer.play();
-} else {
-std::cerr << "SFX not loaded/found: " << sfxName << std::endl;
-}
+    auto it = soundBuffers.find(sfxName);
+    if (it != soundBuffers.end()) {
+        sfxPlayer.setBuffer(it->second);
+        sfxPlayer.setVolume(gameSettings.sfxVolume);
+        sfxPlayer.play();
+    } else {
+        std::cerr << "SFX not loaded/found: " << sfxName << std::endl;
+    }
 }
 
 void loadAudio() {
@@ -227,133 +231,152 @@ if (!gameMusic.openFromFile(AUDIO_MUSIC_GAME))
     std::cerr << "Error loading game music: " << AUDIO_MUSIC_GAME << std::endl;
 else gameMusic.setLooping(true);
 
-auto loadSfxBuffer = [&](const std::string& name, const std::string& path) {
-    sf::SoundBuffer buffer;
-    if (buffer.loadFromFile(path)) {
-        soundBuffers[name] = buffer;
-    } else {
-        std::cerr << "Error loading SFX: " << path << std::endl;
-    }
-};
+    auto loadSfxBuffer = [&](const std::string& name, const std::string& path) {
+        sf::SoundBuffer buffer;
+        if (buffer.loadFromFile(path)) {
+            soundBuffers[name] = buffer;
+        } else {
+            std::cerr << "Error loading SFX: " << path << std::endl;
+        }
+    };
 
-loadSfxBuffer("jump", SFX_JUMP);
-loadSfxBuffer("death", SFX_DEATH);
-loadSfxBuffer("goal", SFX_GOAL);
-loadSfxBuffer("click", SFX_CLICK);
-loadSfxBuffer("spring", SFX_SPRING);
+    loadSfxBuffer("jump", SFX_JUMP);
+    loadSfxBuffer("death", SFX_DEATH);
+    loadSfxBuffer("goal", SFX_GOAL);
+    loadSfxBuffer("click", SFX_CLICK);
+    loadSfxBuffer("spring", SFX_SPRING);
+    loadSfxBuffer("portal", SFX_PORTAL);
 }
 
 sf::Color getTileColorForBodyType(phys::bodyType type, const sf::Color& defaultColorIfUnknown = sf::Color::Magenta) {
-switch (type) {
-case phys::bodyType::solid:        return sf::Color(100, 100, 100, 255);
-case phys::bodyType::platform:     return sf::Color(70, 150, 200, 180);
-case phys::bodyType::conveyorBelt: return sf::Color(255, 150, 50, 255);
-case phys::bodyType::moving:       return sf::Color(70, 200, 70, 255);
-case phys::bodyType::falling:      return sf::Color(200, 200, 70, 255);
-case phys::bodyType::vanishing:    return sf::Color(200, 70, 200, 255);
-case phys::bodyType::spring:       return sf::Color(255, 255, 0, 255);
-case phys::bodyType::trap:         return sf::Color(255, 20, 20, 255);
-case phys::bodyType::goal:         return sf::Color(20, 255, 20, 128);
-case phys::bodyType::interactible: return sf::Color(180, 180, 220, 200);
-case phys::bodyType::none:         return sf::Color::Transparent;
-default:                           return defaultColorIfUnknown;
-}
+    switch (type) {
+        case phys::bodyType::solid:        return sf::Color(100, 100, 100, 255);
+        case phys::bodyType::platform:     return sf::Color(70, 150, 200, 180);
+        case phys::bodyType::conveyorBelt: return sf::Color(255, 150, 50, 255);
+        case phys::bodyType::moving:       return sf::Color(70, 200, 70, 255);
+        case phys::bodyType::falling:      return sf::Color(200, 200, 70, 255);
+        case phys::bodyType::vanishing:    return sf::Color(200, 70, 200, 255);
+        case phys::bodyType::spring:       return sf::Color(255, 255, 0, 255);
+        case phys::bodyType::trap:         return sf::Color(255, 20, 20, 255);
+        case phys::bodyType::goal:         return sf::Color(20, 255, 20, 128);
+        case phys::bodyType::interactible: return sf::Color(180, 180, 220, 200);
+        case phys::bodyType::portal:       return sf::Color(147, 112, 219, 200);
+        case phys::bodyType::none:         return sf::Color::Transparent;
+        default:                           return defaultColorIfUnknown;
+    }
 }
 
 void setupLevelAssets(const LevelData& data, sf::RenderWindow& window) {
-bodies.clear();
-tiles.clear();
-activeMovingPlatforms.clear();
-activeInteractibles.clear();
+    bodies.clear();
+    tiles.clear();
+    activeMovingPlatforms.clear();
+    activeInteractibles.clear();
 
-playerBody.setPosition(data.playerStartPosition);
-playerBody.setVelocity({0.f, 0.f});
-playerBody.setOnGround(false);
-playerBody.setGroundPlatform(nullptr);
-playerBody.setLastPosition(data.playerStartPosition);
+    playerBody.setPosition(data.playerStartPosition);
+    playerBody.setVelocity({0.f, 0.f});
+    playerBody.setOnGround(false);
+    playerBody.setGroundPlatform(nullptr);
+    playerBody.setLastPosition(data.playerStartPosition);
 
-bodies.reserve(data.platforms.size());
-for (const auto& p_body_template : data.platforms) {
-    bodies.push_back(p_body_template);
-    phys::PlatformBody& new_body_ref = bodies.back();
+    bodies.reserve(data.platforms.size());
+    for (const auto& p_body_template : data.platforms) {
+        bodies.push_back(p_body_template);
+        phys::PlatformBody& new_body_ref = bodies.back();
 
-    if (new_body_ref.getType() == phys::bodyType::moving) {
-        bool foundDetail = false;
-        for(const auto& detail : data.movingPlatformDetails){
-            if(detail.id == new_body_ref.getID()){
-                sf::Vector2f movementAnchor = detail.startPosition;
-                float t0_offset = 0.f;
-                if (detail.cycleDuration > 0.f && detail.cycleDuration / 2.0f > 1e-5f) {
-                    t0_offset = math::easing::sineEaseInOut(
-                        0.f, 0.f,
-                        static_cast<float>(detail.initialDirection) * detail.distance,
-                        detail.cycleDuration / 2.0f
-                    );
+        if (new_body_ref.getType() == phys::bodyType::moving) {
+            bool foundDetail = false;
+            for(const auto& detail : data.movingPlatformDetails){
+                if(detail.id == new_body_ref.getID()){
+                    sf::Vector2f movementAnchor = detail.startPosition;
+                    float t0_offset = 0.f;
+                    if (detail.cycleDuration > 0.f && detail.cycleDuration / 2.0f > 1e-5f) {
+                        t0_offset = math::easing::sineEaseInOut(
+                            0.f, 0.f,
+                            static_cast<float>(detail.initialDirection) * detail.distance,
+                            detail.cycleDuration / 2.0f
+                        );
+                    }
+                    sf::Vector2f calculatedInitialPos = movementAnchor;
+                    if(detail.axis == 'x') calculatedInitialPos.x += t0_offset;
+                    else if(detail.axis == 'y') calculatedInitialPos.y += t0_offset;
+
+                    if (std::abs(new_body_ref.getPosition().x - calculatedInitialPos.x) > 0.1f ||
+                        std::abs(new_body_ref.getPosition().y - calculatedInitialPos.y) > 0.1f) {
+                         new_body_ref.setPosition(calculatedInitialPos);
+                    }
+
+                    activeMovingPlatforms.push_back({
+                        detail.id, movementAnchor, detail.axis, detail.distance,
+                        0.0f,
+                        detail.cycleDuration, detail.initialDirection,
+                        new_body_ref.getPosition()
+                    });
+                    foundDetail = true;
+                    break;
                 }
-                sf::Vector2f calculatedInitialPos = movementAnchor;
-                if(detail.axis == 'x') calculatedInitialPos.x += t0_offset;
-                else if(detail.axis == 'y') calculatedInitialPos.y += t0_offset;
-
-                if (std::abs(new_body_ref.getPosition().x - calculatedInitialPos.x) > 0.1f ||
-                    std::abs(new_body_ref.getPosition().y - calculatedInitialPos.y) > 0.1f) {
-                     new_body_ref.setPosition(calculatedInitialPos);
-                }
-                activeMovingPlatforms.push_back({
-                    detail.id, movementAnchor, detail.axis, detail.distance,
-                    0.0f, detail.cycleDuration, detail.initialDirection,
-                    new_body_ref.getPosition()
-                });
-                foundDetail = true;
-                break;
+            }
+            if(!foundDetail){
+                std::cerr << "Warning: Moving platform ID " << p_body_template.getID()
+                          << " (type 'moving' in JSON) missing movement details in LevelData. Will be static." << std::endl;
             }
         }
-        if(!foundDetail){
-            std::cerr << "Warning: Moving platform ID " << p_body_template.getID()
-                      << " (type 'moving' in JSON) missing movement details. Will be static." << std::endl;
-        }
-    }
-    else if (new_body_ref.getType() == phys::bodyType::interactible) {
-        bool foundDetail = false;
-        for (const auto& detail : data.interactiblePlatformDetails) {
-            if (detail.id == new_body_ref.getID()) {
-                activeInteractibles[detail.id] = {
-                    detail.id, detail.interactionType,
-                    levelManager.stringToBodyType(detail.targetBodyTypeStr),
-                    detail.targetTileColor, detail.hasTargetTileColor,
-                    detail.oneTime, detail.cooldown, false, 0.f
-                };
-                foundDetail = true;
-                break;
+        else if (new_body_ref.getType() == phys::bodyType::interactible) {
+            bool foundDetail = false;
+            for (const auto& detail : data.interactiblePlatformDetails) {
+                if (detail.id == new_body_ref.getID()) {
+                    activeInteractibles[detail.id] = {
+                        detail.id, detail.interactionType,
+                        levelManager.stringToBodyType(detail.targetBodyTypeStr),
+                        detail.targetTileColor, detail.hasTargetTileColor,
+                        detail.oneTime, detail.cooldown,
+                        false,
+                        0.f,
+                        detail.linkedID
+                    };
+                    foundDetail = true;
+                    break;
+                }
+            }
+            if (!foundDetail) {
+                std::cerr << "Warning: Interactible platform ID " << p_body_template.getID()
+                          << " (type 'interactible' in JSON) missing interaction details in LevelData. Will be static or unresponsive." << std::endl;
             }
         }
-        if (!foundDetail) {
-            std::cerr << "Warning: Interactible platform ID " << p_body_template.getID()
-                      << " (type 'interactible' in JSON) missing interaction details. Will be static." << std::endl;
-        }
     }
-}
 
 tiles.reserve(bodies.size());
 for (const auto& body : bodies) {
     // get body texture first
     std::string bodyTexturePath = body.getTexturePath();
+    std::cout << bodyTexturePath << std::endl;
     // find texture in loaded textures
 
 
     // then pass into newtile declaration
     Tile newTile(sf::Vector2f(body.getWidth(), body.getHeight()));
     newTile.setPosition(body.getPosition());
-    newTile.setFillColor(getTileColorForBodyType(body.getType()));
+    //newTile.setFillColor(getTileColorForBodyType(body.getType()));
 
 
 
-    /* find texture in loaded textures
+    //find texture in loaded textures
     if (!bodyTexturePath.empty()){
         auto textureLiIt = currentLevelData.TexturesList.find(bodyTexturePath);
         if (textureLiIt != currentLevelData.TexturesList.end()){
             // texture is loaded in list
             newTile.setTexture(&(textureLiIt->second));
             std::cout << "Loaded object of texture: " << textureLiIt->first << std::endl;
+
+            // adjust object dimensions
+            auto textureDiIt = currentLevelData.TexturesDimensions.find(body.getID());
+            if (textureDiIt != currentLevelData.TexturesDimensions.end()){
+                // object has custom dimensions
+                newTile.setTextureRect(textureDiIt->second);
+                std::cout << "Adjusted obj " << body.getID() << " dimensions to: ["
+                << textureDiIt->second.position.x << "," << textureDiIt->second.position.y << "] x ["
+                << (textureDiIt->second.size.x + textureDiIt->second.position.x) << ","
+                << (textureDiIt->second.size.y + textureDiIt->second.position.y) << "]" << std::endl;
+            }
         }
         else {
             // texture not found; load default texture instead
@@ -361,13 +384,13 @@ for (const auto& body : bodies) {
             newTile.setTexture(&d);
             std::cout << "Failed to load texture " << textureLiIt -> first << std::endl;
         }
-    }*/
+    }
 
     tiles.push_back(newTile);
 }
 
-vanishingPlatformCycleTimer = sf::Time::Zero;
-oddEvenVanishing = 1;
+    vanishingPlatformCycleTimer = sf::Time::Zero;
+    oddEvenVanishing = 1;
 }
 
 void updateResolutionDisplayText() {
@@ -390,19 +413,19 @@ resolutionCurrentText.setPosition({LOGICAL_SIZE.x / 2.f, 320.f});
 }
 
 int main(void) {
-sf::RenderWindow window;
-sf::View uiView;
-sf::View mainView;
+    sf::RenderWindow window;
+    sf::View uiView;
+    sf::View mainView;
 
-sf::Clock gameClock;
-sf::Time timeSinceLastFixedUpdate = sf::Time::Zero;
-const sf::Time TIME_PER_FIXED_UPDATE = sf::seconds(1.f / 60.f);
+    sf::Clock gameClock;
+    sf::Time timeSinceLastFixedUpdate = sf::Time::Zero;
+    const sf::Time TIME_PER_FIXED_UPDATE = sf::seconds(1.f / 60.f);
 
-bool running = true;
-bool interactKeyPressedThisFrame = false;
+    bool running = true;
+    bool interactKeyPressedThisFrame = false;
 
-sf::Time currentJumpHoldDuration = sf::Time::Zero;
-int turboMultiplier = 1;
+    sf::Time currentJumpHoldDuration = sf::Time::Zero;
+    int turboMultiplier = 1;
 
 sf::Font menuFont;
 sf::Text menuTitleText(menuFont), startButtonText(menuFont), settingsButtonText(menuFont), creditsButtonText(menuFont), exitButtonText(menuFont);
@@ -417,29 +440,31 @@ sf::RectangleShape playerShape;
 
 bool menuBgSpriteLoaded = false;
 
-const float PLAYER_MOVE_SPEED = 200.f;
-const float JUMP_INITIAL_VELOCITY = -450.f;
-const float GRAVITY_ACCELERATION = 1200.f;
-const float MAX_FALL_SPEED = 700.f;
-const sf::Time MAX_JUMP_HOLD_TIME = sf::seconds(0.18f);
-const float PLAYER_DEATH_Y_LIMIT = 2000.f;
-const float SPRING_BOUNCE_VELOCITY = 2.0f * JUMP_INITIAL_VELOCITY;
+    // --- Game Constants ---
+    const float PLAYER_MOVE_SPEED = 200.f;
+    const float JUMP_INITIAL_VELOCITY = -450.f;
+    const float GRAVITY_ACCELERATION = 1200.f;
+    const float MAX_FALL_SPEED = 700.f;
+    const sf::Time MAX_JUMP_HOLD_TIME = sf::seconds(0.18f);
+    const float PLAYER_DEATH_Y_LIMIT = 2000.f;
+    const float SPRING_BOUNCE_VELOCITY = 2.0f * JUMP_INITIAL_VELOCITY;
 
-populateAvailableResolutions();
-const sf::Vector2f tileSize(32.f, 32.f);
-applyAndRecreateWindow(window, uiView, mainView);
+    // --- Initialization ---
+    populateAvailableResolutions();
+    const sf::Vector2f tileSize(32.f, 32.f);
+    applyAndRecreateWindow(window, uiView, mainView);
 
-GameState currentState = GameState::MENU;
-levelManager.setMaxLevels(5);
-levelManager.setLevelBasePath("../assets/levels/");
-levelManager.setTransitionProperties(0.75f);
-levelManager.setGeneralLoadingScreenImage(IMG_LOAD_GENERAL);
-levelManager.setNextLevelLoadingScreenImage(IMG_LOAD_NEXT);
-levelManager.setRespawnLoadingScreenImage(IMG_LOAD_RESPAWN);
+    GameState currentState = GameState::MENU;
+    levelManager.setMaxLevels(5);
+    levelManager.setLevelBasePath("../assets/levels/");
+    levelManager.setTransitionProperties(0.75f);
+    levelManager.setGeneralLoadingScreenImage(IMG_LOAD_GENERAL);
+    levelManager.setNextLevelLoadingScreenImage(IMG_LOAD_NEXT);
+    levelManager.setRespawnLoadingScreenImage(IMG_LOAD_RESPAWN);
 
-loadAudio();
+    loadAudio();
 
-playerBody = phys::DynamicBody(currentLevelData.playerStartPosition, tileSize.x, tileSize.y);
+    playerBody = phys::DynamicBody({0,0}, tileSize.x, tileSize.y);
 
 if (!menuFont.openFromFile(FONT_PATH)) {
     std::cerr << "FATAL: Failed to load font: " << FONT_PATH << ". Trying fallback." << std::endl;
@@ -451,10 +476,10 @@ if (!menuFont.openFromFile(FONT_PATH)) {
     if (!menuFont.openFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")) {
         std::cerr << "Linux fallback font failed.\n"; return -1;
         }
-    #endif
-    if (menuFont.getInfo().family.empty()) {std::cerr << "All font loading attempts failed.\n"; return -1;}
-    std::cout << "Loaded a fallback font: " << menuFont.getInfo().family << std::endl;
-}
+        #endif
+        if (menuFont.getInfo().family.empty()) {std::cerr << "All font loading attempts failed.\n"; return -1;}
+        std::cout << "Loaded a fallback font: " << menuFont.getInfo().family << std::endl;
+    }
 
 auto setupTextUI = [&](sf::Text& text, const sf::String& str, float yPos, unsigned int charSize = 30, float xOffset = 0.f) {
     text.setFont(menuFont);
@@ -480,45 +505,55 @@ else {
     std::cerr << "Warning: Menu BG image not found: " << IMG_MENU_BG << std::endl;
 }
 
-setupTextUI(menuTitleText, "Project - T", 100.f, 48);
-setupTextUI(startButtonText, "Start Game", 250.f);
-setupTextUI(settingsButtonText, "Settings", 300.f);
-setupTextUI(creditsButtonText, "Credits", 350.f);
-setupTextUI(exitButtonText, "Exit", 400.f);
+    // --- UI Text Setup ---
+    setupTextUI(menuTitleText, "Project - T", 100.f, 48);
+    setupTextUI(startButtonText, "Start Game", 250.f);
+    setupTextUI(settingsButtonText, "Settings", 300.f);
+    setupTextUI(creditsButtonText, "Credits", 350.f);
+    setupTextUI(exitButtonText, "Exit", 400.f);
 
-setupTextUI(settingsTitleText, "Settings", 70.f, 40);
-setupTextUI(musicVolumeLabelText, "Music Volume:", 150.f, 24, -100.f);
-setupTextUI(musicVolDownText, "<", 150.f, 24, 20.f);
-setupTextUI(musicVolValText, "", 150.f, 24, 80.f);
-setupTextUI(musicVolUpText, ">", 150.f, 24, 140.f);
-setupTextUI(sfxVolumeLabelText, "SFX Volume:", 200.f, 24, -100.f);
-setupTextUI(sfxVolDownText, "<", 200.f, 24, 20.f);
-setupTextUI(sfxVolValText, "", 200.f, 24, 80.f);
-setupTextUI(sfxVolUpText, ">", 200.f, 24, 140.f);
-setupTextUI(resolutionLabelText, "Resolution:", 270.f, 24, -100.f);
-setupTextUI(resolutionPrevText, "<", 320.f, 24, -30.f);
-resolutionCurrentText.setFont(menuFont);
-resolutionCurrentText.setCharacterSize(24);
-resolutionCurrentText.setFillColor(sf::Color::White);
-updateResolutionDisplayText();
-setupTextUI(resolutionNextText, ">", 320.f, 24, 30.f);
-setupTextUI(fullscreenToggleText, "Toggle Fullscreen", 370.f, 24);
-setupTextUI(settingsBackText, "Back to Menu", 450.f);
+    setupTextUI(settingsTitleText, "Settings", 70.f, 40);
+    setupTextUI(musicVolumeLabelText, "Music Volume:", 150.f, 24, -100.f);
+    setupTextUI(musicVolDownText, "<", 150.f, 24, 20.f);
+    setupTextUI(musicVolValText, "", 150.f, 24, 80.f);
+    setupTextUI(musicVolUpText, ">", 150.f, 24, 140.f);
+    setupTextUI(sfxVolumeLabelText, "SFX Volume:", 200.f, 24, -100.f);
+    setupTextUI(sfxVolDownText, "<", 200.f, 24, 20.f);
+    setupTextUI(sfxVolValText, "", 200.f, 24, 80.f);
+    setupTextUI(sfxVolUpText, ">", 200.f, 24, 140.f);
+    setupTextUI(resolutionLabelText, "Resolution:", 270.f, 24, -100.f);
+    setupTextUI(resolutionPrevText, "<", 320.f, 24, -30.f);
+    resolutionCurrentText.setFont(menuFont);
+    resolutionCurrentText.setCharacterSize(24);
+    resolutionCurrentText.setFillColor(sf::Color::White);
+    updateResolutionDisplayText();
+    setupTextUI(resolutionNextText, ">", 320.f, 24, 30.f);
+    setupTextUI(fullscreenToggleText, "Toggle Fullscreen", 370.f, 24);
+    setupTextUI(settingsBackText, "Back to Menu", 450.f);
 
-setupTextUI(creditsTitleText, "Credits", 100.f, 40);
-setupTextUI(creditsNamesText, "Jan\nZean\nJecer\nGian", 250.f, 28);
-setupTextUI(creditsBackText, "Back to Menu", 450.f);
+    setupTextUI(creditsTitleText, "Credits", 100.f, 40);
+    setupTextUI(creditsNamesText, "Jan\nZean\nJecer\nGian", 250.f, 28);
+    setupTextUI(creditsBackText, "Back to Menu", 450.f);
 
-setupTextUI(gameOverStatusText, "", 150.f, 36);
-setupTextUI(gameOverOption1Text, "", 280.f);
-setupTextUI(gameOverOption2Text, "Main Menu", 330.f);
+    setupTextUI(gameOverStatusText, "", 150.f, 36);
+    setupTextUI(gameOverOption1Text, "", 280.f);
+    setupTextUI(gameOverOption2Text, "Main Menu", 330.f);
 
-sf::Color defaultBtnColor = sf::Color::White;
-sf::Color hoverBtnColor = sf::Color::Yellow;
-sf::Color exitBtnHoverColor = sf::Color::Red;
+    sf::Color defaultBtnColor = sf::Color::White;
+    sf::Color hoverBtnColor = sf::Color::Yellow;
+    sf::Color exitBtnHoverColor = sf::Color::Red;
 
-playerShape.setFillColor(sf::Color(220, 220, 250, 255));
-playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
+    //playerShape.setFillColor(sf::Color(220, 220, 250, 255));
+    // PLAYER TEXTURE LOADING (to be moved/replaced later)
+    if (!playerTexture.loadFromFile("../assets/sprites/Mc1_left_side.png")){
+        std::cerr << "Cannot load player texture." << std::endl;
+        playerTexture.loadFromFile(DEFAULT_TEXTURE_FILEPATH);
+    }
+    playerShape.setTexture(&playerTexture);
+    sf::IntRect playerDimensions({474, 125}, {989-474, 810-125});
+    playerShape.setTextureRect(playerDimensions);
+
+    playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
 
 debugText.setFont(menuFont);
 debugText.setCharacterSize(14);
@@ -531,10 +566,10 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
     menuMusic.play();
 }
 
-// --- MAIN GAME LOOP ---
-while (running) {
-    interactKeyPressedThisFrame = false;
-    sf::Time frameDeltaTime = gameClock.restart();
+    // --- MAIN GAME LOOP ---
+    while (running) {
+        interactKeyPressedThisFrame = false;
+        sf::Time frameDeltaTime = gameClock.restart();
 
     //sf::Event event;
     while (const std::optional event = window.pollEvent()) {
@@ -553,8 +588,8 @@ while (running) {
             }
         }
 
-        sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
-        sf::Vector2f worldPosUi = window.mapPixelToCoords(pixelPos, uiView);
+            sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
+            sf::Vector2f worldPosUi = window.mapPixelToCoords(pixelPos, uiView);
 
         switch(currentState) {
             case GameState::MENU:
@@ -695,19 +730,19 @@ while (running) {
         }
     }
 
-    if (!running) break;
+        if (!running) break;
 
-    timeSinceLastFixedUpdate += frameDeltaTime;
+        timeSinceLastFixedUpdate += frameDeltaTime;
 
-    // --- Game Logic Update ---
-    if (currentState == GameState::PLAYING) {
-        playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
+        // --- Game Logic Update ---
+        if (currentState == GameState::PLAYING) {
+            playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
 
-        while (timeSinceLastFixedUpdate >= TIME_PER_FIXED_UPDATE) {
-            timeSinceLastFixedUpdate -= TIME_PER_FIXED_UPDATE;
-            const float fixed_dt_seconds = TIME_PER_FIXED_UPDATE.asSeconds();
+            while (timeSinceLastFixedUpdate >= TIME_PER_FIXED_UPDATE) {
+                timeSinceLastFixedUpdate -= TIME_PER_FIXED_UPDATE;
+                const float fixed_dt_seconds = TIME_PER_FIXED_UPDATE.asSeconds();
 
-            playerBody.setLastPosition(playerBody.getPosition());
+                playerBody.setLastPosition(playerBody.getPosition());
 
             // --- Handle Input for Player ---
             float horizontalInput = 0.f;
@@ -721,132 +756,122 @@ while (running) {
             bool dropIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Down));
             bool newJumpPressThisFrame = (jumpIntentThisFrame && playerBody.isOnGround() && currentJumpHoldDuration == sf::Time::Zero);
 
-            if (newJumpPressThisFrame && !playerBody.getGroundPlatformTemporarilyIgnored()) {
-                const phys::PlatformBody* groundPlat = playerBody.getGroundPlatform();
-                bool safeToAccessGroundPlat = false;
-                if (groundPlat) {
-                    for (const auto& body_ref : bodies) { if (&body_ref == groundPlat) { safeToAccessGroundPlat = true; break; } }
-                }
-                if (!safeToAccessGroundPlat || groundPlat->getType() != phys::bodyType::spring) {
-                     playSfx("jump");
-                }
-            }
-            playerBody.setTryingToDrop(dropIntentThisFrame && playerBody.isOnGround());
-
-            // --- Update Moving Platforms ---
-            for(auto& activePlat : activeMovingPlatforms) {
-                phys::PlatformBody* movingBodyPtr = nullptr; size_t tileIdx = (size_t)-1;
-                for(size_t i_plat=0; i_plat < bodies.size(); ++i_plat) { // Renamed loop variable
-                    if(bodies[i_plat].getID() == activePlat.id && bodies[i_plat].getType() == phys::bodyType::moving) {
-                        movingBodyPtr = &bodies[i_plat];
-                        tileIdx = i_plat;
-                        break;
+                if (newJumpPressThisFrame && !playerBody.getGroundPlatformTemporarilyIgnored()) {
+                    const phys::PlatformBody* groundPlat = playerBody.getGroundPlatform();
+                    bool safeToAccessGroundPlat = false;
+                    if (groundPlat) {
+                        for (const auto& body_ref : bodies) { if (&body_ref == groundPlat) { safeToAccessGroundPlat = true; break; } }
+                    }
+                    if (!safeToAccessGroundPlat || groundPlat->getType() != phys::bodyType::spring) {
+                         playSfx("jump");
                     }
                 }
+                playerBody.setTryingToDrop(dropIntentThisFrame && playerBody.isOnGround());
 
-                if (movingBodyPtr) {
-                    activePlat.lastFrameActualPosition = movingBodyPtr->getPosition();
-                    activePlat.cycleTime += fixed_dt_seconds;
-                    float effectiveCycleDur = activePlat.cycleDuration > 1e-5f ? activePlat.cycleDuration : 1.f;
-                    activePlat.cycleTime = std::fmod(activePlat.cycleTime, effectiveCycleDur);
-
-                    float singleMovePhaseDur = effectiveCycleDur / 2.0f;
-                    float offset = 0.f;
-                    if (singleMovePhaseDur > 1e-5f) {
-                        float currentPhaseTime = activePlat.cycleTime;
-                        if (currentPhaseTime < singleMovePhaseDur) {
-                            offset = math::easing::sineEaseInOut(currentPhaseTime, 0.f, activePlat.initialDirection * activePlat.distance, singleMovePhaseDur);
-                        } else {
-                            currentPhaseTime -= singleMovePhaseDur;
-                            offset = math::easing::sineEaseInOut(currentPhaseTime, activePlat.initialDirection * activePlat.distance, -(activePlat.initialDirection * activePlat.distance), singleMovePhaseDur);
+                // --- Update Moving Platforms ---
+                for(auto& activePlat : activeMovingPlatforms) {
+                    phys::PlatformBody* movingBodyPtr = nullptr; size_t tileIdx = (size_t)-1;
+                    for(size_t i_plat=0; i_plat < bodies.size(); ++i_plat) {
+                        if(bodies[i_plat].getID() == activePlat.id && bodies[i_plat].getType() == phys::bodyType::moving) {
+                            movingBodyPtr = &bodies[i_plat];
+                            tileIdx = i_plat;
+                            break;
                         }
                     }
-                    sf::Vector2f newPos = activePlat.movementAnchorPosition;
-                    if(activePlat.axis == 'x') newPos.x += offset;
-                    else if(activePlat.axis == 'y') newPos.y += offset;
 
-                    movingBodyPtr->setPosition(newPos);
-                    if (tileIdx < tiles.size()) {
-                        tiles[tileIdx].setPosition(newPos);
-                    }
-                }
-            }
+                    if (movingBodyPtr) {
+                        activePlat.lastFrameActualPosition = movingBodyPtr->getPosition();
+                        activePlat.cycleTime += fixed_dt_seconds;
+                        float effectiveCycleDur = activePlat.cycleDuration > 1e-5f ? activePlat.cycleDuration : 1.f;
+                        activePlat.cycleTime = std::fmod(activePlat.cycleTime, effectiveCycleDur);
 
-            // --- Update Interactible Cooldowns ---
-            for (auto& pair : activeInteractibles) {
-                ActiveInteractiblePlatform& interactible = pair.second;
-                if (interactible.currentCooldownTimer > 0.f) {
-                    interactible.currentCooldownTimer -= fixed_dt_seconds;
-                    if (interactible.currentCooldownTimer < 0.f) interactible.currentCooldownTimer = 0.f;
-                }
-            }
+                        float singleMovePhaseDur = effectiveCycleDur / 2.0f;
+                        float offset = 0.f;
+                        if (singleMovePhaseDur > 1e-5f) {
+                            float currentPhaseTime = activePlat.cycleTime;
+                            if (currentPhaseTime < singleMovePhaseDur) {
+                                offset = math::easing::sineEaseInOut(currentPhaseTime, 0.f, activePlat.initialDirection * activePlat.distance, singleMovePhaseDur);
+                            } else {
+                                currentPhaseTime -= singleMovePhaseDur;
+                                offset = math::easing::sineEaseInOut(currentPhaseTime, activePlat.initialDirection * activePlat.distance, -(activePlat.initialDirection * activePlat.distance), singleMovePhaseDur);
+                            }
+                        }
+                        sf::Vector2f newPos = activePlat.movementAnchorPosition;
+                        if(activePlat.axis == 'x') newPos.x += offset;
+                        else if(activePlat.axis == 'y') newPos.y += offset;
 
-            // --- Update Platform States (Falling, Vanishing) ---
-for (size_t i = 0; i < bodies.size(); ++i) {
-                if (tiles.size() <= i) continue; // Safety check
-
-                phys::PlatformBody& current_body = bodies[i];
-                Tile& current_tile = tiles[i];
-
-                // Find the original template for this body using its ID
-                // This is crucial for knowing its intended behavior (e.g., if it's a vanishing block)
-                const phys::PlatformBody* template_body_ptr = nullptr;
-                sf::Vector2f originalPos = {-9999.f, -9999.f}; // Will hold original position for vanishing blocks
-
-                for(const auto& templ : currentLevelData.platforms) {
-                    if(templ.getID() == current_body.getID()){
-                        template_body_ptr = &templ;
-                        originalPos = templ.getPosition(); // Store original position
-                        break;
+                        movingBodyPtr->setPosition(newPos);
+                        if (tileIdx < tiles.size()) {
+                            tiles[tileIdx].setPosition(newPos);
+                        }
                     }
                 }
 
-                if (!template_body_ptr) {
-                    // This case should ideally not happen if setupLevelAssets correctly populates 'bodies'
-                    // based on 'currentLevelData.platforms'.
-                    // std::cerr << "Warning: Body with ID " << current_body.getID() << " has no template. Skipping state update." << std::endl;
-                    continue;
-                }
-
-                // Now, use template_body_ptr->getType() to determine the *intended* behavior
-                if (template_body_ptr->getType() == phys::bodyType::falling) {
-                    if (!current_body.isFalling()) {
-                          bool playerOnThis = playerBody.isOnGround() && playerBody.getGroundPlatform() == &current_body;
-                    if (playerOnThis && !current_tile.isFalling() && !current_tile.hasFallen()) {
-                          current_tile.startFalling(sf::seconds(0.5f)); // delay time
-                 }
-            }
-
-                    current_tile.update(TIME_PER_FIXED_UPDATE);
-
-                if (current_tile.isFalling() && !current_body.isFalling()) {
-                    current_body.setFalling(true); 
-                }
-                if (current_tile.isFalling() && current_body.isFalling()) {
-                    current_body.setPosition(current_tile.getPosition());
-                }
-
-                if (current_tile.hasFallen() && current_body.getType() != phys::bodyType::none) {
-                    if (playerBody.getGroundPlatform() == &current_body) {
-                        playerBody.setOnGround(false);
-                        playerBody.setGroundPlatform(nullptr);
+                // --- Update Interactible Cooldowns ---
+                for (auto& pair : activeInteractibles) {
+                    ActiveInteractiblePlatform& interactible = pair.second;
+                    if (interactible.currentCooldownTimer > 0.f) {
+                        interactible.currentCooldownTimer -= fixed_dt_seconds;
+                        if (interactible.currentCooldownTimer < 0.f) interactible.currentCooldownTimer = 0.f;
                     }
-                    current_body.setPosition({-9999.f, -9999.f});
-                    current_body.setType(phys::bodyType::none);
-                    current_tile.setFillColor(sf::Color::Transparent);
                 }
 
+                // --- Update Platform States (Falling, Vanishing) ---
+                for (size_t i_body = 0; i_body < bodies.size(); ++i_body) {
+                    if (tiles.size() <= i_body) continue;
 
-                }
-                else if (template_body_ptr->getType() == phys::bodyType::vanishing) {
-                    // Vanishing logic (uses current_body for runtime state, template_body_ptr for intended type, originalPos from template)
-                    // Note: 'originalPos' was fetched above when finding template_body_ptr.
+                    phys::PlatformBody& current_body = bodies[i_body];
+                    Tile& current_tile = tiles[i_body];
 
-                    bool is_even_id = (current_body.getID() % 2 == 0);
-                    bool should_be_fading_out_now = (oddEvenVanishing == 1 && is_even_id) || (oddEvenVanishing == -1 && !is_even_id);
-                    float phaseTime = std::fmod(vanishingPlatformCycleTimer.asSeconds(), 1.0f);
-                    sf::Color baseVanishingColor = getTileColorForBodyType(phys::bodyType::vanishing);
-                    float alpha_val;
+                    const phys::PlatformBody* template_body_ptr = nullptr;
+                    sf::Vector2f originalPos = {-9999.f, -9999.f};
+
+                    for(const auto& templ : currentLevelData.platforms) {
+                        if(templ.getID() == current_body.getID()){
+                            template_body_ptr = &templ;
+                            originalPos = templ.getPosition();
+                            break;
+                        }
+                    }
+
+                    if (!template_body_ptr) {
+                        continue;
+                    }
+
+                    if (template_body_ptr->getType() == phys::bodyType::falling) {
+                        if (!current_body.isFalling()) {
+                              bool playerOnThis = playerBody.isOnGround() && playerBody.getGroundPlatform() == &current_body;
+                              if (playerOnThis && !current_tile.isFalling() && !current_tile.hasFallen()) {
+                                  current_tile.startFalling(sf::seconds(0.5f));
+                              }
+                        }
+
+                        current_tile.update(TIME_PER_FIXED_UPDATE);
+
+                        if (current_tile.isFalling() && !current_body.isFalling()) {
+                            current_body.setFalling(true);
+                        }
+                        if (current_tile.isFalling() && current_body.isFalling()) {
+                            current_body.setPosition(current_tile.getPosition());
+                        }
+
+                        if (current_tile.hasFallen() && current_body.getType() != phys::bodyType::none) {
+                            if (playerBody.getGroundPlatform() == &current_body) {
+                                playerBody.setOnGround(false);
+                                playerBody.setGroundPlatform(nullptr);
+                            }
+                            current_body.setPosition({-9999.f, -9999.f});
+                            current_body.setType(phys::bodyType::none);
+                            current_tile.setFillColor(sf::Color::Transparent);
+                        }
+                    }
+                    else if (template_body_ptr->getType() == phys::bodyType::vanishing) {
+                        bool is_even_id = (current_body.getID() % 2 == 0);
+                        bool should_be_fading_out_now = (oddEvenVanishing == 1 && is_even_id) || (oddEvenVanishing == -1 && !is_even_id);
+
+                        float phaseTime = std::fmod(vanishingPlatformCycleTimer.asSeconds(), 1.0f);
+                        sf::Color baseVanishingColor = getTileColorForBodyType(phys::bodyType::vanishing);
+                        float alpha_val;
 
                     if (should_be_fading_out_now) { // Fading out (target: 0 alpha / non-interactive)
                         alpha_val = math::easing::sineEaseInOut(phaseTime, 255.f, -255.f, 1.f);
@@ -856,127 +881,116 @@ for (size_t i = 0; i < bodies.size(); ++i) {
                     alpha_val = std::max(0.f, std::min(255.f, alpha_val)); // Clamp alpha
                     uint8_t finalAlphaByte = static_cast<uint8_t>(alpha_val);
 
-                    if (alpha_val <= 10.f) { // Platform is "gone" or nearly gone (non-interactive phase)
-                        if (current_body.getType() != phys::bodyType::none) { // If it's not already 'none'
-                            if (playerBody.getGroundPlatform() == &current_body) {
+                        if (alpha_val <= 10.f) {
+                            if (current_body.getType() != phys::bodyType::none) {
+                                if (playerBody.getGroundPlatform() == &current_body) {
+                                    playerBody.setOnGround(false);
+                                    playerBody.setGroundPlatform(nullptr);
+                                }
+                                current_body.setType(phys::bodyType::none);
+                            }
+                            if (current_body.getPosition() != sf::Vector2f(-9999.f, -9999.f)) current_body.setPosition({-9999.f, -9999.f});
+                            if (current_tile.getPosition() != sf::Vector2f(-9999.f, -9999.f)) current_tile.setPosition({-9999.f, -9999.f});
+                            finalAlphaByte = 0;
+                        } else {
+                            if (current_body.getType() == phys::bodyType::none) {
+                                current_body.setType(phys::bodyType::vanishing);
+                            }
+                            if (originalPos.x > -9998.f) {
+                                if (current_body.getPosition() != originalPos) current_body.setPosition(originalPos);
+                                if (current_tile.getPosition() != originalPos) current_tile.setPosition(originalPos);
+                            } else {
+                                if (current_body.getType() != phys::bodyType::none) current_body.setType(phys::bodyType::none);
+                                if(current_body.getPosition() != sf::Vector2f(-9999.f, -9999.f)) current_body.setPosition({-9999.f, -9999.f});
+                                if(current_tile.getPosition() != sf::Vector2f(-9999.f, -9999.f)) current_tile.setPosition({-9999.f, -9999.f});
+                                finalAlphaByte = 0;
+                            }
+                        }
+                        current_tile.setFillColor(sf::Color(baseVanishingColor.r, baseVanishingColor.g, baseVanishingColor.b, finalAlphaByte));
+                    }
+                }
+
+                vanishingPlatformCycleTimer += TIME_PER_FIXED_UPDATE;
+                if (vanishingPlatformCycleTimer.asSeconds() >= 1.0f) {
+                    vanishingPlatformCycleTimer -= sf::seconds(1.0f);
+                    oddEvenVanishing *= -1;
+                }
+
+                // --- Player Velocity Update ---
+                sf::Vector2f pVel = playerBody.getVelocity();
+                pVel.x = horizontalInput * PLAYER_MOVE_SPEED * static_cast<float>(turboMultiplier);
+
+                if (!playerBody.isOnGround()) {
+                    pVel.y += GRAVITY_ACCELERATION * fixed_dt_seconds;
+                    pVel.y = std::min(pVel.y, MAX_FALL_SPEED);
+                }
+
+                if (newJumpPressThisFrame) {
+                    pVel.y = JUMP_INITIAL_VELOCITY;
+                    currentJumpHoldDuration = sf::microseconds(1);
+                } else if (jumpIntentThisFrame && currentJumpHoldDuration > sf::Time::Zero && currentJumpHoldDuration < MAX_JUMP_HOLD_TIME) {
+                    const phys::PlatformBody* groundPlatForJumpExtend = playerBody.getGroundPlatform();
+                    bool safeToAccessGroundPlatForJumpExtend = false;
+                    if(groundPlatForJumpExtend){
+                        for(const auto& body_ref : bodies){ if(&body_ref == groundPlatForJumpExtend){ safeToAccessGroundPlatForJumpExtend = true; break; } }
+                    }
+                    if (playerBody.getVelocity().y < 0.f && (!safeToAccessGroundPlatForJumpExtend || groundPlatForJumpExtend->getType() != phys::bodyType::spring) ) {
+                         pVel.y = JUMP_INITIAL_VELOCITY;
+                    }
+                    currentJumpHoldDuration += TIME_PER_FIXED_UPDATE;
+                } else {
+                    currentJumpHoldDuration = sf::Time::Zero;
+                }
+                playerBody.setVelocity(pVel);
+
+                // --- Collision Resolution ---
+                phys::CollisionResolutionInfo resolutionResult = phys::CollisionSystem::resolveCollisions(playerBody, bodies, fixed_dt_seconds);
+                pVel = playerBody.getVelocity();
+
+                // --- Post-Collision Player Logic ---
+                if (playerBody.isOnGround()) {
+                    currentJumpHoldDuration = sf::Time::Zero;
+                    const phys::PlatformBody* currentGroundPlatform = playerBody.getGroundPlatform();
+
+                    if (currentGroundPlatform) {
+                        bool safeToAccessCurrentGroundPlatform = false;
+                        for (const auto& body_ref : bodies) { if (&body_ref == currentGroundPlatform) { safeToAccessCurrentGroundPlatform = true; break; } }
+
+                        if (safeToAccessCurrentGroundPlatform) {
+                            const phys::PlatformBody& pf = *currentGroundPlatform;
+                            if (pf.getType() == phys::bodyType::conveyorBelt) {
+                                playerBody.setPosition(playerBody.getPosition() + pf.getSurfaceVelocity() * fixed_dt_seconds);
+                            } else if (pf.getType() == phys::bodyType::moving) {
+                                 for(const auto& activePlat : activeMovingPlatforms) {
+                                    if (activePlat.id == pf.getID()) {
+                                        phys::PlatformBody* movingPhysBody = nullptr;
+                                        for(auto& b_ref : bodies) if(b_ref.getID() == activePlat.id && b_ref.getType() == phys::bodyType::moving) {movingPhysBody = &b_ref; break;}
+
+                                        if(movingPhysBody){
+                                            sf::Vector2f platformFrameDisplacement = movingPhysBody->getPosition() - activePlat.lastFrameActualPosition;
+                                            playerBody.setPosition(playerBody.getPosition() + platformFrameDisplacement);
+                                        }
+                                        break;
+                                    }
+                                }
+                            } else if (pf.getType() == phys::bodyType::spring) {
+                                pVel.y = SPRING_BOUNCE_VELOCITY;
                                 playerBody.setOnGround(false);
                                 playerBody.setGroundPlatform(nullptr);
-                            }
-                            current_body.setType(phys::bodyType::none); // Make non-collidable (runtime state)
-                        }
-                        // Ensure body and tile are off-screen when "gone"
-                        if (current_body.getPosition() != sf::Vector2f(-9999.f, -9999.f)) {
-                            current_body.setPosition({-9999.f, -9999.f});
-                        }
-                        if (current_tile.getPosition() != sf::Vector2f(-9999.f, -9999.f)) {
-                            current_tile.setPosition({-9999.f, -9999.f});
-                        }
-                        finalAlphaByte = 0; // Visually fully transparent
-                    } else { // Platform is "appearing" or "visible" (interactive phase)
-                        if (current_body.getType() == phys::bodyType::none) { // If it was 'none', bring it back
-                            current_body.setType(phys::bodyType::vanishing); // Make collidable again (runtime state)
-                        }
-                        // Ensure body and tile are at their original position when "visible"
-                        if (originalPos.x > -9998.f) { // Check if originalPos was validly found
-                            if (current_body.getPosition() != originalPos) {
-                                current_body.setPosition(originalPos);
-                            }
-                            if (current_tile.getPosition() != originalPos) {
-                                current_tile.setPosition(originalPos);
+                                playSfx("spring");
                             }
                         } else {
-                            // Error condition: originalPos for this vanishing block was not found or is invalid.
-                            // To prevent issues, keep it effectively "gone".
-                            if (current_body.getType() != phys::bodyType::none) current_body.setType(phys::bodyType::none);
-                            if(current_body.getPosition() != sf::Vector2f(-9999.f, -9999.f)) current_body.setPosition({-9999.f, -9999.f});
-                            if(current_tile.getPosition() != sf::Vector2f(-9999.f, -9999.f)) current_tile.setPosition({-9999.f, -9999.f});
-                            finalAlphaByte = 0;
+                             playerBody.setOnGround(false);
+                             playerBody.setGroundPlatform(nullptr);
                         }
                     }
-                    current_tile.setFillColor(sf::Color(baseVanishingColor.r, baseVanishingColor.g, baseVanishingColor.b, finalAlphaByte));
                 }
-            } // End of for loop iterating through bodies/tiles
 
-            // This part remains the same, it's outside the for loop
-            vanishingPlatformCycleTimer += TIME_PER_FIXED_UPDATE;
-            if (vanishingPlatformCycleTimer.asSeconds() >= 1.0f) {
-                vanishingPlatformCycleTimer -= sf::seconds(1.0f);
-                oddEvenVanishing *= -1;
-            }
-            // --- Player Velocity Update ---
-            sf::Vector2f pVel = playerBody.getVelocity();
-            pVel.x = horizontalInput * PLAYER_MOVE_SPEED * static_cast<float>(turboMultiplier);
-
-            if (!playerBody.isOnGround()) {
-                pVel.y += GRAVITY_ACCELERATION * fixed_dt_seconds;
-                pVel.y = std::min(pVel.y, MAX_FALL_SPEED);
-            }
-
-            if (newJumpPressThisFrame) {
-                pVel.y = JUMP_INITIAL_VELOCITY;
-                currentJumpHoldDuration = sf::microseconds(1);
-            } else if (jumpIntentThisFrame && currentJumpHoldDuration > sf::Time::Zero && currentJumpHoldDuration < MAX_JUMP_HOLD_TIME) {
-                const phys::PlatformBody* groundPlatForJumpExtend = playerBody.getGroundPlatform();
-                bool safeToAccessGroundPlatForJumpExtend = false;
-                if(groundPlatForJumpExtend){
-                    for(const auto& body_ref : bodies){ if(&body_ref == groundPlatForJumpExtend){ safeToAccessGroundPlatForJumpExtend = true; break; } }
+                if (resolutionResult.hitCeiling && pVel.y < 0.f) {
+                    pVel.y = 0.f;
+                    currentJumpHoldDuration = MAX_JUMP_HOLD_TIME;
                 }
-                if (playerBody.getVelocity().y < 0.f && (!safeToAccessGroundPlatForJumpExtend || groundPlatForJumpExtend->getType() != phys::bodyType::spring) ) {
-                     pVel.y = JUMP_INITIAL_VELOCITY;
-                }
-                currentJumpHoldDuration += TIME_PER_FIXED_UPDATE; // CORRECTED: Use sf::Time object
-            } else {
-                currentJumpHoldDuration = sf::Time::Zero;
-            }
-            playerBody.setVelocity(pVel);
-
-            // --- Collision Resolution ---
-            phys::CollisionResolutionInfo resolutionResult = phys::CollisionSystem::resolveCollisions(playerBody, bodies, fixed_dt_seconds);
-            pVel = playerBody.getVelocity();
-
-            // --- Post-Collision Player Logic ---
-            if (playerBody.isOnGround()) {
-                currentJumpHoldDuration = sf::Time::Zero;
-                const phys::PlatformBody* currentGroundPlatform = playerBody.getGroundPlatform();
-
-                if (currentGroundPlatform) {
-                    bool safeToAccessCurrentGroundPlatform = false;
-                    for (const auto& body_ref : bodies) { if (&body_ref == currentGroundPlatform) { safeToAccessCurrentGroundPlatform = true; break; } }
-
-                    if (safeToAccessCurrentGroundPlatform) {
-                        const phys::PlatformBody& pf = *currentGroundPlatform;
-                        if (pf.getType() == phys::bodyType::conveyorBelt) {
-                            playerBody.setPosition(playerBody.getPosition() + pf.getSurfaceVelocity() * fixed_dt_seconds);
-                        } else if (pf.getType() == phys::bodyType::moving) {
-                             for(const auto& activePlat : activeMovingPlatforms) {
-                                if (activePlat.id == pf.getID()) {
-                                    phys::PlatformBody* movingPhysBody = nullptr;
-                                    for(auto& b_ref : bodies) if(b_ref.getID() == activePlat.id && b_ref.getType() == phys::bodyType::moving) {movingPhysBody = &b_ref; break;}
-                                    if(movingPhysBody){
-                                        sf::Vector2f platformFrameDisplacement = movingPhysBody->getPosition() - activePlat.lastFrameActualPosition;
-                                        playerBody.setPosition(playerBody.getPosition() + platformFrameDisplacement);
-                                    }
-                                    break;
-                                }
-                            }
-                        } else if (pf.getType() == phys::bodyType::spring) {
-                            pVel.y = SPRING_BOUNCE_VELOCITY;
-                            playerBody.setOnGround(false);
-                            playerBody.setGroundPlatform(nullptr);
-                            playSfx("spring");
-                        }
-                    } else {
-                         playerBody.setOnGround(false);
-                         playerBody.setGroundPlatform(nullptr);
-                    }
-                }
-            }
-
-            if (resolutionResult.hitCeiling && pVel.y < 0.f) {
-                pVel.y = 0.f;
-                currentJumpHoldDuration = MAX_JUMP_HOLD_TIME;
-            }
-            playerBody.setVelocity(pVel);
+                playerBody.setVelocity(pVel);
 
             // --- Trap Check ---
             bool trapHit = false;
@@ -1022,36 +1036,93 @@ for (size_t i = 0; i < bodies.size(); ++i) {
                                 continue;
                             }
 
-                            if (interactState.interactionType == "changeSelf") {
-                                playSfx("click");
-                                interact_body_ref.setType(interactState.targetBodyTypeEnum);
+                                if (interactState.interactionType == "changeSelf") {
+                                    playSfx("click");
+                                    interact_body_ref.setType(interactState.targetBodyTypeEnum);
 
-                                if (tiles.size() > k) {
-                                    if (interactState.hasTargetTileColor) {
-                                        tiles[k].setFillColor(interactState.targetTileColor);
-                                    } else {
-                                        tiles[k].setFillColor(getTileColorForBodyType(interactState.targetBodyTypeEnum));
+                                    if (tiles.size() > k) {
+                                        if (interactState.hasTargetTileColor) {
+                                            tiles[k].setFillColor(interactState.targetTileColor);
+                                        } else {
+                                            tiles[k].setFillColor(getTileColorForBodyType(interactState.targetBodyTypeEnum));
+                                        }
                                     }
-                                }
 
-                                if (interactState.targetBodyTypeEnum == phys::bodyType::none) {
-                                    if (playerBody.getGroundPlatform() == &interact_body_ref) {
-                                        playerBody.setOnGround(false);
-                                        playerBody.setGroundPlatform(nullptr);
+                                    if (interactState.targetBodyTypeEnum == phys::bodyType::none) {
+                                        if (playerBody.getGroundPlatform() == &interact_body_ref) {
+                                            playerBody.setOnGround(false);
+                                            playerBody.setGroundPlatform(nullptr);
+                                        }
+                                        interact_body_ref.setPosition({-10000.f, -10000.f});
+                                        if (tiles.size() > k) tiles[k].setFillColor(sf::Color::Transparent);
                                     }
-                                    interact_body_ref.setPosition({-10000.f, -10000.f});
-                                    if (tiles.size() > k) tiles[k].setFillColor(sf::Color::Transparent);
-                                }
 
-                                if (interactState.oneTime) interactState.hasBeenInteractedThisSession = true;
-                                else interactState.currentCooldownTimer = interactState.cooldown;
-                                break;
+                                    if (interactState.linkedID != 0) {
+                                        for (size_t linked_idx = 0; linked_idx < bodies.size(); ++linked_idx) {
+                                            if (bodies[linked_idx].getID() == interactState.linkedID) {
+                                                phys::PlatformBody& linked_body_ref = bodies[linked_idx];
+                                                Tile& linked_tile_ref = tiles[linked_idx];
+
+                                                if (linked_body_ref.getType() == phys::bodyType::solid || linked_body_ref.getType() == phys::bodyType::platform ) {
+                                                    if (playerBody.getGroundPlatform() == &linked_body_ref) {
+                                                        playerBody.setOnGround(false);
+                                                        playerBody.setGroundPlatform(nullptr);
+                                                    }
+                                                    linked_body_ref.setType(phys::bodyType::none);
+                                                    linked_body_ref.setPosition({-10000.f, -10000.f});
+                                                    linked_tile_ref.setFillColor(sf::Color::Transparent);
+                                                    linked_tile_ref.setPosition({-10000.f, -10000.f});
+
+                                                } else if (linked_body_ref.getType() == phys::bodyType::none) {
+                                                    sf::Vector2f originalLinkedPos = {-9999.f, -9999.f};
+                                                    phys::bodyType originalLinkedType = phys::bodyType::solid;
+                                                    
+                                                    for(const auto& templ : currentLevelData.platforms){
+                                                        if(templ.getID() == linked_body_ref.getID()){
+                                                            originalLinkedPos = templ.getPosition();
+                                                            originalLinkedType = templ.getType();
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    if(originalLinkedPos.x > -9998.f){
+                                                       linked_body_ref.setPosition(originalLinkedPos);
+                                                       linked_body_ref.setType(originalLinkedType);
+                                                       linked_tile_ref.setPosition(originalLinkedPos);
+                                                       linked_tile_ref.setFillColor(getTileColorForBodyType(originalLinkedType));
+                                                    }
+                                                } else if (linked_body_ref.getType() != phys::bodyType::portal &&
+                                                           interactState.targetBodyTypeEnum == phys::bodyType::portal &&
+                                                           linked_body_ref.getID() == interactState.linkedID) {
+                                                    sf::Vector2f originalLinkedPos = {-9999.f, -9999.f};
+                                                    for(const auto& templ : currentLevelData.platforms){
+                                                        if(templ.getID() == linked_body_ref.getID()){
+                                                            originalLinkedPos = templ.getPosition();
+                                                            break;
+                                                        }
+                                                    }
+                                                    if(originalLinkedPos.x > -9998.f){
+                                                       linked_body_ref.setPosition(originalLinkedPos);
+                                                       linked_body_ref.setType(phys::bodyType::portal);
+                                                       linked_tile_ref.setPosition(originalLinkedPos);
+                                                       linked_tile_ref.setFillColor(getTileColorForBodyType(phys::bodyType::portal));
+                                                    }
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+
+
+                                    if (interactState.oneTime) interactState.hasBeenInteractedThisSession = true;
+                                    else interactState.currentCooldownTimer = interactState.cooldown;
+                                    goto end_fixed_update_for_interaction;
+                                }
                             }
                         }
                     }
                 }
-            }
-            end_fixed_update_for_interaction:;
+                end_fixed_update_for_interaction:;
 
             // --- Death by Falling ---
             if (playerBody.getPosition().y > PLAYER_DEATH_Y_LIMIT) {
@@ -1077,13 +1148,20 @@ for (size_t i = 0; i < bodies.size(); ++i) {
         }
     }
 
-    // --- Drawing ---
-    window.setTitle("Project - T");
-    window.clear((currentState == GameState::PLAYING || currentState == GameState::TRANSITIONING || currentState == GameState::GAME_OVER_LOSE_DEATH || currentState == GameState::GAME_OVER_LOSE_FALL || currentState == GameState::GAME_OVER_WIN) && currentLevelData.platforms.size() > 0 ? currentLevelData.backgroundColor : sf::Color::Black);
+        // --- Drawing ---
+        window.setTitle("Celestial Speedrun");
+        window.clear( (currentState == GameState::PLAYING ||
+                        currentState == GameState::TRANSITIONING ||
+                        currentState == GameState::GAME_OVER_LOSE_DEATH ||
+                        currentState == GameState::GAME_OVER_LOSE_FALL ||
+                        currentState == GameState::GAME_OVER_WIN)
+                       && currentLevelData.platforms.size() > 0
+                       ? currentLevelData.backgroundColor
+                       : sf::Color::Black);
 
 
-    sf::Vector2i currentMousePixelPos = sf::Mouse::getPosition(window);
-    sf::Vector2f currentMouseWorldUiPos = window.mapPixelToCoords(currentMousePixelPos, uiView);
+        sf::Vector2i currentMousePixelPos = sf::Mouse::getPosition(window);
+        sf::Vector2f currentMouseWorldUiPos = window.mapPixelToCoords(currentMousePixelPos, uiView);
 
     switch(currentState) {
          case GameState::MENU:
@@ -1091,25 +1169,25 @@ for (size_t i = 0; i < bodies.size(); ++i) {
             if(menuBgSpriteLoaded) window.draw(menuBgSprite);
             else {sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,20,50)); window.draw(bg);}
 
-            startButtonText.setFillColor(startButtonText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
-            settingsButtonText.setFillColor(settingsButtonText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
-            creditsButtonText.setFillColor(creditsButtonText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
-            exitButtonText.setFillColor(exitButtonText.getGlobalBounds().contains(currentMouseWorldUiPos) ? exitBtnHoverColor : defaultBtnColor);
+                startButtonText.setFillColor(startButtonText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                settingsButtonText.setFillColor(settingsButtonText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                creditsButtonText.setFillColor(creditsButtonText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                exitButtonText.setFillColor(exitButtonText.getGlobalBounds().contains(currentMouseWorldUiPos) ? exitBtnHoverColor : defaultBtnColor);
 
-            window.draw(menuTitleText); window.draw(startButtonText); window.draw(settingsButtonText);
-            window.draw(creditsButtonText); window.draw(exitButtonText);
-            break;
-        case GameState::SETTINGS:
-            window.setView(uiView);
-            { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,50,20)); window.draw(bg); }
-            settingsBackText.setFillColor(settingsBackText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
-            musicVolDownText.setFillColor(musicVolDownText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
-            musicVolUpText.setFillColor(musicVolUpText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
-            sfxVolDownText.setFillColor(sfxVolDownText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
-            sfxVolUpText.setFillColor(sfxVolUpText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
-            resolutionPrevText.setFillColor(resolutionPrevText.getGlobalBounds().contains(currentMouseWorldUiPos) && !isFullscreen ? hoverBtnColor : defaultBtnColor);
-            resolutionNextText.setFillColor(resolutionNextText.getGlobalBounds().contains(currentMouseWorldUiPos) && !isFullscreen ? hoverBtnColor : defaultBtnColor);
-            fullscreenToggleText.setFillColor(fullscreenToggleText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                window.draw(menuTitleText); window.draw(startButtonText); window.draw(settingsButtonText);
+                window.draw(creditsButtonText); window.draw(exitButtonText);
+                break;
+            case GameState::SETTINGS:
+                window.setView(uiView);
+                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,50,20)); window.draw(bg); }
+                settingsBackText.setFillColor(settingsBackText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                musicVolDownText.setFillColor(musicVolDownText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                musicVolUpText.setFillColor(musicVolUpText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                sfxVolDownText.setFillColor(sfxVolDownText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                sfxVolUpText.setFillColor(sfxVolUpText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                resolutionPrevText.setFillColor(resolutionPrevText.getGlobalBounds().contains(currentMouseWorldUiPos) && !isFullscreen ? hoverBtnColor : defaultBtnColor);
+                resolutionNextText.setFillColor(resolutionNextText.getGlobalBounds().contains(currentMouseWorldUiPos) && !isFullscreen ? hoverBtnColor : defaultBtnColor);
+                fullscreenToggleText.setFillColor(fullscreenToggleText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
 
             window.draw(settingsTitleText);
             musicVolValText.setString(std::to_string(static_cast<int>(gameSettings.musicVolume))+"%");
@@ -1132,79 +1210,82 @@ for (size_t i = 0; i < bodies.size(); ++i) {
             // Background cleared globally
 
 
-            playerShape.setPosition(playerBody.getPosition());
-            for (const auto& t : tiles) {
-                if (t.getFillColor().a > 0 && !t.hasFallen()) { // Only draw if alpha > 0 and not fallen
-                     window.draw(t);
+                playerShape.setPosition(playerBody.getPosition());
+                for (const auto& t : tiles) {
+                    if (t.getFillColor().a > 0 && !t.hasFallen()) {
+                         window.draw(t);
+                    }
                 }
-            }
-            window.draw(playerShape);
+                window.draw(playerShape);
 
-            window.setView(uiView);
-            {
-                std::string debugString = "Lvl: " + std::to_string(currentLevelData.levelNumber) +
-                                         " Pos: " + std::to_string(static_cast<int>(playerBody.getPosition().x)) + "," + std::to_string(static_cast<int>(playerBody.getPosition().y)) +
-                                         " Vel: " + std::to_string(static_cast<int>(playerBody.getVelocity().x)) + "," + std::to_string(static_cast<int>(playerBody.getVelocity().y)) +
-                                         " Ground: " + (playerBody.isOnGround() ? "Y" : "N");
+                window.setView(uiView);
+                {
+                    std::string debugString = "Lvl: " + std::to_string(currentLevelData.levelNumber) +
+                                             " Pos: " + std::to_string(static_cast<int>(playerBody.getPosition().x)) + "," + std::to_string(static_cast<int>(playerBody.getPosition().y)) +
+                                             " Vel: " + std::to_string(static_cast<int>(playerBody.getVelocity().x)) + "," + std::to_string(static_cast<int>(playerBody.getVelocity().y)) +
+                                             " Ground: " + (playerBody.isOnGround() ? "Y" : "N");
 
-                const phys::PlatformBody* groundPlat = playerBody.getGroundPlatform();
-                if (groundPlat) {
-                    bool platformStillExistsAndMatches = false;
-                    for (const auto& body_ref : bodies) {
-                        if (&body_ref == groundPlat) {
-                            platformStillExistsAndMatches = true;
-                            break;
+                    const phys::PlatformBody* groundPlat = playerBody.getGroundPlatform();
+                    if (groundPlat) {
+                        bool platformStillExistsAndMatches = false;
+                        for (const auto& body_ref : bodies) {
+                            if (&body_ref == groundPlat) {
+                                platformStillExistsAndMatches = true;
+                                break;
+                            }
+                        }
+                        if (platformStillExistsAndMatches) {
+                            debugString += " (ID:" + std::to_string(groundPlat->getID()) +
+                                           (groundPlat->getType() == phys::bodyType::none ? " TYPE_NONE" : (" Type:" + std::to_string(static_cast<int>(groundPlat->getType())))) + ")";
+                            if (groundPlat->getType() == phys::bodyType::portal) {
+                                debugString += " LinkID:" + std::to_string(groundPlat->getPortalID());
+                            }
+                        } else {
+                            debugString += " (GroundRef: INVALID)";
                         }
                     }
-                    if (platformStillExistsAndMatches) {
-                        debugString += " (ID:" + std::to_string(groundPlat->getID()) +
-                                       (groundPlat->getType() == phys::bodyType::none ? " TYPE_NONE" : (" Type:" + std::to_string(static_cast<int>(groundPlat->getType())))) + ")";
-                    } else {
-                        debugString += " (GroundRef: INVALID)";
-                    }
+                    debugText.setString(debugString);
                 }
-                debugText.setString(debugString);
-            }
-            window.draw(debugText);
-            break;
-        case GameState::TRANSITIONING:
-            window.setView(uiView);
-            levelManager.draw(window);
-            break;
-        case GameState::GAME_OVER_WIN:
-             window.setView(uiView);
-             { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,60,20)); window.draw(bg); }
-             gameOverStatusText.setString("All Levels Cleared! You Win!");
-             gameOverOption1Text.setString("Play Again (Level 1)");
+                window.draw(debugText);
+                break;
+            case GameState::TRANSITIONING:
+                window.setView(uiView);
+                levelManager.draw(window);
+                break;
+            case GameState::GAME_OVER_WIN:
+                 window.setView(uiView);
+                 { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,60,20)); window.draw(bg); }
+                 gameOverStatusText.setString("All Levels Cleared! You Win!");
+                 gameOverOption1Text.setString("Play Again (Level 1)");
 
-             gameOverOption1Text.setFillColor(gameOverOption1Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
-             gameOverOption2Text.setFillColor(gameOverOption2Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                 gameOverOption1Text.setFillColor(gameOverOption1Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                 gameOverOption2Text.setFillColor(gameOverOption2Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
 
-             window.draw(gameOverStatusText);
-             window.draw(gameOverOption1Text);
-             window.draw(gameOverOption2Text);
-            break;
-         case GameState::GAME_OVER_LOSE_FALL:
-             window.setView(uiView);
-             { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(60,20,20)); window.draw(bg); }
-             gameOverStatusText.setString("Game Over! You Fell!");
-             gameOverOption1Text.setString("Retry Level");
+                 window.draw(gameOverStatusText);
+                 window.draw(gameOverOption1Text);
+                 window.draw(gameOverOption2Text);
+                break;
+             case GameState::GAME_OVER_LOSE_FALL:
+                 window.setView(uiView);
+                 { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(60,20,20)); window.draw(bg); }
+                 gameOverStatusText.setString("Game Over! You Fell!");
+                 gameOverOption1Text.setString("Retry Level");
 
-             gameOverOption1Text.setFillColor(gameOverOption1Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
-             gameOverOption2Text.setFillColor(gameOverOption2Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                 gameOverOption1Text.setFillColor(gameOverOption1Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                 gameOverOption2Text.setFillColor(gameOverOption2Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
 
-             window.draw(gameOverStatusText);
-             window.draw(gameOverOption1Text);
-             window.draw(gameOverOption2Text);
-            break;
-        case GameState::GAME_OVER_LOSE_DEATH:
-            window.setView(uiView);
-            { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(70,10,10)); window.draw(bg); }
-            gameOverStatusText.setString("Game Over! Hit a Trap!");
-            gameOverOption1Text.setString("Retry Level");
+                 window.draw(gameOverStatusText);
+                 window.draw(gameOverOption1Text);
+                 window.draw(gameOverOption2Text);
+                break;
+            case GameState::GAME_OVER_LOSE_DEATH:
+                window.setView(uiView);
+                { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(70,10,10)); window.draw(bg); }
+                gameOverStatusText.setString("Game Over! Hit a Trap!");
+                gameOverOption1Text.setString("Retry Level");
 
-            gameOverOption1Text.setFillColor(gameOverOption1Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
-            gameOverOption2Text.setFillColor(gameOverOption2Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                gameOverOption1Text.setFillColor(gameOverOption1Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
+                gameOverOption2Text.setFillColor(gameOverOption2Text.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
 
             window.draw(gameOverStatusText);
             window.draw(gameOverOption1Text);

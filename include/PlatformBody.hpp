@@ -35,7 +35,7 @@ namespace phys {
         bodyType getType() const { return m_type; }
         bool isFalling() const { return m_falling; }
         const sf::Vector2f& getSurfaceVelocity() const { return m_surfaceVelocity; }
-        std::string getTexturePath() const { return m_texturePath;}
+        std::string getTexturePath() const;
 
         void setPosition(const sf::Vector2f& position) { m_position = position; }
         void setFalling(bool falling) { m_falling = falling; }
