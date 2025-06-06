@@ -42,7 +42,7 @@
     {
       "id": 7,
       "type": "solid",
-      "position": { "x": 0, "y": -40 },
+      "position": { "x": 0, "y": -64 },
       "size": { "width": 1032, "height": 16 }
     },
     {
