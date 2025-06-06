@@ -20,12 +20,12 @@ namespace sprites {
 
             static std::vector<sf::Texture> LoadLevelTextures(std::vector<std::string>);
 
+            static sf::IntRect GetPlayerTextureUponMovement(int direction);
         private:
             std::string textureDirectoryRelative = "../assets/sprites/";
             std::string defaultTexturePath = textureDirectoryRelative + "default.png";
 
             sf::Texture defaultTexture;
-
 
     };
 }

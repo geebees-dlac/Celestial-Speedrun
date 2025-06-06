@@ -108,7 +108,8 @@ const std::string SFX_PORTAL = "../assets/audio/sfx_portal.wav";
 // Sprites
 std::map<int, sf::Texture> LevelBackgrounds;
 // PLAYER SPRITE LOADING (basic functionality, to be replaced later)
-sf::Texture playerTexture(DEFAULT_TEXTURE_FILEPATH);
+const std::string playerCharacterTexturePath = "../assets/sprites/PlayerChar.png";
+sf::Texture playerTexture(playerCharacterTexturePath);
 
 // --- Function to populate available resolutions ---
 void populateAvailableResolutions() {
@@ -568,12 +569,12 @@ else {
 
     //playerShape.setFillColor(sf::Color(220, 220, 250, 255));
     // PLAYER TEXTURE LOADING (to be moved/replaced later)
-    if (!playerTexture.loadFromFile("../assets/sprites/Mc1_left_side.png")){
+    /*if (!playerTexture.loadFromFile("../assets/sprites/Mc1_left_side.png")){
         std::cerr << "Cannot load player texture." << std::endl;
         playerTexture.loadFromFile(DEFAULT_TEXTURE_FILEPATH);
-    }
+    }*/
     playerShape.setTexture(&playerTexture);
-    sf::IntRect playerDimensions({474, 125}, {989-474, 810-125});
+    sf::IntRect playerDimensions = sprites::SpriteManager::GetPlayerTextureUponMovement(0);
     playerShape.setTextureRect(playerDimensions);
 
     playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
@@ -772,8 +773,15 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::RShift)) turboMultiplier = 2;
             else turboMultiplier = 1;
 
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) horizontalInput = -1.f;
-            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right)) horizontalInput = 1.f;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) {
+                horizontalInput = -1.f;
+                playerShape.setTextureRect(sprites::SpriteManager::GetPlayerTextureUponMovement(-1));
+            }
+            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right)) {
+                horizontalInput = 1.f;
+                playerShape.setTextureRect(sprites::SpriteManager::GetPlayerTextureUponMovement(1));
+            }
+            else playerShape.setTextureRect(sprites::SpriteManager::GetPlayerTextureUponMovement(0));
 
             bool jumpIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space));
             bool dropIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Down));
