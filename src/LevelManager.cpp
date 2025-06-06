@@ -17,8 +17,8 @@ LevelManager::LevelManager()
       m_currentLoadType(LoadRequestType::GENERAL),
       m_fadeDuration(1.0f),
       m_loadingScreenReady(false),
-      m_generalLoadingScreenPath("../assets/images/menuload.png"),
-      m_nextLevelLoadingScreenPath("../assets/images/loading.jpeg"),
+      m_generalLoadingScreenPath("../assets/images/Loading-screen.png"),
+      m_nextLevelLoadingScreenPath("../assets/images/Loading-screen.jpeg"),
       m_respawnLoadingScreenPath("../assets/images/respawn.png") {
 
     m_bodyTypeMap["none"] = phys::bodyType::none;
@@ -117,10 +117,14 @@ void LevelManager::update(float dt, sf::RenderWindow& window) {
                 if (!imageToLoadPath.empty()) {
                     if (m_loadingTexture.loadFromFile(imageToLoadPath)) {
                         m_loadingTexture.setSmooth(true);
+                        // resize to fit window
+                        float scaleX = static_cast<float>(window.getSize().x) / 1920.0f;
+                        float scaleY = static_cast<float>(window.getSize().y) / 1080.0f;
                         m_loadingSprite.emplace(m_loadingTexture);
-                        m_loadingSprite->setTexture(m_loadingTexture, true);
-                        sf::FloatRect bounds = m_loadingSprite->getLocalBounds();
-                        m_loadingSprite->setOrigin({bounds.size.x / 2.f, bounds.size.y / 2.f});
+                        m_loadingSprite->setTexture(m_loadingTexture, false);
+                        m_loadingSprite->setTextureRect(sf::IntRect({0,0}, {1920,1080}));
+                        m_loadingSprite->setScale({scaleX, scaleY});
+
                         m_loadingScreenReady = true;
                         std::cout << "LevelManager: Loaded image " << imageToLoadPath << std::endl;
                     } else {
@@ -177,7 +181,7 @@ void LevelManager::draw(sf::RenderWindow& window) {
                                 (m_transitionState == TransitionState::FADING_OUT && m_transitionClock.getElapsedTime().asSeconds() >= m_fadeDuration) ||
                                 (m_transitionState == TransitionState::FADING_IN && m_transitionClock.getElapsedTime().asSeconds() < m_fadeDuration));
     if (showLoadingScreenArt && m_loadingScreenReady) {
-        m_loadingSprite->setPosition({window.getSize().x / 2.f, window.getSize().y / 2.f});
+        //m_loadingSprite->setPosition({window.getSize().x / 2.f, window.getSize().y / 2.f});
         window.draw(*m_loadingSprite);
     }
     if (m_fadeOverlay.getFillColor().a > 0) {

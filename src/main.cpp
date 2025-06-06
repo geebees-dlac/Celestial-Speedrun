@@ -93,8 +93,8 @@ sf::Sound sfxPlayer(defaultSoundBuffer);
 // --- Asset Paths ---
 const std::string FONT_PATH = "../assets/fonts/ARIALBD.TTF";
 const std::string IMG_MENU_BG = "../assets/images/mainmenu_bg.png";
-const std::string IMG_LOAD_GENERAL = "../assets/images/loading.png";
-const std::string IMG_LOAD_NEXT = "../assets/images/menuload.png";
+const std::string IMG_LOAD_GENERAL = "../assets/images/Loading-screen.png";
+const std::string IMG_LOAD_NEXT = "../assets/images/Loading-screen.png";
 const std::string IMG_LOAD_RESPAWN = "../assets/images/respawn.png";
 const std::string AUDIO_MUSIC_MENU = "../assets/audio/music_menu.ogg";
 const std::string AUDIO_MUSIC_GAME = "../assets/audio/music_ingame.ogg";
