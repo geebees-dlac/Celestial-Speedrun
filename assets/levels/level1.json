@@ -16,22 +16,29 @@
       "id": 1,
       "type": "platform",
       "position": { "x": 500, "y": 410 },
-      "size": { "width": 96, "height": 8 },
+      "size": { "width": 96, "height": 64 },
       "animation": "static",
       "texture": "Desk.png",
       "dimensions": {"top-left-x": 86, "top-left-y": 268, "bottom-right-x": 900, "bottom-right-y": 867 }
     },
     {
-      "id": 2, "type": "falling", "position": {"x": 800, "y": 320}, "size": {"width": 32, "height": 32}},
+      "id": 2, "type": "falling", "position": {"x": 800, "y": 320}, "size": {"width": 32, "height": 32},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}
+    },
     {
       "id": 3,
       "type": "platform",
       "position": { "x": 1000, "y": 230 },
-      "size": { "width": 96, "height": 8 }
+      "size": { "width": 96, "height": 64 },
+      "texture": "Desk3.png",
+      "dimensions": {"top-left-x": 125, "top-left-y": 375, "bottom-right-x": 865, "bottom-right-y": 900}
     },
     {
-      "id": 4, "type": "falling", "position": {"x": 1300, "y": 140}, "size": {"width": 32, "height": 32}},
-
+      "id": 4, "type": "falling", "position": {"x": 1300, "y": 140}, "size": {"width": 32, "height": 32},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}
+    },
     {
       "id": 6,
       "type": "conveyorBelt",
@@ -46,23 +53,48 @@
       "size": { "width": 1032, "height": 16 }
     },
     {
-      "id": 8, "type": "falling", "position": {"x": 240, "y": -170}, "size": {"width": 32, "height": 32}},
+      "id": 8, "type": "falling", "position": {"x": 240, "y": -170}, "size": {"width": 32, "height": 32},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}},
     {
-      "id": 9, "type": "falling", "position": {"x": 340, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 9, "type": "falling", "position": {"x": 340, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}},
     {
-      "id": 10, "type": "vanishing", "position": {"x": 440, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 10, "type": "vanishing", "position": {"x": 440, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
     {
-      "id": 11, "type": "vanishing", "position": {"x": 540, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 11, "type": "vanishing", "position": {"x": 540, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
     {
-      "id": 12, "type": "vanishing", "position": {"x": 640, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 12, "type": "vanishing", "position": {"x": 640, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
     {
-      "id": 13, "type": "vanishing", "position": {"x": 740, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 13, "type": "vanishing", "position": {"x": 740, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
     {
-      "id": 14, "type": "vanishing", "position": {"x": 840, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 14, "type": "vanishing", "position": {"x": 840, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
     {
-      "id": 15, "type": "vanishing", "position": {"x": 940, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 15, "type": "vanishing", "position": {"x": 940, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
     {
-      "id": 16, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32}},  
+      "id": 16, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
     {
       "id": 17,
       "type": "solid",
@@ -72,7 +104,9 @@
     {
 
       "id": 18, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32},
-      "texture": "../assets/sprites/default.png"},  
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
           {
       "id": 19,
       "type": "solid",
@@ -97,26 +131,37 @@
     },
     {
       "id": 22, "type": "vanishing", "position": {"x": 1040, "y": -510}, "size": {"width": 32, "height": 32},
-      "texture": "../assets/sprites/default.png"},  
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
 
     {
       "id": 23, "type": "falling", "position": {"x": 600, "y": -510}, "size": {"width": 32, "height": 32},
-      "texture": "../assets/sprites/default.png"},  
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}},  
     {
       "id": 24, "type": "vanishing", "position": {"x": 160, "y": -510}, "size": {"width": 32, "height": 32},
-      "texture": "../assets/sprites/default.png"},  
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
     {
       "id": 25, "type": "falling", "position": {"x": -280, "y": -510}, "size": {"width": 32, "height": 32},
-      "texture": "../assets/sprites/default.png"},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}},
       {
       "id": 26, "type": "vanishing", "position": {"x": -720, "y": -510}, "size": {"width": 32, "height": 32},
-      "texture": "../assets/sprites/default.png"},  
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
     {
       "id": 27, "type": "falling", "position": {"x": -1160, "y": -510}, "size": {"width": 32, "height": 32},
-      "texture": "../assets/sprites/default.png"},    
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}},    
       {
       "id": 28, "type": "vanishing", "position": {"x": -1600, "y": -510}, "size": {"width": 32, "height": 32},
-      "texture": "../assets/sprites/default.png"},  
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
 
     {
       "id": 29  ,
