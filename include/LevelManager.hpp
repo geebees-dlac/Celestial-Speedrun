@@ -93,7 +93,7 @@ public:
     bool requestLoadNextLevel(LevelData& outLevelData);
     bool requestRespawnCurrentLevel(LevelData& outLevelData);
 
-    void update(float dt, sf::RenderWindow& window);
+    void update(float dt, sf::RenderWindow& window, bool isFullscreen);
     void draw(sf::RenderWindow& window);
 
     bool isTransitioning() const;

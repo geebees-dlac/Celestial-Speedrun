@@ -1231,7 +1231,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
         } // End of fixed update (while) loop
     } // End of PLAYING state update logic
     else if (currentState == GameState::TRANSITIONING) {
-        levelManager.update(frameDeltaTime.asSeconds(), window);
+        levelManager.update(frameDeltaTime.asSeconds(), window, isFullscreen);
         if (!levelManager.isTransitioning()) {
             setupLevelAssets(currentLevelData, window);
 
@@ -1240,11 +1240,20 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                 // Has custom background
                 sf::Texture& levelBgTexture = LevelBackgrounds.find(currentLevelData.levelNumber)->second;
                 // Resizing background to fit screen
-                float scaleX = static_cast<float>(window.getSize().x) / static_cast<float>(levelBgTexture.getSize().x);
-                float scaleY = static_cast<float>(window.getSize().y) / static_cast<float>(levelBgTexture.getSize().y);
+                float scaleX = 1.0f;
+                float scaleY = 1.0f;
+                if (isFullscreen){
+                    // Fullscreen logic
+                    scaleX = LOGICAL_SIZE.x / static_cast<float>(levelBgTexture.getSize().x);
+                    scaleY = LOGICAL_SIZE.y / static_cast<float>(levelBgTexture.getSize().y);
+                }
+                else {
+                    scaleX = static_cast<float>(window.getSize().x) / static_cast<float>(levelBgTexture.getSize().x);
+                    scaleY = static_cast<float>(window.getSize().y) / static_cast<float>(levelBgTexture.getSize().y);
+                }
                 levelBgSprite = sf::Sprite(levelBgTexture);
-                float bgScale = std::min(scaleX, scaleY);
-                levelBgSprite->setScale({bgScale, 1.0f});
+                levelBgSprite->setScale({scaleX, scaleY});
+                
             } else levelBgSprite = std::nullopt;
 
             currentState = GameState::PLAYING;

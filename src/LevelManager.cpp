@@ -91,7 +91,7 @@ bool LevelManager::requestRespawnCurrentLevel(LevelData& outLevelData) {
     return requestLoadLevel(m_currentLevelNumber, outLevelData, LoadRequestType::RESPAWN);
 }
 
-void LevelManager::update(float dt, sf::RenderWindow& window) {
+void LevelManager::update(float dt, sf::RenderWindow& window, bool isFullscreen) {
     if (m_transitionState == TransitionState::NONE) {
         return;
     }
@@ -117,9 +117,22 @@ void LevelManager::update(float dt, sf::RenderWindow& window) {
                 if (!imageToLoadPath.empty()) {
                     if (m_loadingTexture.loadFromFile(imageToLoadPath)) {
                         m_loadingTexture.setSmooth(true);
+                        std::cout << "WINDOWDIM: " << (window.getSize().x) << "x" << (window.getSize().y) << std::endl;
+
                         // resize to fit window
-                        float scaleX = static_cast<float>(window.getSize().x) / 1920.0f;
-                        float scaleY = static_cast<float>(window.getSize().y) / 1080.0f;
+                        
+                        float scaleX = 1.0f;
+                        float scaleY = 1.0f;
+                        if (isFullscreen){
+                            // fullscreen logic
+                            scaleX = 800.0f / 1920.0f;
+                            scaleY = 600.0f / 1080.0f;
+                        }
+                        else {
+                            // windowed logic
+                            scaleX = static_cast<float>(window.getSize().x) / 1920.0f;
+                            scaleY = static_cast<float>(window.getSize().y) / 1080.0f;
+                        }
                         m_loadingSprite.emplace(m_loadingTexture);
                         m_loadingSprite->setTexture(m_loadingTexture, false);
                         m_loadingSprite->setTextureRect(sf::IntRect({0,0}, {1920,1080}));
