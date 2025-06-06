@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <iostream>
 #include <algorithm>
+#include <set>
 
 // Constructor
 LevelManager::LevelManager()
@@ -19,7 +20,9 @@ LevelManager::LevelManager()
       m_loadingScreenReady(false),
       m_generalLoadingScreenPath("../assets/images/Loading-screen.png"),
       m_nextLevelLoadingScreenPath("../assets/images/Loading-screen.jpeg"),
-      m_respawnLoadingScreenPath("../assets/images/respawn.png") {
+      m_respawnLoadingScreenPath("../assets/images/respawn.png"), 
+      m_loadingJsonDoc(nullptr), 
+      m_textureLoadIndex(0){
 
     m_bodyTypeMap["none"] = phys::bodyType::none;
     m_bodyTypeMap["platform"] = phys::bodyType::platform;
@@ -37,7 +40,7 @@ LevelManager::LevelManager()
     m_fadeOverlay.setFillColor(sf::Color(0, 0, 0, 0));
 }
 
-LevelManager::~LevelManager() {}
+LevelManager::~LevelManager() {freeJsonDocument(m_loadingJsonDoc);} //close mid load
 void LevelManager::setGeneralLoadingScreenImage(const std::string& imagePath) {
     m_generalLoadingScreenPath = imagePath;
 }
@@ -51,7 +54,6 @@ void LevelManager::setRespawnLoadingScreenImage(const std::string& imagePath) {
 void LevelManager::setTransitionProperties(float fadeDuration) {
     m_fadeDuration = std::max(0.1f, fadeDuration);
 }
-
 bool LevelManager::requestLoadLevel(int levelNumber, LevelData& outLevelData, LoadRequestType type) {
     if (m_transitionState != TransitionState::NONE) {
         std::cerr << "LevelManager Warning: Cannot request load, transition in progress." << std::endl;
@@ -100,80 +102,83 @@ void LevelManager::update(float dt, sf::RenderWindow& window, bool isFullscreen)
     switch (m_transitionState) {
         case TransitionState::FADING_OUT: {
             float alpha = std::min(255.f, (elapsedTime / m_fadeDuration) * 255.f);
-            color.a = alpha;
+            color.a = static_cast<uint8_t>(alpha); //chakto lahi nman diay ni :(
             m_fadeOverlay.setFillColor(color);
             if (elapsedTime >= m_fadeDuration) {
                 color.a = 255;
                 m_fadeOverlay.setFillColor(color);
-                m_transitionState = TransitionState::LOADING;
+                
+                // Prepare the loading screen graphic itself  
+                m_transitionState = TransitionState::LOADING; // instant moving load state
                 m_transitionClock.restart();
                 std::string imageToLoadPath;
                 switch (m_currentLoadType) {
                     case LoadRequestType::NEXT_LEVEL: imageToLoadPath = m_nextLevelLoadingScreenPath; break;
                     case LoadRequestType::RESPAWN:    imageToLoadPath = m_respawnLoadingScreenPath;   break;
-                    case LoadRequestType::GENERAL:
                     default:                          imageToLoadPath = m_generalLoadingScreenPath; break;
                 }
                 if (!imageToLoadPath.empty()) {
                     if (m_loadingTexture.loadFromFile(imageToLoadPath)) {
                         m_loadingTexture.setSmooth(true);
-                        std::cout << "WINDOWDIM: " << (window.getSize().x) << "x" << (window.getSize().y) << std::endl;
-
-
-                        
                         m_loadingSprite.emplace(m_loadingTexture);
-                        m_loadingSprite->setTexture(m_loadingTexture, false);
-                        if (imageToLoadPath == m_generalLoadingScreenPath)
-                            m_loadingSprite->setTextureRect(sf::IntRect({0,0}, {1920,1080}));
-                        // resize to fit window
-                        float scaleX = 1.0f;
-                        float scaleY = 1.0f;
-                        if (isFullscreen){
-                            // fullscreen logic
-                            scaleX = 800.0f / m_loadingSprite->getTextureRect().size.x;
-                            scaleY = 600.0f / m_loadingSprite->getTextureRect().size.y;
-                        }
-                        else {
-                            // windowed logic
-                            scaleX = static_cast<float>(window.getSize().x) / m_loadingSprite->getTextureRect().size.x;
-                            scaleY = static_cast<float>(window.getSize().y) / m_loadingSprite->getTextureRect().size.y;
-                        }
+                        float scaleX = static_cast<float>(window.getSize().x) / m_loadingTexture.getSize().x;
+                        float scaleY = static_cast<float>(window.getSize().y) / m_loadingTexture.getSize().y;
                         m_loadingSprite->setScale({scaleX, scaleY});
-
                         m_loadingScreenReady = true;
-                        std::cout << "LevelManager: Loaded image " << imageToLoadPath << std::endl;
+                        std::cout << "LevelManager: Loaded loading screen image " << imageToLoadPath << std::endl;
                     } else {
                         std::cerr << "LevelManager Error: Failed to load loading image: " << imageToLoadPath << std::endl;
                         m_loadingScreenReady = false;
                     }
                 } else {
-                    std::cout << "LevelManager: No specific loading image set for this load type." << std::endl;
                     m_loadingScreenReady = false;
                 }
-                if (m_levelDataToFill) {
-                    if (performActualLoad(m_targetLevelNumber, *m_levelDataToFill)) {
-                        m_currentLevelNumber = m_targetLevelNumber;
-                         std::cout << "LevelManager: Level " << m_targetLevelNumber << " loaded successfully." << std::endl;
-                        m_transitionState = TransitionState::FADING_IN;
-                        m_transitionClock.restart();
-                        std::cout << "LevelManager: Transitioning to FADING_IN." << std::endl;
-                    } else {
-                        std::cerr << "LevelManager Error: Failed to load level " << m_targetLevelNumber << " data." << std::endl;
-                        m_transitionState = TransitionState::NONE;
-                        m_levelDataToFill = nullptr;
-                    }
-                } else {
-                     std::cerr << "LevelManager Critical Error: m_levelDataToFill is null during LOADING." << std::endl;
+
+                // Prepare the actual level for async loading ---
+                if (!m_levelDataToFill) {
+                     std::cerr << "LevelManager Critical Error: m_levelDataToFill is null when starting load." << std::endl;
                      m_transitionState = TransitionState::NONE;
+                     break;
                 }
+                
+                // clean
+                freeJsonDocument(m_loadingJsonDoc);
+                m_loadingJsonDoc = nullptr;
+                m_texturePathsToLoad.clear();
+
+                std::string filename = m_levelBasePath + "level" + std::to_string(m_targetLevelNumber) + ".json";
+                m_loadingJsonDoc = readJsonFile(filename);
+
+                if (!m_loadingJsonDoc) {
+                    std::cerr << "LevelManager Error: Failed to read/parse " << filename << ". Aborting load." << std::endl;
+                    m_transitionState = TransitionState::NONE; m_levelDataToFill = nullptr;
+                    break;
+                }
+
+                // Parse everything except the texture files which increases effificneyc
+                if (!parseLevelData(*m_loadingJsonDoc, *m_levelDataToFill) || !prepareAsynchronousLoad(*m_loadingJsonDoc, *m_levelDataToFill)) {
+                    std::cerr << "LevelManager Error: Failed to prepare level " << m_targetLevelNumber << " for loading." << std::endl;
+                    freeJsonDocument(m_loadingJsonDoc); m_loadingJsonDoc = nullptr;
+                    m_transitionState = TransitionState::NONE; m_levelDataToFill = nullptr;
+                    break;
+                }
+
+                m_textureLoadIndex = 0; //load textured in indecise
+                std::cout << "LevelManager: Ready to load " << m_texturePathsToLoad.size() << " textures asynchronously." << std::endl;
             }
             break;
         }
         case TransitionState::LOADING:
+            if (m_levelDataToFill) {
+                processLoadingTick(); //new loading process
+            } else {
+                std::cerr << "LevelManager Critical Error: m_levelDataToFill is null during LOADING state." << std::endl;
+                m_transitionState = TransitionState::NONE;
+            }
             break;
         case TransitionState::FADING_IN: {
             float alpha = std::max(0.f, 255.f - (elapsedTime / m_fadeDuration) * 255.f);
-            color.a = alpha;
+            color.a = static_cast<uint8_t>(alpha);
             m_fadeOverlay.setFillColor(color);
             if (elapsedTime >= m_fadeDuration) {
                 color.a = 0;
@@ -181,6 +186,9 @@ void LevelManager::update(float dt, sf::RenderWindow& window, bool isFullscreen)
                 m_transitionState = TransitionState::NONE;
                 m_levelDataToFill = nullptr;
                 m_loadingScreenReady = false;
+                m_texturePathsToLoad.clear();
+                freeJsonDocument(m_loadingJsonDoc); //final checks
+                m_loadingJsonDoc = nullptr;
                 std::cout << "LevelManager: FADING_IN complete. Transition finished." << std::endl;
             }
             break;
@@ -490,98 +498,116 @@ bool LevelManager::parseLevelData(const rapidjson::Document& d, LevelData& outLe
             }
         } 
 
-        if (!parseLevelTextures(d, outLevelData)){
-            std::cerr << "Error loading textures\n";
-            return false;
-        }
-        else std::cout << "Loaded textures?\n";
     } else {
         std::cerr << "LevelManager Error: Missing platforms array\n";
         return false;
     }
-    return true;
+
+    return true; //remove unecessary debug
 }
 
-bool LevelManager::parseLevelTextures(const rapidjson::Document& d, LevelData& outLevelData){
+bool LevelManager::prepareAsynchronousLoad(const rapidjson::Document& d, LevelData& outLevelData) {
+    // clear ram
     outLevelData.TexturesList.clear();
     outLevelData.TexturesDimensions.clear();
+    m_texturePathsToLoad.clear();
 
-    std::vector<std::string> TexturePathsList;
 
-    TexturePathsList.push_back(DEFAULT_TEXTURE_FILEPATH);
+    std::set<std::string> uniquePaths;
+    uniquePaths.insert(DEFAULT_TEXTURE_FILEPATH);
 
-    if (d.HasMember("platforms") && d["platforms"].IsArray()){
+
+    if (d.HasMember("platforms") && d["platforms"].IsArray()) {
         const auto& platformsArray = d["platforms"];
-        TexturePathsList.reserve(platformsArray.Size());
-
         for (rapidjson::SizeType i = 0; i < platformsArray.Size(); ++i) {
             const auto& platJson = platformsArray[i];
             if (!platJson.IsObject()) continue;
 
-            if (platJson.HasMember("texture") && platJson["texture"].IsString()){
-                TexturePathsList.push_back(platJson["texture"].GetString());
+            // Collect list
+            if (platJson.HasMember("texture") && platJson["texture"].IsString()) {
+                std::string path = platJson["texture"].GetString();
+                
+                if (path.find(TEXTURE_DIRECTORY) == std::string::npos)
+                    path = TEXTURE_DIRECTORY + path;
+                uniquePaths.insert(path);
             }
-            // if no texture filepath, will default
 
-            // check if platform has specific dimensions (default: will render entire image)
-            if (platJson.HasMember("dimensions") && platJson["dimensions"].IsObject()){
+            // We scan and parse at the same time
+            if (platJson.HasMember("dimensions") && platJson["dimensions"].IsObject()) {
                 const auto& dimensions = platJson["dimensions"];
                 unsigned int id = 0;
                 if (platJson.HasMember("id") && platJson["id"].IsUint()) {
                     id = platJson["id"].GetUint();
-                } else {
-                    id = static_cast<unsigned int>(outLevelData.platforms.size() + 1000);
                 }
-                if (dimensions.HasMember("top-left-x") && dimensions["top-left-x"].IsInt()
+
+                if (id != 0 && dimensions.HasMember("top-left-x") && dimensions["top-left-x"].IsInt()
                     && dimensions.HasMember("top-left-y") && dimensions["top-left-y"].IsInt()
                     && dimensions.HasMember("bottom-right-x") && dimensions["bottom-right-x"].IsInt()
                     && dimensions.HasMember("bottom-right-y") && dimensions["bottom-right-y"].IsInt())
-                    outLevelData.TexturesDimensions.emplace(id,
-                        sf::IntRect({dimensions["top-left-x"].GetInt(), dimensions["top-left-y"].GetInt()},
-                            {dimensions["bottom-right-x"].GetInt()-dimensions["top-left-x"].GetInt(),
-                            dimensions["bottom-right-y"].GetInt()-dimensions["top-left-y"].GetInt()}));
+                    {
+                        outLevelData.TexturesDimensions.emplace(id,
+                            sf::IntRect({dimensions["top-left-x"].GetInt(), dimensions["top-left-y"].GetInt()},
+                                {dimensions["bottom-right-x"].GetInt() - dimensions["top-left-x"].GetInt(),
+                                dimensions["bottom-right-y"].GetInt() - dimensions["top-left-y"].GetInt()}));
+                    }
             }
         }
     }
 
-    if (TexturePathsList.size() > 0) {
-        for (std::string newTexturePath : TexturePathsList){
-            if (newTexturePath.find(TEXTURE_DIRECTORY) == std::string::npos)
-                newTexturePath = TEXTURE_DIRECTORY+newTexturePath;
-            std::cout<<newTexturePath<<std::endl;
-            sf::Texture newTexture(DEFAULT_TEXTURE_FILEPATH);
-            if (!newTexture.loadFromFile(newTexturePath)){
-                std::cout << "Failed to load texture: " << newTexturePath << std::endl;
-                newTexture.loadFromFile(DEFAULT_TEXTURE_FILEPATH);
-            }
-            if (outLevelData.TexturesList.find(newTexturePath) == outLevelData.TexturesList.end()){
-                std::cout << "Added new: " << newTexturePath << std::endl; 
-                outLevelData.TexturesList.emplace(newTexturePath, std::move(newTexture));
-            }
+    // Also check for the special level background texture (wgat?)
+    if (d.HasMember("backgroundTexture") && d["backgroundTexture"].IsString()) {
+        std::string path = d["backgroundTexture"].GetString();
+        if (path.find(IMAGE_DIRECTORY) == std::string::npos) {
+            path = IMAGE_DIRECTORY + path;
         }
+        uniquePaths.insert(path);
     }
 
-    if (d.HasMember("backgroundTexture") && d["backgroundTexture"].IsString()){
-        // Found a custom background
-        std::string btPath = d["backgroundTexture"].GetString();
-        std::cout << "FOUND BACKGROUND TEXTURE " << btPath << std::endl;
-
-        if (btPath.find(IMAGE_DIRECTORY) == std::string::npos){
-            // adjust to add image directory to filepath
-            btPath = IMAGE_DIRECTORY + btPath;
-        }
-
-        // Add texture to TexturesList
-        sf::Texture levelbg(DEFAULT_TEXTURE_FILEPATH);
-        if (levelbg.loadFromFile(btPath)){
-            // Successfully loaded custom background
-            outLevelData.TexturesList.emplace(LEVEL_BG_ID, std::move(levelbg));
-        }
-        else {
-            // Failed to load custom background; will eventually default to color background in main
-        }
-    }
+    // Now copy the unique paths into our texture loading list
+    m_texturePathsToLoad.assign(uniquePaths.begin(), uniquePaths.end());
 
     return true;
+}
 
+void LevelManager::processLoadingTick() {
+    // check if finished loading texture
+    if (m_textureLoadIndex >= m_texturePathsToLoad.size()) {
+        std::cout << "LevelManager: Asynchronous loading complete." << std::endl;
+        m_currentLevelNumber = m_targetLevelNumber;
+
+        // fade in now
+        m_transitionState = TransitionState::FADING_IN;
+        m_transitionClock.restart();
+        return; // exit
+    }
+
+    // keep load texture path
+    const std::string& path_to_load = m_texturePathsToLoad[m_textureLoadIndex];
+
+    // handle background case
+    std::string key_to_use = path_to_load;
+    if (m_loadingJsonDoc->HasMember("backgroundTexture") && (*m_loadingJsonDoc)["backgroundTexture"].IsString()) {
+        std::string bg_path_json = (*m_loadingJsonDoc)["backgroundTexture"].GetString();
+        std::string bg_path_full = (bg_path_json.find(IMAGE_DIRECTORY) == std::string::npos) ? (IMAGE_DIRECTORY + bg_path_json) : bg_path_json;
+
+        if (path_to_load == bg_path_full) {
+            key_to_use = LEVEL_BG_ID; // Use the special identifier for the background
+        }
+    }
+
+    sf::Texture newTexture;
+    std::cout << "Loading texture: " << path_to_load << "..." << std::endl;
+    if (!newTexture.loadFromFile(path_to_load)) {
+        std::cerr << "LevelManager Error: Failed to load texture '" << path_to_load << "'. Using default." << std::endl;
+        newTexture.loadFromFile(DEFAULT_TEXTURE_FILEPATH); // Use fallback
+        key_to_use = DEFAULT_TEXTURE_FILEPATH; // enuse matches
+    }
+
+    // store in lvl data
+    if (m_levelDataToFill && m_levelDataToFill->TexturesList.find(key_to_use) == m_levelDataToFill->TexturesList.end()) {
+        m_levelDataToFill->TexturesList.emplace(key_to_use, std::move(newTexture));
+    }
+
+    // advance to next texture
+    m_textureLoadIndex++;
 }

@@ -113,7 +113,13 @@ private:
     bool performActualLoad(int levelNumber, LevelData& outLevelData);
     bool loadLevelDataFromFile(const std::string& filename, LevelData& outLevelData);
     bool loadLevelDataFromJson(const rapidjson::Document& doc, LevelData& outLevelData);
-    
+
+    bool prepareAsynchronousLoad(const rapidjson::Document& d, LevelData& outLevelData);
+    void processLoadingTick();
+    rapidjson::Document* m_loadingJsonDoc; //mem handler
+    std::vector<std::string> m_texturePathsToLoad; //texture load lsit
+    int m_textureLoadIndex; //list pos
+
     rapidjson::Document* readJsonFile(const std::string& filepath);
     void freeJsonDocument(rapidjson::Document* doc);
     // phys::bodyType stringToBodyType(const std::string& typeStr); // Moved to public
