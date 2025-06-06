@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <SFML/Graphics.hpp>
+#include "Tile.hpp"
 
 #ifndef SPRITE_MANAGER
 #define SPRITE_MANAGER
@@ -27,6 +28,8 @@ namespace sprites {
             static std::vector<sf::Texture> LoadLevelTextures(std::vector<std::string>);
 
             static sf::IntRect GetPlayerTextureUponMovement(PlayerMoveDirection direction);
+
+            static bool DoorAnimation(Tile& doorSprite);
         private:
             std::string textureDirectoryRelative = "../assets/sprites/";
             std::string defaultTexturePath = textureDirectoryRelative + "default.png";

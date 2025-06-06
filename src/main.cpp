@@ -408,6 +408,9 @@ for (const auto& body : bodies) {
         }
     }
 
+    // Determine if tile is special block
+    if (body.getType() == phys::bodyType::goal) newTile.setSpecialTile(Tile::SpecialTile::GOAL);
+
     tiles.push_back(newTile);
 }
 
@@ -463,6 +466,22 @@ sf::RectangleShape playerShape;
 std::optional<sf::Sprite> levelBgSprite;
 
 bool menuBgSpriteLoaded = false;
+
+bool goalReached = false;
+bool doorAnimationOngoing = false;
+std::vector<sf::Vector2f>doorAnimFramesTopLeft;
+    doorAnimFramesTopLeft.push_back(sf::Vector2f(1275, 255));
+    doorAnimFramesTopLeft.push_back(sf::Vector2f(250, 1275));
+    doorAnimFramesTopLeft.push_back(sf::Vector2f(1275, 1275));
+    doorAnimFramesTopLeft.push_back(sf::Vector2f(250, 2305));
+    doorAnimFramesTopLeft.push_back(sf::Vector2f(1275,255));
+int doorWidth = 455;
+int doorHeight = 610;
+int doorCurrentFrame = 0;
+sf::Clock animClock;
+float secondsPerFrame_door = 0.20f;
+Tile* animatedDoorTile = nullptr;
+sf::Time frameTime_door = sf::seconds(secondsPerFrame_door);
 
     // --- Game Constants ---
     const float PLAYER_MOVE_SPEED = 200.f;
@@ -530,7 +549,7 @@ else {
 }
 
     // --- UI Text Setup ---
-    setupTextUI(menuTitleText, "Project - T", 100.f, 48);
+    setupTextUI(menuTitleText, "Celestial Speedrun", 100.f, 48);
     setupTextUI(startButtonText, "Start Game", 250.f);
     setupTextUI(settingsButtonText, "Settings", 300.f);
     setupTextUI(creditsButtonText, "Credits", 350.f);
@@ -759,7 +778,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
         timeSinceLastFixedUpdate += frameDeltaTime;
 
         // --- Game Logic Update ---
-        if (currentState == GameState::PLAYING) {
+        if (currentState == GameState::PLAYING && !goalReached) {
             playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
 
             while (timeSinceLastFixedUpdate >= TIME_PER_FIXED_UPDATE) {
@@ -937,7 +956,8 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                                 finalAlphaByte = 0;
                             }
                         }
-                        current_tile.setFillColor(sf::Color(baseVanishingColor.r, baseVanishingColor.g, baseVanishingColor.b, finalAlphaByte));
+                        // REMOVED DEPENDENCE ON BLOCK TYPE COLOR - WILL NOW RENDER AS SPRITE
+                        current_tile.setFillColor(sf::Color(255, 255, 255, finalAlphaByte));
                     }
                 }
 
@@ -1103,20 +1123,26 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                 // --- Goal Interaction ---
                 for (const auto& platform_body_check_goal : bodies) {
                     if (platform_body_check_goal.getType() == phys::bodyType::goal && playerBody.getAABB().findIntersection(platform_body_check_goal.getAABB())) {
-                        playSfx("goal");
-                        if (levelManager.hasNextLevel()) {
-                            if (levelManager.requestLoadNextLevel(currentLevelData)) {
-                                currentState = GameState::TRANSITIONING;
-                            } else { 
-                                currentState = GameState::MENU; 
-                                if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop(); 
-                                if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play(); 
+                        for (auto tile : tiles){
+                            if (tile.getSpecialTile() == Tile::SpecialTile::GOAL){
+                                // run door animation
+                                std::cout<<"DOOR ANIMATION!"<<std::endl;
+                                animatedDoorTile = &tile;
+                                doorAnimationOngoing = true;
+                                goalReached = true;
+
+                                for (Tile& t : tiles){
+                                    if (t.getSpecialTile() == Tile::SpecialTile::GOAL){
+                                        animatedDoorTile = &t;
+                                        break;
+                                    }
+                                }
+
+                                animClock.restart();
+                                break;
                             }
-                        } else {
-                            currentState = GameState::GAME_OVER_WIN;
-                            if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop();
-                            if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
                         }
+                        playSfx("goal");
                         interaction_occurred_this_frame = true;
                         goto end_fixed_update_for_interaction;
                     }
@@ -1230,7 +1256,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
 
         } // End of fixed update (while) loop
     } // End of PLAYING state update logic
-    else if (currentState == GameState::TRANSITIONING) {
+    else if (currentState == GameState::TRANSITIONING && !goalReached) {
         levelManager.update(frameDeltaTime.asSeconds(), window, isFullscreen);
         if (!levelManager.isTransitioning()) {
             setupLevelAssets(currentLevelData, window);
@@ -1331,9 +1357,15 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
 
 
                 playerShape.setPosition(playerBody.getPosition());
-                for (const auto& t : tiles) {
+                for (Tile& t : tiles) {
                     if (t.getFillColor().a > 0 && !t.hasFallen()) {
-                         window.draw(t);
+                        if (doorAnimationOngoing){
+                            if (animatedDoorTile != &t){
+                                continue;
+                            }
+                        }
+                        window.draw(t);
+                        
                     }
                 }
                 window.draw(playerShape);
@@ -1367,6 +1399,38 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                     debugText.setString(debugString);
                 }
                 window.draw(debugText);
+
+                if (goalReached && doorAnimationOngoing){
+                    if (animClock.getElapsedTime() >= frameTime_door){
+                        animClock.restart();
+                        std::cout << "ANIMATED DOOR! Frame "<< doorCurrentFrame 
+                        << " [" << doorAnimFramesTopLeft[doorCurrentFrame].x << ","
+                        << doorAnimFramesTopLeft[doorCurrentFrame].y << "]" << std::endl;
+                        animatedDoorTile->setTextureRect(sf::IntRect({doorAnimFramesTopLeft[doorCurrentFrame].x,
+                                                                    doorAnimFramesTopLeft[doorCurrentFrame].y},
+                                                                    {doorWidth, doorHeight}));
+                        doorCurrentFrame++;
+                    }
+                    window.draw(*animatedDoorTile);
+                    if (doorCurrentFrame == 5){
+                        goalReached = false;
+                        doorAnimationOngoing = false;
+                        doorCurrentFrame = 0;
+                        if (levelManager.hasNextLevel()) {
+                            if (levelManager.requestLoadNextLevel(currentLevelData)) {
+                                currentState = GameState::TRANSITIONING;
+                            } else { 
+                                currentState = GameState::MENU; 
+                                if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop(); 
+                                if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play(); 
+                            }
+                        } else {
+                            currentState = GameState::GAME_OVER_WIN;
+                            if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop();
+                            if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
+                        }
+                    }
+                }
                 break;
             case GameState::TRANSITIONING:
                 window.setView(uiView);
