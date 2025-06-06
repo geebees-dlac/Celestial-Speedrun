@@ -3,6 +3,7 @@
   "levelNumber": 5,
   "playerStart": { "x": 0, "y": 0 },
   "backgroundColor": { "r": 20, "g": 20, "b": 40 },
+  "backgroundTexture": "LEVEL5_BACKGROUND.png",
   "platforms": [
     {
       "id": 0,
