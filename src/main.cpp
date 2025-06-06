@@ -647,6 +647,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                     creditsNamesText.setPosition({LOGICAL_SIZE.x / 2.f, LOGICAL_SIZE.y + creditsNamesText.getLocalBounds().size.y / 2.f}); // Reset the scroll
                     if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop();
                     if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
+                }
             }
         }
 
@@ -1140,7 +1141,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
 
 
                 // --- Goal Interaction ---
-                for (const auto& platform_body_check_goal : bodies) {
+ for (const auto& platform_body_check_goal : bodies) {
                     if (platform_body_check_goal.getType() == phys::bodyType::goal && playerBody.getAABB().findIntersection(platform_body_check_goal.getAABB())) {
                         playSfx("goal");
                         if (levelManager.hasNextLevel()) {
@@ -1157,7 +1158,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
 
                                  if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop();
                                  if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
-                                }
+                        } 
                         interaction_occurred_this_frame = true;
                         goto end_fixed_update_for_interaction;
                     }
