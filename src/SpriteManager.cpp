@@ -34,12 +34,12 @@ sf::IntRect sprites::SpriteManager::GetPlayerTextureUponMovement(int direction){
         // Return left-facing character
         return sf::IntRect({96,0}, {48,64});
     }
-    else if (direction == 0){
-        // Return front-facing character
-        return sf::IntRect({0,0}, {48,64});
-    }
     else if (direction == 1){
         // Return right-facing character
         return sf::IntRect({48,0}, {48,64});
+    }
+    else {
+        // DEFAULT: Return front-facing character
+        return sf::IntRect({0,0}, {48,64});
     }
 }
