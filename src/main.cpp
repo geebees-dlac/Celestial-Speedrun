@@ -491,6 +491,7 @@ sf::Time frameTime_door = sf::seconds(secondsPerFrame_door);
     const sf::Time MAX_JUMP_HOLD_TIME = sf::seconds(0.18f);
     const float PLAYER_DEATH_Y_LIMIT = 2000.f;
     const float SPRING_BOUNCE_VELOCITY = 2.0f * JUMP_INITIAL_VELOCITY;
+    const float creditsScrollSpeed = 40.f;
 
     // --- Initialization ---
     populateAvailableResolutions();
@@ -548,36 +549,73 @@ else {
     std::cerr << "Warning: Menu BG image not found: " << IMG_MENU_BG << std::endl;
 }
 
-    // --- UI Text Setup ---
-    setupTextUI(menuTitleText, "Celestial Speedrun", 100.f, 48);
-    setupTextUI(startButtonText, "Start Game", 250.f);
-    setupTextUI(settingsButtonText, "Settings", 300.f);
-    setupTextUI(creditsButtonText, "Credits", 350.f);
-    setupTextUI(exitButtonText, "Exit", 400.f);
+ // 1. MAIN MENU (Unchanged from previous version)
+    setupTextUI(menuTitleText, "Celestial Speedrun", 120.f, 64);
+    setupTextUI(startButtonText, "[ START ]", 280.f, 40);
+    setupTextUI(settingsButtonText, "[ Settings ]", 350.f, 28);
+    setupTextUI(creditsButtonText, "[ Credits ]", 390.f, 28);
+    setupTextUI(exitButtonText, "[ Exit ]", 550.f, 24);
 
-    setupTextUI(settingsTitleText, "Settings", 70.f, 40);
-    setupTextUI(musicVolumeLabelText, "Music Volume:", 150.f, 24, -100.f);
-    setupTextUI(musicVolDownText, "<", 150.f, 24, 20.f);
-    setupTextUI(musicVolValText, "", 150.f, 24, 80.f);
-    setupTextUI(musicVolUpText, ">", 150.f, 24, 140.f);
-    setupTextUI(sfxVolumeLabelText, "SFX Volume:", 200.f, 24, -100.f);
-    setupTextUI(sfxVolDownText, "<", 200.f, 24, 20.f);
-    setupTextUI(sfxVolValText, "", 200.f, 24, 80.f);
-    setupTextUI(sfxVolUpText, ">", 200.f, 24, 140.f);
-    setupTextUI(resolutionLabelText, "Resolution:", 270.f, 24, -100.f);
-    setupTextUI(resolutionPrevText, "<", 320.f, 24, -30.f);
+
+    // 2. SETTINGS SCREEN (Completely redesigned for robustness)
+    setupTextUI(settingsTitleText, "S E T T I N G S", 80.f, 40);
+
+    // -- Volume Controls Section --
+    const float labelXOffset = -180.f;
+    const float controlGroupXOffset = 120.f;
+    const float arrowSpacing = 80.f;
+
+    setupTextUI(musicVolumeLabelText, "Music Volume", 180.f, 24, labelXOffset);
+    setupTextUI(musicVolDownText, "<", 180.f, 28, controlGroupXOffset - arrowSpacing);
+    setupTextUI(musicVolValText, "", 180.f, 24, controlGroupXOffset);
+    setupTextUI(musicVolUpText, ">", 180.f, 28, controlGroupXOffset + arrowSpacing);
+
+    setupTextUI(sfxVolumeLabelText, "SFX Volume", 240.f, 24, labelXOffset);
+    setupTextUI(sfxVolDownText, "<", 240.f, 28, controlGroupXOffset - arrowSpacing);
+    setupTextUI(sfxVolValText, "", 240.f, 24, controlGroupXOffset);
+    setupTextUI(sfxVolUpText, ">", 240.f, 28, controlGroupXOffset + arrowSpacing);
+
+    // -- Display Controls Section (THE CORE FIX) --
+    // We now build the layout around the fixed Y-position (320.f) from updateResolutionDisplayText().
+    setupTextUI(resolutionLabelText, "--- Display ---", 290.f, 24); // A clean section divider
+
+    // Vertically align the arrows with the resolution text at Y = 320.f
     resolutionCurrentText.setFont(menuFont);
     resolutionCurrentText.setCharacterSize(24);
     resolutionCurrentText.setFillColor(sf::Color::White);
-    updateResolutionDisplayText();
-    setupTextUI(resolutionNextText, ">", 320.f, 24, 30.f);
-    setupTextUI(fullscreenToggleText, "Toggle Fullscreen", 370.f, 24);
-    setupTextUI(settingsBackText, "Back to Menu", 450.f);
+    updateResolutionDisplayText(); // This hardcodes the text value's Y position to 320.f
+    setupTextUI(resolutionPrevText, "<", 320.f, 28, -160.f); // Y=320, with wide horizontal offset
+    setupTextUI(resolutionNextText, ">", 320.f, 28, 160.f); // Y=320, with wide horizontal offset
 
-    setupTextUI(creditsTitleText, "Credits", 100.f, 40);
-    setupTextUI(creditsNamesText, "Jan\nZean\nJecer\nGian", 250.f, 28);
-    setupTextUI(creditsBackText, "Back to Menu", 450.f);
+    setupTextUI(fullscreenToggleText, "[ Toggle Fullscreen ]", 370.f, 24); // Positioned neatly below the resolution line
 
+    setupTextUI(settingsBackText, "[ Back to Menu ]", 540.f, 26); // At the very bottom
+
+
+    // 3. CREDITS SCREEN (Unchanged from previous version)
+    setupTextUI(creditsTitleText, "Celestial Speedrun", 80.f, 48);
+    setupTextUI(creditsNamesText,
+        "Congratulations on finishing the game!\n\n\n\n\n\n\n\n\n\n"
+
+        "A tribute to the sleepless nights...\n\n\n"
+        "PROGRAMMING & ENGINEERING\n"
+        "Jecer Egagamao & Gian De la Cruz\n"
+        "   - for creating the spaghetti code that somehow runs\n\n"
+        "LEVEL & GAME DESIGN\n"
+        "Zeann Tahimic\n"
+        "   - for designing the masterfully rage-inducing difficulty\n\n"
+        "ART & VISUALS\n"
+        "Jan Abuyo\n"
+        "   - for the wonderful sprites and visual design\n\n\n"
+        "SPECIAL THANKS\n"
+        "Sound effects from online marketplaces\n"
+        "Inspiration from Mark Richards & various gamedev tutorials\n"
+        "Made with the powerful SFML Multimedia Library",
+        325.f, 22);
+    setupTextUI(creditsBackText, "--- Back to Menu ---", 560.f, 24);
+
+
+    // 4. GAME OVER SCREEN (Original layout is fine, remains unchanged)
     setupTextUI(gameOverStatusText, "", 150.f, 36);
     setupTextUI(gameOverOption1Text, "", 280.f);
     setupTextUI(gameOverOption2Text, "Main Menu", 330.f);
@@ -624,7 +662,8 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                 if(currentState == GameState::PLAYING && levelManager.requestLoadNextLevel(currentLevelData)){
                         currentState = GameState::TRANSITIONING; playSfx("goal");
                 } else if (currentState == GameState::PLAYING && !levelManager.hasNextLevel()) {
-                    currentState = GameState::GAME_OVER_WIN;
+                    currentState = GameState::CREDITS; // Go to credits instead of win screen
+                    creditsNamesText.setPosition({LOGICAL_SIZE.x / 2.f, LOGICAL_SIZE.y + creditsNamesText.getLocalBounds().size.y / 2.f}); // Reset the scroll
                     if(gameMusic.getStatus() == sf::Music::Status::Playing) gameMusic.stop();
                     if(menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFile(AUDIO_MUSIC_MENU)) menuMusic.play();
                 }
@@ -651,6 +690,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                             updateResolutionDisplayText();
                         } else if (creditsButtonText.getGlobalBounds().contains(worldPosUi)) {
                             currentState = GameState::CREDITS;
+                            creditsNamesText.setPosition({LOGICAL_SIZE.x / 2.f, LOGICAL_SIZE.y + creditsNamesText.getLocalBounds().size.y / 2.f});
                         } else if (exitButtonText.getGlobalBounds().contains(worldPosUi)) {
                             running = false; window.close();
                         }
@@ -1121,7 +1161,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
 
 
                 // --- Goal Interaction ---
-                for (const auto& platform_body_check_goal : bodies) {
+ for (const auto& platform_body_check_goal : bodies) {
                     if (platform_body_check_goal.getType() == phys::bodyType::goal && playerBody.getAABB().findIntersection(platform_body_check_goal.getAABB())) {
                         for (auto tile : tiles){
                             if (tile.getSpecialTile() == Tile::SpecialTile::GOAL){
@@ -1255,8 +1295,18 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
             }
 
         } // End of fixed update (while) loop
-    } // End of PLAYING state update logic
-    else if (currentState == GameState::TRANSITIONING && !goalReached) {
+    }
+    else if (currentState == GameState::CREDITS) {
+        // FIX 1: move() now takes a single sf::Vector2f argument
+        creditsNamesText.move({0.f, -creditsScrollSpeed * frameDeltaTime.asSeconds()});
+
+        // FIX 2: Changed .height to .size.y
+        if (creditsNamesText.getPosition().y < -(creditsNamesText.getLocalBounds().size.y / 2.f)) {
+            // FIX 3: Changed .height to .size.y
+            creditsNamesText.setPosition({LOGICAL_SIZE.x / 2.f, LOGICAL_SIZE.y + creditsNamesText.getLocalBounds().size.y / 2.f});
+        }
+    }
+    else if (currentState == GameState::TRANSITIONING) {
         levelManager.update(frameDeltaTime.asSeconds(), window, isFullscreen);
         if (!levelManager.isTransitioning()) {
             setupLevelAssets(currentLevelData, window);
@@ -1346,7 +1396,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
             break;
         case GameState::CREDITS:
             window.setView(uiView);
-             { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(50,20,20)); window.draw(bg); }
+              { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,60,20)); window.draw(bg); }
             creditsBackText.setFillColor(creditsBackText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
             window.draw(creditsTitleText); window.draw(creditsNamesText); window.draw(creditsBackText);
             break;

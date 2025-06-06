@@ -172,8 +172,8 @@
     {
     "id": 30, 
     "type": "goal", 
-    "position": {"x": -2040, "y": -590},  
-    "size": {"width": 64, "height":80},
+    "position": {"x": -2040, "y": -622},  
+    "size": {"width": 80, "height":112},
     "texture": "Door.png",
     "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     }
