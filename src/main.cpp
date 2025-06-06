@@ -574,7 +574,7 @@ else {
         playerTexture.loadFromFile(DEFAULT_TEXTURE_FILEPATH);
     }*/
     playerShape.setTexture(&playerTexture);
-    sf::IntRect playerDimensions = sprites::SpriteManager::GetPlayerTextureUponMovement(0);
+    sf::IntRect playerDimensions = sprites::SpriteManager::GetPlayerTextureUponMovement(sprites::SpriteManager::NONE);
     playerShape.setTextureRect(playerDimensions);
 
     playerShape.setSize(sf::Vector2f(playerBody.getWidth(), playerBody.getHeight()));
@@ -775,13 +775,13 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Left)) {
                 horizontalInput = -1.f;
-                playerShape.setTextureRect(sprites::SpriteManager::GetPlayerTextureUponMovement(-1));
+                playerShape.setTextureRect(sprites::SpriteManager::GetPlayerTextureUponMovement(sprites::SpriteManager::LEFT));
             }
             else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Right)) {
                 horizontalInput = 1.f;
-                playerShape.setTextureRect(sprites::SpriteManager::GetPlayerTextureUponMovement(1));
+                playerShape.setTextureRect(sprites::SpriteManager::GetPlayerTextureUponMovement(sprites::SpriteManager::RIGHT));
             }
-            else playerShape.setTextureRect(sprites::SpriteManager::GetPlayerTextureUponMovement(0));
+            else playerShape.setTextureRect(sprites::SpriteManager::GetPlayerTextureUponMovement(sprites::SpriteManager::NONE));
 
             bool jumpIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Space));
             bool dropIntentThisFrame = (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Down));

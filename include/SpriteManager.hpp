@@ -13,14 +13,20 @@ namespace sprites {
         #define IMAGE_DIRECTORY "../assets/images/"
         #define LEVEL_BG_ID "LEVEL_BG"
 
-        public:
+        public:    
+            typedef enum {
+                NONE = 0,
+                LEFT = 1,
+                RIGHT = 2
+            } PlayerMoveDirection;
+            
             SpriteManager();
 
             const sf::Texture& getDefaultTexture() const {return defaultTexture;}
 
             static std::vector<sf::Texture> LoadLevelTextures(std::vector<std::string>);
 
-            static sf::IntRect GetPlayerTextureUponMovement(int direction);
+            static sf::IntRect GetPlayerTextureUponMovement(PlayerMoveDirection direction);
         private:
             std::string textureDirectoryRelative = "../assets/sprites/";
             std::string defaultTexturePath = textureDirectoryRelative + "default.png";

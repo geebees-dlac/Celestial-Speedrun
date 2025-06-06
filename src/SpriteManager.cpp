@@ -27,14 +27,14 @@ std::vector<sf::Texture> LoadLevelTextures(std::vector<std::string> texturePaths
     return TextureList;
 }
 
-sf::IntRect sprites::SpriteManager::GetPlayerTextureUponMovement(int direction){
+sf::IntRect sprites::SpriteManager::GetPlayerTextureUponMovement(PlayerMoveDirection direction){
     // Returns player texture section to be rendered, depending on current direction of movement
     // direction: -1 = leftward, 0 = stationary, 1 = rightward
-    if (direction == -1){
+    if (direction == LEFT){
         // Return left-facing character
         return sf::IntRect({96,0}, {48,64});
     }
-    else if (direction == 1){
+    else if (direction == RIGHT){
         // Return right-facing character
         return sf::IntRect({48,0}, {48,64});
     }
