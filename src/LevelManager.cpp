@@ -119,23 +119,25 @@ void LevelManager::update(float dt, sf::RenderWindow& window, bool isFullscreen)
                         m_loadingTexture.setSmooth(true);
                         std::cout << "WINDOWDIM: " << (window.getSize().x) << "x" << (window.getSize().y) << std::endl;
 
-                        // resize to fit window
+
                         
+                        m_loadingSprite.emplace(m_loadingTexture);
+                        m_loadingSprite->setTexture(m_loadingTexture, false);
+                        if (imageToLoadPath == m_generalLoadingScreenPath)
+                            m_loadingSprite->setTextureRect(sf::IntRect({0,0}, {1920,1080}));
+                        // resize to fit window
                         float scaleX = 1.0f;
                         float scaleY = 1.0f;
                         if (isFullscreen){
                             // fullscreen logic
-                            scaleX = 800.0f / 1920.0f;
-                            scaleY = 600.0f / 1080.0f;
+                            scaleX = 800.0f / m_loadingSprite->getTextureRect().size.x;
+                            scaleY = 600.0f / m_loadingSprite->getTextureRect().size.y;
                         }
                         else {
                             // windowed logic
-                            scaleX = static_cast<float>(window.getSize().x) / 1920.0f;
-                            scaleY = static_cast<float>(window.getSize().y) / 1080.0f;
+                            scaleX = static_cast<float>(window.getSize().x) / m_loadingSprite->getTextureRect().size.x;
+                            scaleY = static_cast<float>(window.getSize().y) / m_loadingSprite->getTextureRect().size.y;
                         }
-                        m_loadingSprite.emplace(m_loadingTexture);
-                        m_loadingSprite->setTexture(m_loadingTexture, false);
-                        m_loadingSprite->setTextureRect(sf::IntRect({0,0}, {1920,1080}));
                         m_loadingSprite->setScale({scaleX, scaleY});
 
                         m_loadingScreenReady = true;
