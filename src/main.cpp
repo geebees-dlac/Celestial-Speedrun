@@ -1230,7 +1230,13 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
             // Check for custom background
             if (LevelBackgrounds.find(currentLevelData.levelNumber) != LevelBackgrounds.end()){
                 // Has custom background
-                levelBgSprite = sf::Sprite(LevelBackgrounds.find(currentLevelData.levelNumber)->second);
+                sf::Texture& levelBgTexture = LevelBackgrounds.find(currentLevelData.levelNumber)->second;
+                // Resizing background to fit screen
+                float scaleX = static_cast<float>(window.getSize().x) / static_cast<float>(levelBgTexture.getSize().x);
+                float scaleY = static_cast<float>(window.getSize().y) / static_cast<float>(levelBgTexture.getSize().y);
+                levelBgSprite = sf::Sprite(levelBgTexture);
+                float bgScale = std::min(scaleX, scaleY);
+                levelBgSprite->setScale({bgScale, 1.0f});
             } else levelBgSprite = std::nullopt;
 
             currentState = GameState::PLAYING;
