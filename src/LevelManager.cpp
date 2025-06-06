@@ -121,8 +121,23 @@ void LevelManager::update(float dt, sf::RenderWindow& window, bool isFullscreen)
                     if (m_loadingTexture.loadFromFile(imageToLoadPath)) {
                         m_loadingTexture.setSmooth(true);
                         m_loadingSprite.emplace(m_loadingTexture);
-                        float scaleX = static_cast<float>(window.getSize().x) / m_loadingTexture.getSize().x;
-                        float scaleY = static_cast<float>(window.getSize().y) / m_loadingTexture.getSize().y;
+                        // resize to fit window
+
+                        if (imageToLoadPath == m_generalLoadingScreenPath)
+                            m_loadingSprite->setTextureRect(sf::IntRect({0,0}, {1920,1080}));
+                        // resize to fit window
+                        float scaleX = 1.0f;
+                        float scaleY = 1.0f;
+                        if (isFullscreen){
+                            // fullscreen logic
+                            scaleX = 800.0f / m_loadingSprite->getTextureRect().size.x;
+                            scaleY = 600.0f / m_loadingSprite->getTextureRect().size.y;
+                        }
+                        else {
+                            // windowed logic
+                            scaleX = static_cast<float>(window.getSize().x) / m_loadingSprite->getTextureRect().size.x;
+                            scaleY = static_cast<float>(window.getSize().y) / m_loadingSprite->getTextureRect().size.y;
+                        }
                         m_loadingSprite->setScale({scaleX, scaleY});
                         m_loadingScreenReady = true;
                         std::cout << "LevelManager: Loaded loading screen image " << imageToLoadPath << std::endl;
