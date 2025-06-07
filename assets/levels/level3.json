@@ -232,8 +232,10 @@
     {
       "id" : 64,
       "type": "goal",
-      "position": { "x": 1250, "y": -714 },
-      "size": { "width": 64, "height": 96 }
+      "position": { "x": 1250, "y": -730 },  
+      "size": {"width": 80, "height":112},
+      "texture": "Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
       "id" : 1010,
