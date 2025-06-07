@@ -1457,7 +1457,7 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
                         std::cout << "ANIMATED DOOR! Frame "<< doorCurrentFrame 
                         << " [" << doorAnimFramesTopLeft[doorCurrentFrame].x << ","
                         << doorAnimFramesTopLeft[doorCurrentFrame].y << "]" << std::endl;
-                        animatedDoorTile->setTextureRect(sf::IntRect({doorAnimFramesTopLeft[doorCurrentFrame].x,
+                        animatedDoorTile->setTextureRect(sf::IntRect({ doorAnimFramesTopLeft[doorCurrentFrame].x,
                                                                     doorAnimFramesTopLeft[doorCurrentFrame].y},
                                                                     {doorWidth, doorHeight}));
                         doorCurrentFrame++;
