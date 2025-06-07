@@ -14,7 +14,7 @@ include(FetchContent)
 # SFML
 FetchContent_Declare(SFML
     GIT_REPOSITORY https://github.com/SFML/SFML.git
-    GIT_TAG 2.6.x 
+    GIT_TAG 3.0.1
     GIT_SHALLOW ON
 )
 # Optional: Control which SFML components are built if needed (usually defaults are fine)
@@ -42,6 +42,7 @@ add_executable(main # Use your project name if it's not 'main'
     src/CollisionSystem.cpp
     src/Optimizer.cpp
     src/LevelManager.cpp
+    src/SpriteManager.cpp
 )
     
 # Copy Assets to be next to your executable in the build/bin directory
@@ -56,24 +57,3 @@ target_include_directories(main PUBLIC
     ${rapidjson_SOURCE_DIR}/include # For RapidJSON headers
     # SFML include directories are automatically handled by linking SFML::xxx targets
 )
-
-# OpenAL DLL copying for Windows - this might still be tricky with FetchContent
-# SFML 2.6.x's own CMake setup when fetched might handle OpenAL differently
-# (e.g., build from source, link statically, or expect it from the system).
-# You might not need this custom command if SFML places it correctly or links it statically.
-if(WIN32)
-    # This assumes SFML still uses extlibs for a prebuilt OpenAL when fetched,
-    # which might not be the case for all configurations of SFML 2.6.x with FetchContent.
-    # It's safer to rely on SFML's build system to provide OpenAL correctly.
-    # If OpenAL is missing at runtime on Windows, then investigate how SFML 2.6.x (fetched)
-    # handles its OpenAL dependency (static link, separate DLL, or system provided).
-    message(STATUS "Windows: OpenAL32.dll handling depends on SFML's build configuration. Manual placement might be needed if not found at runtime.")
-    # Example: You might need to find where SFML puts its own OpenAL build (if any)
-    # Or ensure the system OpenAL is used and its DLL is available.
-    # The SFML_SOURCE_DIR/extlibs path might not be populated the same way.
-    add_custom_command(
-        TARGET main
-        COMMENT "Copy OpenAL DLL"
-        PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SFML_SOURCE_DIR}/extlibs/bin/$<IF:$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>,x64,x86>/openal32.dll $<TARGET_FILE_DIR:main>
-        VERBATIM)
-endif()

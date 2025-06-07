@@ -1,168 +1,310 @@
 {
   "levelName": "The Monochromatic Maze",
   "levelNumber": 3,
-  "playerStart": { "x": 1250, "y": 560 },
+  "playerStart": { "x": 1250, "y": 480 },
   "backgroundColor": { "r": 15, "g": 15, "b": 30 },
+  "backgroundTexture": "Level_3_background.png",
   "platforms": [
+    {
+      "id": -1,
+      "type": "solid",
+      "position": { "x": 0, "y": 560},
+      "size" : {"width": 32, "height": -1178 },
+      "texture": "solid platform.png"
+    },
+    {
+      "id": -2,
+      "type": "solid",
+      "position": { "x": 2500, "y": 592},
+      "size" : {"width": 32, "height": -1178 },
+      "texture":"solid platform.png"
+    },
     {
       "id": 0,
       "type": "solid",
       "position": { "x": 0, "y": 560 },
-      "size": { "width": 2500, "height": 32 }
-    },
-    {
-      "id": 1,
-      "type": "solid",
-      "position": { "x": 0, "y": 560},
-      "size" : {"width": 32, "height": -5000 }
-    },
-    {
-      "id": 2,
-      "type": "solid",
-      "position": { "x": 2500, "y": 592},
-      "size" : {"width": 32, "height": -5000 }
-    },
-    {
-      "id" : 3,
-      "type": "solid",
-      "position": {"x": 0, "y": 328},
-      "size": { "width": 2500, "height": 32 }
+      "size": { "width": 2500, "height": 32 },
+      "texture":"maze solid platform.png"
     },
     {
       "id": 11,
       "type": "portal",
       "position": { "x": 250, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 1,
-      "teleportOffset": { "x": 0, "y": -192 }
+      "portalID": 23,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
       "id": 12,
       "type": "portal",
       "position": { "x": 750, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 200,
-      "teleportOffset": { "x": 500, "y": 0 }
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
       "id": 13,
       "type": "portal",
       "position": { "x": 1250, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 100,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
       "id": 14,
       "type": "portal",
       "position": { "x": 1750, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 100,
-      "teleportOffset": { "x": 0, "y": -440 }
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
       "id": 15,
       "type": "portal",
       "position": { "x": 2250, "y": 464 },
       "size": { "width": 64, "height": 96 },
-      "portalID": 102,
-      "teleportOffset": { "x": 0, "y": 440 }
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9990,
+      "id" : 1,
       "type": "solid",
-      "position": { "x": 0, "y": 1000 },
-      "size": { "width": 1500, "height": 32 }
+      "position": { "x": 0, "y": 328 },
+      "size": { "width": 2500, "height": 32},
+      "texture":"solid platform.png"
     },
     {
-      "id": 9800,
-      "type": "trap",
-      "position": { "x": 0, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 21,
+      "type": "portal",
+      "position": { "x": 250, "y": 232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9801,
-      "type": "trap",
-      "position": { "x": 64, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 22,
+      "type": "portal",
+      "position": { "x": 750, "y": 232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9802,
-      "type": "trap",
-      "position": { "x": 128, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 23,
+      "type": "portal",
+      "position": { "x": 1250, "y": 232 },
+      "size": { "width": 64, "height": 96 },
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9803,
-      "type": "trap",
-      "position": { "x": 192, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 24,
+      "type": "portal",
+      "position": { "x": 1750, "y": 232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 33,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9804,
-      "type": "trap",
-      "position": { "x": 256, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 25,
+      "type": "portal",
+      "position": { "x": 2250, "y": 232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9805,
-      "type": "trap",
-      "position": { "x": 320, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id" : 2,
+      "type": "solid",
+      "position": { "x": 0, "y": 96 },
+      "size": { "width": 2500, "height": 32},
+      "texture":"solid platform.png"
     },
     {
-      "id": 9806,
-      "type": "trap",
-      "position": { "x": 384, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 31,
+      "type": "portal",
+      "position": { "x": 250, "y": 0 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9807,
-      "type": "trap",
-      "position": { "x": 448, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 32,
+      "type": "portal",
+      "position": { "x": 750, "y": 0},
+      "size": { "width": 64, "height": 96 },
+      "portalID": 43,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9808,
-      "type": "trap",
-      "position": { "x": 512, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 33,
+      "type": "portal",
+      "position": { "x": 1250, "y": 0 },
+      "size": { "width": 64, "height": 96 },
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9809,
-      "type": "trap",
-      "position": { "x": 576, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 34,
+      "type": "portal",
+      "position": { "x": 1750, "y": 0 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9810,
-      "type": "trap",
-      "position": { "x": 640, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 35,
+      "type": "portal",
+      "position": { "x": 2250, "y": 0 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9811,
-      "type": "trap",
-      "position": { "x": 704, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id" : 3,
+      "type": "solid",
+      "position": { "x": 0, "y": -136 },
+      "size": { "width": 2500, "height": 32},
+      "texture":"solid platform.png"
     },
     {
-      "id": 9812,
-      "type": "trap",
-      "position": { "x": 768, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 41,
+      "type": "portal",
+      "position": { "x": 250, "y": -232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9813,
-      "type": "trap",
-      "position": { "x": 832, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 42,
+      "type": "portal",
+      "position": { "x": 750, "y": -232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     },
     {
-      "id": 9814,
-      "type": "trap",
-      "position": { "x": 896, "y": 968 },
-      "size": { "width": 64, "height": 32 }
+      "id": 43,
+      "type": "portal",
+      "position": { "x": 1250, "y": -232 },
+      "size": { "width": 64, "height": 96 },
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
+    },
+    {
+      "id": 44,
+      "type": "portal",
+      "position": { "x": 1750, "y": -232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
+    },
+    {
+      "id": 45,
+      "type": "portal",
+      "position": { "x": 2250, "y": -232 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 53,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
+    },
+    {
+      "id" : 4,
+      "type": "solid",
+      "position": { "x": 0, "y": -386 },
+      "size": { "width": 2500, "height": 32},
+      "texture":"solid platform.png"
+    },
+    {
+      "id": 51,
+      "type": "portal",
+      "position": { "x": 250, "y": -482 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
+    },
+    {
+      "id": 52,
+      "type": "portal",
+      "position": { "x": 750, "y": -482 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
+    },
+    {
+      "id": 53,
+      "type": "portal",
+      "position": { "x": 1250, "y": -482 },
+      "size": { "width": 64, "height": 96 },
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
+    },
+    {
+      "id": 54,
+      "type": "portal",
+      "position": { "x": 1750, "y": -482 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 63,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
+    },
+    {
+      "id": 55,
+      "type": "portal",
+      "position": { "x": 2250, "y": -482 },
+      "size": { "width": 64, "height": 96 },
+      "portalID": 1010,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
+    },
+    {
+      "id" : 5,
+      "type": "solid",
+      "position": { "x": 0, "y": -618 },
+      "size": { "width": 2500, "height": 32},
+      "texture":"solid platform.png"
+    },
+    {
+      "id" : 63,
+      "type": "portal",
+      "position": { "x": 250, "y": -714 },
+      "size": { "width": 64, "height": 96 },
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
+    },
+    {
+      "id" : 64,
+      "type": "goal",
+      "position": { "x": 1250, "y": -730 },  
+      "size": {"width": 80, "height":112},
+      "texture": "Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
+    },
+    {
+      "id" : 1010,
+      "type": "portal",
+      "position": { "x": 1250, "y": 1999 },
+      "size": { "width": 64, "height": 96 },
+      "portalID" : 1003,
+      "texture":"Door.png",
+      "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     }
   ]
 }

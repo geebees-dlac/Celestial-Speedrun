@@ -1,35 +1,44 @@
-// TextureManager.hpp
-#ifndef TEXTURE_MANAGER_HPP
-#define TEXTURE_MANAGER_HPP
-
-#include <SFML/Graphics/Texture.hpp>
 #include <string>
-#include <map>
-#include <stdexcept>
+#include <iostream>
+#include <SFML/Graphics.hpp>
+#include "Tile.hpp"
 
+#ifndef SPRITE_MANAGER
+#define SPRITE_MANAGER
 
-class TextureManager {
-public:
-    TextureManager() = default;
+namespace sprites {
 
-    sf::Texture& getTexture(const std::string& texturePath) {
-        auto it = m_textures.find(texturePath);
-        if (it == m_textures.end()) {
-            sf::Texture texture;
-            if (!texture.loadFromFile(texturePath)) {
-                throw std::runtime_error("Nah brother your texture aint here: " + texturePath);
-            }
+    class SpriteManager{
+        #define DEFAULT_TEXTURE_FILEPATH "../assets/sprites/default.png"
+        #define TEXTURE_DIRECTORY "../assets/sprites/"
+        #define IMAGE_DIRECTORY "../assets/images/"
+        #define LEVEL_BG_ID "LEVEL_BG"
+
+        public:    
+            typedef enum {
+                NONE = 0,
+                LEFT = 1,
+                RIGHT = 2
+            } PlayerMoveDirection;
             
-            texture.setRepeated(true); 
-            texture.setSmooth(false); 
-            m_textures[texturePath] = texture;
-            return m_textures[texturePath];
-        }
-        return it->second;
-    }
+            SpriteManager();
 
-private:
-    std::map<std::string, sf::Texture> m_textures;
-};
+            const sf::Texture& getDefaultTexture() const {return defaultTexture;}
 
-#endif 
+            static std::vector<sf::Texture> LoadLevelTextures(std::vector<std::string>);
+
+            static sf::IntRect GetPlayerTextureUponMovement(PlayerMoveDirection direction);
+
+            static bool DoorAnimation(Tile& doorSprite);
+        private:
+            std::string textureDirectoryRelative = "../assets/sprites/";
+            std::string defaultTexturePath = textureDirectoryRelative + "default.png";
+
+            sf::Texture defaultTexture;
+
+    };
+}
+
+
+
+#endif

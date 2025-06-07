@@ -4,6 +4,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include "PhysicsTypes.hpp"
+#include "SpriteManager.hpp"
 
 namespace phys {
 
@@ -16,7 +17,8 @@ namespace phys {
             float height = 32.f,
             bodyType type = bodyType::platform,
             bool initiallyFalling = false,
-            const sf::Vector2f& surfaceVelocity = {0.f, 0.f}
+            const sf::Vector2f& surfaceVelocity = {0.f, 0.f},
+            std::string texturePath = DEFAULT_TEXTURE_FILEPATH
         );
 
         void setPortalID(unsigned int id) { m_portalID = id; }
@@ -33,6 +35,7 @@ namespace phys {
         bodyType getType() const { return m_type; }
         bool isFalling() const { return m_falling; }
         const sf::Vector2f& getSurfaceVelocity() const { return m_surfaceVelocity; }
+        std::string getTexturePath() const;
 
         void setPosition(const sf::Vector2f& position) { m_position = position; }
         void setFalling(bool falling) { m_falling = falling; }
@@ -49,6 +52,7 @@ namespace phys {
         sf::Vector2f m_surfaceVelocity;
         unsigned int m_portalID = 0;
         sf::Vector2f m_teleportOffset = {10.f, 0.f};
+        std::string m_texturePath;
     };
 
 }

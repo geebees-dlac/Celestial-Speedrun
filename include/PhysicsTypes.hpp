@@ -4,7 +4,7 @@
 
 namespace phys {
     enum class bodyType {
-        none = 0, //empty space
+        none = 0, 
         platform = 1, //phase through when approached by anywhere but the top
         conveyorBelt = 2, // moving block should make adjustable speeds later
         moving = 3, //moving platform
@@ -15,7 +15,7 @@ namespace phys {
         trap = 8,   //block that kills the player
         solid = 9,   //standard issue block  
         goal = 10, //block that ends the level
-        portal = 11 //block that phases the player to a block with the same id of and body type
+        portal = 11, //block that phases the player to a block with the same id of and body type
     };
 }
 #endif

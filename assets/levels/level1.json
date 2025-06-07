@@ -3,95 +3,184 @@
   "levelNumber": 1,
   "playerStart": { "x": 150, "y": 400 },
   "backgroundColor": { "r": 20, "g": 20, "b": 40 },
+  "backgroundTexture": "LEVEL_ONE_BACKGROUND.png",
   "platforms": [
     {
       "id": 0,
       "type": "solid",
       "position": { "x": 0, "y": 568 },
-      "size": { "width": 1000, "height": 32 }
+      "size": { "width": 1000, "height": 32 },
+      "animation": "static",
+      "texture": "solid platform.png",
+      "dimensions": {"top-left-x": 0, "top-left-y": 24, "bottom-right-x": 400, "bottom-right-y": 52}
     },
     {
       "id": 1,
       "type": "platform",
       "position": { "x": 500, "y": 410 },
-      "size": { "width": 96, "height": 8 }
+      "size": { "width": 96, "height": 64 },
+      "animation": "static",
+      "texture": "Desk.png",
+      "dimensions": {"top-left-x": 86, "top-left-y": 268, "bottom-right-x": 900, "bottom-right-y": 867 }
     },
     {
-      "id": 2, "type": "falling", "position": {"x": 700, "y": 320}, "size": {"width": 32, "height": 32}},
+      "id": 2, "type": "falling", "position": {"x": 800, "y": 320}, "size": {"width": 32, "height": 32},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}
+    },
     {
       "id": 3,
       "type": "platform",
-      "position": { "x": 900, "y": 230 },
-      "size": { "width": 96, "height": 8 }
+      "position": { "x": 1000, "y": 230 },
+      "size": { "width": 96, "height": 64 },
+      "texture": "Desk3.png",
+      "dimensions": {"top-left-x": 125, "top-left-y": 375, "bottom-right-x": 865, "bottom-right-y": 900}
     },
     {
-      "id": 4, "type": "falling", "position": {"x": 1100, "y": 140}, "size": {"width": 32, "height": 32}},
-    {
-      "id": 5,
-      "type": "platform",
-      "position": { "x": 1068, "y": 20 },
-      "size": { "width": 96, "height": 8 }
+      "id": 4, "type": "falling", "position": {"x": 1300, "y": 140}, "size": {"width": 32, "height": 32},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}
     },
     {
       "id": 6,
       "type": "conveyorBelt",
-      "position": { "x": 536, "y": 20 },
-      "size": { "width": 320, "height": 32 },
+      "position": { "x": -16, "y": 20 },
+      "size": { "width": 1056, "height": 32 },
       "surfaceVelocity": { "x": 70, "y": 0 }
     },
     {
       "id": 7,
-      "type": "platform",
-      "position": { "x": 536, "y": -80 },
-      "size": { "width": 96, "height": 8 }
+      "type": "solid",
+      "position": { "x": 0, "y": -64 },
+      "size": { "width": 1032, "height": 16 },
+      "texture":"solid platform.png"
     },
     {
-      "id": 8, "type": "falling", "position": {"x": 640, "y": -170}, "size": {"width": 32, "height": 32}},
+      "id": 8, "type": "falling", "position": {"x": 240, "y": -170}, "size": {"width": 32, "height": 32},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}},
     {
-      "id": 8, "type": "falling", "position": {"x": 740, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 9, "type": "falling", "position": {"x": 340, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}},
     {
-      "id": 10, "type": "vanishing", "position": {"x": 840, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 10, "type": "vanishing", "position": {"x": 440, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
     {
-      "id": 11, "type": "vanishing", "position": {"x": 940, "y": -260}, "size": {"width": 32, "height": 32}},
+      "id": 11, "type": "vanishing", "position": {"x": 540, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
     {
-      "id": 12, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32}},  
+      "id": 12, "type": "vanishing", "position": {"x": 640, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
     {
-      "id": 13,
+      "id": 13, "type": "vanishing", "position": {"x": 740, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
+    {
+      "id": 14, "type": "vanishing", "position": {"x": 840, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
+    {
+      "id": 15, "type": "vanishing", "position": {"x": 940, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },
+    {
+      "id": 16, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
+    {
+      "id": 17,
       "type": "solid",
       "position": { "x": 1250, "y": -260 },
-      "size": { "width": 192, "height": 32 }
+      "size": { "width": 192, "height": 32 },
+      "texture":"solid platform.png"
     },
     {
-      "id": 14,
+
+      "id": 18, "type": "vanishing", "position": {"x": 1040, "y": -260}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
+          {
+      "id": 19,
+      "type": "solid",
+      "position": { "x": 1250, "y": -260 },
+      "size": { "width": 192, "height": 32 },
+      "texture": "solid platform.png"
+    },
+    {
+      "id": 20,
       "type": "solid",
       "position": { "x": 1450, "y": -420 },
-      "size": { "width": 128, "height": 32 }
+      "size": { "width": 128, "height": 32 },
+      "texture": "solid platform.png"
     },
  
     {
-      "id": 14,
+      "id": 21,
       "type": "solid",
       "position": { "x": 1240, "y": -510 },
-      "size": { "width": 128, "height": 32 }
+      "size": { "width": 128, "height": 32 },
+      "texture": "solid platform.png"
     },
     {
-      "id": 16, "type": "vanishing", "position": {"x": 1040, "y": -510}, "size": {"width": 32, "height": 32}},  
-    {
-      "id": 17, "type": "vanishing", "position": {"x": 820, "y": -510}, "size": {"width": 32, "height": 32}},  
-    {
-      "id": 18, "type": "vanishing", "position": {"x": 600, "y": -510}, "size": {"width": 32, "height": 32}},  
+      "id": 22, "type": "vanishing", "position": {"x": 1040, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
 
     {
-      "id": 11,
+      "id": 23, "type": "falling", "position": {"x": 600, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}},  
+    {
+      "id": 24, "type": "vanishing", "position": {"x": 160, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
+    {
+      "id": 25, "type": "falling", "position": {"x": -280, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}},
+      {
+      "id": 26, "type": "vanishing", "position": {"x": -720, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
+    {
+      "id": 27, "type": "falling", "position": {"x": -1160, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "Skull.png",
+      "dimensions": {"top-left-x": 160, "top-left-y": 285, "bottom-right-x": 640, "bottom-right-y": 735}},    
+      {
+      "id": 28, "type": "vanishing", "position": {"x": -1600, "y": -510}, "size": {"width": 32, "height": 32},
+      "texture": "Paperstack.png",
+      "dimensions": {"top-left-x": 190, "top-left-y": 30, "bottom-right-x": 990, "bottom-right-y": 830}  
+    },  
+
+    {
+      "id": 29  ,
       "type": "solid",
-      "position": { "x": 252, "y": -510 },
-      "size": { "width": 128, "height": 32 }
+      "position": { "x": -2040, "y": -510 },
+      "size": { "width": 128, "height": 32 },
+      "texture": "solid platform.png"
     },
     {
-    "id": 100, 
+    "id": 30, 
     "type": "goal", 
-    "position": {"x": 252, "y": -574},  
-    "size": {"width": 64, "height": 64} 
+    "position": {"x": -2040, "y": -622},  
+    "size": {"width": 80, "height":112},
+    "texture": "Door.png",
+    "dimensions": {"top-left-x": 250, "top-left-y": 255, "bottom-right-x": 705, "bottom-right-y": 865}
     }
   ]
 }
