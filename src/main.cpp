@@ -92,7 +92,7 @@ sf::Sound sfxPlayer(defaultSoundBuffer);
 
 // --- Asset Paths ---
 const std::string FONT_PATH = "../assets/fonts/ARIALBD.TTF";
-const std::string IMG_MENU_BG = "../assets/images/mainmenu_bg.png";
+const std::string IMG_MENU_BG = "../assets/images/menu-bg-cropped.png";
 const std::string IMG_LOAD_GENERAL = "../assets/images/Loading-screen.png";
 const std::string IMG_LOAD_NEXT = "../assets/images/Loading-screen.png";
 const std::string IMG_LOAD_RESPAWN = "../assets/images/respawn.png";
@@ -616,8 +616,8 @@ else {
 
 
     // 4. GAME OVER SCREEN (Original layout is fine, remains unchanged)
-    setupTextUI(gameOverStatusText, "", 150.f, 36);
-    setupTextUI(gameOverOption1Text, "", 280.f);
+    setupTextUI(gameOverStatusText, "", 150.f, 36, -180);
+    setupTextUI(gameOverOption1Text, "", 280.f, 30, -82.5);
     setupTextUI(gameOverOption2Text, "Main Menu", 330.f);
 
     sf::Color defaultBtnColor = sf::Color::White;
@@ -1396,7 +1396,8 @@ if (menuMusic.getStatus() != sf::Music::Status::Playing && menuMusic.openFromFil
             break;
         case GameState::CREDITS:
             window.setView(uiView);
-              { sf::RectangleShape bg(LOGICAL_SIZE); bg.setFillColor(sf::Color(20,60,20)); window.draw(bg); }
+              { sf::RectangleShape bg(LOGICAL_SIZE); sf::Texture bgTxtr(IMG_MENU_BG); bg.setTexture(&bgTxtr); 
+                /*bg.setFillColor(sf::Color(20,60,20));*/ window.draw(bg); }
             creditsBackText.setFillColor(creditsBackText.getGlobalBounds().contains(currentMouseWorldUiPos) ? hoverBtnColor : defaultBtnColor);
             window.draw(creditsTitleText); window.draw(creditsNamesText); window.draw(creditsBackText);
             break;
