@@ -490,7 +490,7 @@ sf::Time frameTime_door = sf::seconds(secondsPerFrame_door);
     const float MAX_FALL_SPEED = 700.f;
     const sf::Time MAX_JUMP_HOLD_TIME = sf::seconds(0.18f);
     const float PLAYER_DEATH_Y_LIMIT = 2000.f;
-    const float SPRING_BOUNCE_VELOCITY = 2.0f * JUMP_INITIAL_VELOCITY;
+    const float SPRING_BOUNCE_VELOCITY = 3.0f * JUMP_INITIAL_VELOCITY;
     const float creditsScrollSpeed = 40.f;
 
     // --- Initialization ---

@@ -135,8 +135,10 @@ void LevelManager::update(float dt, sf::RenderWindow& window, bool isFullscreen)
                         }
                         else {
                             // windowed logic
-                            scaleX = static_cast<float>(window.getSize().x) / m_loadingSprite->getTextureRect().size.x;
-                            scaleY = static_cast<float>(window.getSize().y) / m_loadingSprite->getTextureRect().size.y;
+                            std::cout << "Adjusting background resolution to " << window.getSize().x
+                                        << "x" << window.getSize().y << std::endl;
+                            scaleX = static_cast<float>(window.getSize().x) / static_cast<float>(m_loadingSprite->getTextureRect().size.x);
+                            scaleY = static_cast<float>(window.getSize().y) / static_cast<float>(m_loadingSprite->getTextureRect().size.y);
                         }
                         m_loadingSprite->setScale({scaleX, scaleY});
                         m_loadingScreenReady = true;
