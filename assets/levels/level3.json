@@ -24,7 +24,7 @@
       "type": "solid",
       "position": { "x": 0, "y": 560 },
       "size": { "width": 2500, "height": 32 },
-      "texture":"solid platform.png"
+      "texture":"maze solid platform.png"
     },
     {
       "id": 11,
