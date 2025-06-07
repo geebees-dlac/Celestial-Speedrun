@@ -10,7 +10,9 @@
       "type": "solid",
       "position": { "x": 0, "y": 568 },
       "size": { "width": 1000, "height": 32 },
-      "animation": "static"
+      "animation": "static",
+      "texture": "solid platform.png",
+      "dimensions": {"top-left-x": 0, "top-left-y": 24, "bottom-right-x": 400, "bottom-right-y": 52}
     },
     {
       "id": 1,
@@ -50,7 +52,8 @@
       "id": 7,
       "type": "solid",
       "position": { "x": 0, "y": -64 },
-      "size": { "width": 1032, "height": 16 }
+      "size": { "width": 1032, "height": 16 },
+      "texture":"solid platform.png"
     },
     {
       "id": 8, "type": "falling", "position": {"x": 240, "y": -170}, "size": {"width": 32, "height": 32},
@@ -99,7 +102,8 @@
       "id": 17,
       "type": "solid",
       "position": { "x": 1250, "y": -260 },
-      "size": { "width": 192, "height": 32 }
+      "size": { "width": 192, "height": 32 },
+      "texture":"solid platform.png"
     },
     {
 
@@ -112,14 +116,14 @@
       "type": "solid",
       "position": { "x": 1250, "y": -260 },
       "size": { "width": 192, "height": 32 },
-      "texture": "../assets/sprites/default.png"
+      "texture": "solid platform.png"
     },
     {
       "id": 20,
       "type": "solid",
       "position": { "x": 1450, "y": -420 },
       "size": { "width": 128, "height": 32 },
-      "texture": "../assets/sprites/default.png"
+      "texture": "solid platform.png"
     },
  
     {
@@ -127,7 +131,7 @@
       "type": "solid",
       "position": { "x": 1240, "y": -510 },
       "size": { "width": 128, "height": 32 },
-      "texture": "../assets/sprites/default.png"
+      "texture": "solid platform.png"
     },
     {
       "id": 22, "type": "vanishing", "position": {"x": 1040, "y": -510}, "size": {"width": 32, "height": 32},
@@ -167,7 +171,8 @@
       "id": 29  ,
       "type": "solid",
       "position": { "x": -2040, "y": -510 },
-      "size": { "width": 128, "height": 32 }
+      "size": { "width": 128, "height": 32 },
+      "texture": "solid platform.png"
     },
     {
     "id": 30, 

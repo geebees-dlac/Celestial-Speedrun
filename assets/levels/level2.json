@@ -8,7 +8,8 @@
       "id": 0,
       "type": "solid",
       "position": { "x": -10, "y": 32 },
-      "size": { "width": 500, "height": 32 }
+      "size": { "width": 500, "height": 32 },
+      "texture": "solid platform.png"
     },
     {
       "id": 1,
@@ -407,7 +408,8 @@
       "id": 100,
       "type": "platform",
       "position": {"x":9000, "y": -4450},
-      "size":{"width": 400, "height": 32}
+      "size":{"width": 400, "height": 32},
+      "texture":"solid platform.png"
     },
     {
       "id": 101,

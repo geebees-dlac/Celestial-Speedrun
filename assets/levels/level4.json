@@ -9,7 +9,8 @@
       "id": 0,
       "type": "solid",
       "position": { "x": -20, "y": 32 },
-      "size": { "width": 100, "height": 32 }
+      "size": { "width": 100, "height": 32 },
+      "texture": "solid platform.png"
     },
     {
       "id": 1, 
@@ -21,49 +22,57 @@
         "distance": 800,
         "cycleDuration": 15.0, 
         "initialDirection": -1
-      }
+      },
+      "texture": "Cloud.png"
     },
     {
       "id": 2,
       "type": "solid",
       "position": {"x": 1150, "y": -96},
-      "size": {"width": 300, "height": 32}
+      "size": {"width": 300, "height": 32},
+      "texture":"solid platform.png"
     },
     {
       "id": 3,
       "type": "vanishing",
       "position": {"x": 950, "y": -246},
-      "size": {"width": 100, "height": 32}
+      "size": {"width": 100, "height": 32},
+      "texture":"Cloud.png"
     },
     {
       "id": 4,
       "type": "vanishing",
       "position": {"x": 750, "y": -296},
-      "size": {"width": 100, "height": 32}
+      "size": {"width": 100, "height": 32},
+      "texture":"Cloud.png"
     },
     {
       "id": 5,
       "type": "vanishing",
       "position": {"x": 550, "y": -346},
-      "size": {"width": 100, "height": 32}
+      "size": {"width": 100, "height": 32},
+      "texture":"Cloud.png"
     },
     {
       "id": 6,
       "type": "vanishing",
       "position": {"x": 350, "y": -371},
-      "size": {"width": 100, "height": 32}
+      "size": {"width": 100, "height": 32},
+      "texture":"Cloud.png"
     },
     {
       "id": 7,
       "type": "vanishing",
       "position": {"x": 150, "y": -500},
-      "size": {"width": 100, "height": 32}
+      "size": {"width": 100, "height": 32},
+      "texture":"Cloud.png"
     },
     {
       "id": 8,
       "type": "solid",
       "position": {"x": -300, "y":-525},
-      "size": {"width": 300, "height": 32}
+      "size": {"width": 300, "height": 32},
+      "texture":"solid platform.png"
     },
     {
       "id": 10,
@@ -75,7 +84,8 @@
         "distance": 500,
         "cycleDuration": 10.0, 
         "initialDirection": -1
-      }
+      },
+      "texture":"Cloud.png"
     },
     {
       "id": 11,
@@ -87,13 +97,15 @@
         "distance": 1000,
         "cycleDuration": 6.5,
         "initialDirection": 1
-      }
+      },
+      "texture":"Cloud.png"
     },
     {
       "id": 12,
       "type": "platform",
       "position": {"x": 100, "y": -1900},
-      "size": {"width": 500, "y": 32}
+      "size": {"width": 500, "y": 32},
+      "texture":"solid platform.png"
     },
     {
       "id": 13,
